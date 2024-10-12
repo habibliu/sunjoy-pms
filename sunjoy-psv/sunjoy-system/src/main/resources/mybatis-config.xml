@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <!-- 这里可以配置 MyBatis 的各种设置 -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+    <typeAliases>
+        <typeAlias alias="SysDictData" type="com.sunjoy.system.api.domain.SysDictData"/>
+        <typeAlias alias="SysDept" type="com.sunjoy.system.api.domain.SysDept"/>
+        <typeAlias alias="SysDictType" type="com.sunjoy.system.api.domain.SysDictType"/>
+        <typeAlias alias="SysLogininfor" type="com.sunjoy.system.api.domain.SysLogininfor"/>
+        <typeAlias alias="SysOperLog" type="com.sunjoy.system.api.domain.SysOperLog"/>
+        <typeAlias alias="SysRole" type="com.sunjoy.system.api.domain.SysRole"/>
+        <typeAlias alias="SysUser" type="com.sunjoy.system.api.domain.SysUser"/>
+        <typeAlias alias="SysMenu" type="com.sunjoy.system.domain.SysMenu"/>
+        <typeAlias alias="SysNotice" type="com.sunjoy.system.domain.SysNotice"/>
+        <typeAlias alias="SysPost" type="com.sunjoy.system.domain.SysPost"/>
+        <typeAlias alias="SysRoleDept" type="com.sunjoy.system.domain.SysRoleDept"/>
+        <typeAlias alias="SysRoleMenu" type="com.sunjoy.system.domain.SysRoleMenu"/>
+        <typeAlias alias="SysUserPost" type="com.sunjoy.system.domain.SysUserPost"/>
+        <typeAlias alias="SysUserRole" type="com.sunjoy.system.domain.SysUserRole"/>
+    </typeAliases>
+</configuration>

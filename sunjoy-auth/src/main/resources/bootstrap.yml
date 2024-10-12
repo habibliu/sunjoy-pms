@@ -1,0 +1,28 @@
+# Tomcat
+server: 
+  port: 8081
+
+# Spring
+spring:
+  application:
+    # 应用名称
+    name: sunjoy-auth
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      username: nacos
+      password: nacos
+      discovery:
+        # 服务注册地址
+        server-addr: 192.168.2.5:30908
+        namespace: sunjoy
+      config:
+        namespace: sunjoy
+        # 配置中心地址
+        server-addr: 192.168.2.5:30908
+        # 配置文件格式
+        file-extension: yaml
+        # 共享配置
+        shared-configs:
+          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
