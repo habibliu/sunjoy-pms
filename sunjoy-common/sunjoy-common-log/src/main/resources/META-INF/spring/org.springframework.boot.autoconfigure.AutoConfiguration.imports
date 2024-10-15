@@ -1,0 +1,2 @@
+com.sunjoy.common.log.service.AsyncLogService
+com.sunjoy.common.log.aspect.LogAspect

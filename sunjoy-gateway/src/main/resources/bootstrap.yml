@@ -3,7 +3,7 @@ server:
   port: 8080
 
 # Spring
-spring: 
+spring:
   application:
     # 应用名称
     name: sunjoy-gateway
@@ -12,33 +12,25 @@ spring:
     active: dev
   cloud:
     nacos:
+      username: nacos
+      password: nacos
       discovery:
         # 服务注册地址
         server-addr: 192.168.2.5:30908
-        namespace: sunjoy
-        #ip: 192.168.2.1
-        #networkInterface: VMnet8
+        namespace: dev
+        group: sunjoy-pms
       config:
         # 配置中心地址
         server-addr: 192.168.2.5:30908
-        namespace: sunjoy
+        namespace: dev
+        group: sunjoy-pms
         # 配置文件格式
         file-extension: yaml
         # 共享配置
         shared-configs:
-          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
-    sentinel:
-      # 取消控制台懒加载
-      eager: true
-      transport:
-        # 控制台地址
-        dashboard: 127.0.0.1:8718
-      # nacos配置持久化
-      datasource:
-        ds1:
-          nacos:
-            server-addr: http://192.168.2.5:30908/
-            dataId: sentinel-sunjoy-gateway
-            groupId: DEFAULT_GROUP
-            data-type: json
-            rule-type: gw-flow
+          - data-id: application.${spring.cloud.nacos.config.file-extension}
+            refresh: true
+            group: sunjoy-pms
+          - data-id: sunjoy-gateway.${spring.cloud.nacos.config.file-extension}
+            refresh: true
+            group: sunjoy-pms

@@ -3,7 +3,7 @@ server:
   port: 8204
 
 # Spring
-spring: 
+spring:
   application:
     # 应用名称
     name: sunjoy-file
@@ -17,13 +17,17 @@ spring:
       discovery:
         # 服务注册地址
         server-addr: 192.168.2.5:30908
-        namespace: sunjoy
+        namespace: dev
+        group: sunjoy-pms
       config:
         # 配置中心地址
         server-addr: 192.168.2.5:30908
-        namespace: sunjoy
+        namespace: dev
+        group: sunjoy-pms
         # 配置文件格式
         file-extension: yaml
         # 共享配置
         shared-configs:
-          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
+          - data-id: application.${spring.cloud.nacos.config.file-extension}
+            refresh: true
+            group: sunjoy-pms

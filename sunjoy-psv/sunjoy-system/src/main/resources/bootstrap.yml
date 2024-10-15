@@ -3,7 +3,7 @@ server:
   port: 8201
 
 # Spring
-spring: 
+spring:
   application:
     # 应用名称
     name: sunjoy-system
@@ -13,22 +13,25 @@ spring:
     active: dev
   cloud:
     nacos:
-      username: nacos
-      password: nacos
+      username: habib
+      password: habib
       discovery:
         # 服务注册地址
         server-addr: 192.168.2.5:30908
-        namespace: sunjoy
-        #ip: 192.168.1.27
+        namespace: dev
+        group: sunjoy-pms
       config:
         # 配置中心地址
         server-addr: 192.168.2.5:30908
-        namespace: sunjoy
+        namespace: dev
+        group: sunjoy-pms
         # 配置文件格式
         file-extension: yaml
-        # 共享配置
+        # 共享配置,以下两个可以不配置，是springboot默认的规则配置
         shared-configs:
-          - application-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
-          - sunjoy-system-${spring.profiles.active}.${spring.cloud.nacos.config.file-extension}
-
-
+          - data-id: application.${spring.cloud.nacos.config.file-extension}
+            refresh: true
+            group: sunjoy-pms
+          - data-id: sunjoy-system.${spring.cloud.nacos.config.file-extension}
+            refresh: true
+            group: sunjoy-pms

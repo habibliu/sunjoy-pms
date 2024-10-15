@@ -1,22 +1,20 @@
 package com.sunjoy.auth;
 
+import com.sunjoy.common.security.annotation.EnableRyFeignClients;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import com.sunjoy.common.security.annotation.EnableRyFeignClients;
 
 
 /**
  * 认证授权中心
- * 
+ *
  * @author sunjoy
  */
 @EnableRyFeignClients
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class })
-public class SunjoyAuthApplication
-{
-    public static void main(String[] args)
-    {
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
+public class SunjoyAuthApplication {
+    public static void main(String[] args) {
         SpringApplication.run(SunjoyAuthApplication.class, args);
         System.out.println("(♥◠‿◠)ﾉﾞ  认证授权中心启动成功   ლ(´ڡ`ლ)ﾞ  \n" +
                 " .-------.       ____     __        \n" +

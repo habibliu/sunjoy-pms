@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,14 +16,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
-        <spring-boot.version>2.7.18</spring-boot.version>
-        <spring-cloud.version>2021.0.8</spring-cloud.version>
-        <spring-cloud-alibaba.version>2021.0.5.0</spring-cloud-alibaba.version>
-        <spring-framework.version>5.3.33</spring-framework.version>
+        <spring-boot.version>3.0.2</spring-boot.version>
+        <spring-cloud.version>2022.0.0</spring-cloud.version>
+        <spring-cloud-alibaba.version>2022.0.0.0</spring-cloud-alibaba.version>
+        <spring-framework.version>6.0.2</spring-framework.version>
         <spring-boot-admin.version>2.7.15</spring-boot-admin.version>
         <tobato.version>1.27.2</tobato.version>
         <kaptcha.version>2.3.3</kaptcha.version>
-        <pagehelper.boot.version>2.0.0</pagehelper.boot.version>
+        <pagehelper.boot.version>2.1.0</pagehelper.boot.version>
         <druid.version>1.2.23</druid.version>
         <dynamic-ds.version>4.2.0</dynamic-ds.version>
         <commons.io.version>2.13.0</commons.io.version>
@@ -32,8 +32,10 @@
         <jjwt.version>0.9.1</jjwt.version>
         <minio.version>8.2.2</minio.version>
         <poi.version>4.1.2</poi.version>
-        <springdoc.version>1.6.9</springdoc.version>
+        <springdoc.version>1.7.0</springdoc.version>
         <transmittable-thread-local.version>2.14.4</transmittable-thread-local.version>
+        <jaxb-api.version>2.3.1</jaxb-api.version>
+        <jakarta.servlet-api.version>6.0.0</jakarta.servlet-api.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -224,14 +226,36 @@
                 <version>${sunjoy.version}</version>
             </dependency>
 
+            <!-- https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api -->
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxb-api.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api -->
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${javax.servlet-api.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>${jakarta.servlet-api.version}</version>
+                <scope>provided</scope>
+            </dependency>
+
+
         </dependencies>
     </dependencyManagement>
 
     <modules>
-       <!-- <module>sunjoy-auth</module>
-        <module>sunjoy-gateway</module>
-        <module>sunjoy-visual</module>
-        <module>sunjoy-modules</module>-->
+        <!--
+         <module>sunjoy-visual</module>
+         <module>sunjoy-modules</module>-->
+
         <module>sunjoy-api</module>
         <module>sunjoy-common</module>
         <module>sunjoy-auth</module>
@@ -258,7 +282,11 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
                 </configuration>
+                <version>3.9.0</version>
             </plugin>
         </plugins>
         <pluginManagement>
