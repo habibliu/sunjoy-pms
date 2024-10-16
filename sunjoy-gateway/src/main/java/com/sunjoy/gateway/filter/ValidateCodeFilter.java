@@ -6,6 +6,7 @@ import com.sunjoy.common.core.utils.ServletUtils;
 import com.sunjoy.common.core.utils.StringUtils;
 import com.sunjoy.gateway.config.properties.CaptchaProperties;
 import com.sunjoy.gateway.service.ValidateCodeService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -24,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author sunjoy
  */
+@Slf4j
 @Component
 public class ValidateCodeFilter extends AbstractGatewayFilterFactory<Object> {
     private final static String[] VALIDATE_URL = new String[]{"/auth/login", "/auth/register"};
@@ -61,7 +63,9 @@ public class ValidateCodeFilter extends AbstractGatewayFilterFactory<Object> {
         };
     }
 
+
     private String resolveBodyFromRequest(ServerHttpRequest serverHttpRequest) {
+
         // 获取请求体
         Flux<DataBuffer> body = serverHttpRequest.getBody();
         AtomicReference<String> bodyRef = new AtomicReference<>();

@@ -13,10 +13,7 @@ import com.sunjoy.common.security.utils.SecurityUtils;
 import com.sunjoy.system.api.model.LoginUser;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * token 控制
@@ -24,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author sunjoy
  */
 @RestController
+@RequestMapping("/auth")
 public class TokenController {
     @Autowired
     private TokenService tokenService;
@@ -31,7 +29,7 @@ public class TokenController {
     @Autowired
     private SysLoginService sysLoginService;
 
-    @PostMapping("login")
+    @PostMapping("/login")
     public R<?> login(@RequestBody LoginBody form) {
         // 用户登录
         LoginUser userInfo = sysLoginService.login(form.getUsername(), form.getPassword());
@@ -39,7 +37,7 @@ public class TokenController {
         return R.ok(tokenService.createToken(userInfo));
     }
 
-    @DeleteMapping("logout")
+    @DeleteMapping("/logout")
     public R<?> logout(HttpServletRequest request) {
         String token = SecurityUtils.getToken(request);
         if (StringUtils.isNotEmpty(token)) {
@@ -52,7 +50,7 @@ public class TokenController {
         return R.ok();
     }
 
-    @PostMapping("refresh")
+    @PostMapping("/refresh")
     public R<?> refresh(HttpServletRequest request) {
         LoginUser loginUser = tokenService.getLoginUser(request);
         if (StringUtils.isNotNull(loginUser)) {
@@ -63,7 +61,7 @@ public class TokenController {
         return R.ok();
     }
 
-    @PostMapping("register")
+    @PostMapping("/register")
     public R<?> register(@RequestBody RegisterBody registerBody) {
         // 用户注册
         sysLoginService.register(registerBody.getUsername(), registerBody.getPassword());
