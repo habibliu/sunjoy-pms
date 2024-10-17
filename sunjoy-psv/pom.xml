@@ -16,6 +16,8 @@
     <modules>
         <module>sunjoy-file</module>
         <module>sunjoy-system</module>
+        <module>sunjoy-gen</module>
+        <module>sunjoy-job</module>
 
     </modules>
 
