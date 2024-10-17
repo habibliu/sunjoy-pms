@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <settings>
+        <!-- 这里可以配置 MyBatis 的各种设置 -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+    </settings>
+    <typeAliases>
+        <typeAlias alias="SysJob" type="com.sunjoy.job.domain.SysJob"/>
+        <typeAlias alias="SysJobLog" type="com.sunjoy.job.domain.SysJobLog"/>
+    </typeAliases>
+</configuration>
