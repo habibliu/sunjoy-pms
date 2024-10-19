@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="sunjoy-common-codegen" />
+        <module name="sunjoy-api-system" />
+        <module name="sunjoy-common-seata" />
+        <module name="sunjoy-file" />
+        <module name="sunjoy-gen" />
+        <module name="sunjoy-common-swagger" />
+        <module name="sunjoy-auth" />
+        <module name="sunjoy-common-sensitive" />
+        <module name="sunjoy-common-redis" />
+        <module name="sunjoy-park-model" />
+        <module name="sunjoy-gateway" />
+        <module name="sunjoy-monitor" />
+        <module name="sunjoy-common-datascope" />
+        <module name="sunjoy-common-security" />
+        <module name="sunjoy-common-datasource" />
+        <module name="sunjoy-job" />
+        <module name="sunjoy-system" />
+        <module name="sunjoy-common-log" />
+        <module name="sunjoy-common-core" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="sunjoy-swagger" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="sunjoy" options="-parameters" />
+      <module name="sunjoy-api" options="-parameters" />
+      <module name="sunjoy-api-system" options="-parameters" />
+      <module name="sunjoy-auth" options="-parameters" />
+      <module name="sunjoy-common" options="-parameters" />
+      <module name="sunjoy-common-codegen" options="-parameters" />
+      <module name="sunjoy-common-core" options="-parameters" />
+      <module name="sunjoy-common-datascope" options="-parameters" />
+      <module name="sunjoy-common-datasource" options="-parameters" />
+      <module name="sunjoy-common-log" options="-parameters" />
+      <module name="sunjoy-common-redis" options="-parameters" />
+      <module name="sunjoy-common-seata" options="-parameters" />
+      <module name="sunjoy-common-security" options="-parameters" />
+      <module name="sunjoy-common-sensitive" options="-parameters" />
+      <module name="sunjoy-common-swagger" options="-parameters" />
+      <module name="sunjoy-file" options="-parameters" />
+      <module name="sunjoy-gateway" options="-parameters" />
+      <module name="sunjoy-gen" options="-parameters" />
+      <module name="sunjoy-job" options="-parameters" />
+      <module name="sunjoy-monitor" options="-parameters" />
+      <module name="sunjoy-park-model" options="-parameters" />
+      <module name="sunjoy-parking" options="-parameters" />
+      <module name="sunjoy-psv" options="-parameters" />
+      <module name="sunjoy-swagger" options="-parameters" />
+      <module name="sunjoy-system" options="-parameters" />
+      <module name="sunjoy-visual" options="-parameters" />
+    </option>
+  </component>
+</project>

@@ -22,3 +22,12 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+/sunjoy-common/sunjoy-common-core/target/
+/sunjoy-common/sunjoy-common-datascope/target/
+/sunjoy-common/sunjoy-common-datasource/target/
+/sunjoy-common/sunjoy-common-log/target/
+/sunjoy-common/sunjoy-common-redis/target/
+/sunjoy-common/sunjoy-common-seata/target/
+/sunjoy-common/sunjoy-common-security/target/
+/sunjoy-common/sunjoy-common-sensitive/target/
+/sunjoy-common/sunjoy-common-swagger/target/

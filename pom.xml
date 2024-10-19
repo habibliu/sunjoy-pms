@@ -20,7 +20,7 @@
         <spring-cloud.version>2022.0.0</spring-cloud.version>
         <spring-cloud-alibaba.version>2022.0.0.0</spring-cloud-alibaba.version>
         <spring-framework.version>6.0.2</spring-framework.version>
-        <spring-boot-admin.version>2.7.15</spring-boot-admin.version>
+        <spring-boot-admin.version>3.0.2</spring-boot-admin.version>
         <tobato.version>1.27.2</tobato.version>
         <kaptcha.version>2.3.3</kaptcha.version>
         <pagehelper.boot.version>2.1.0</pagehelper.boot.version>
@@ -36,6 +36,8 @@
         <transmittable-thread-local.version>2.14.4</transmittable-thread-local.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <jakarta.servlet-api.version>6.0.0</jakarta.servlet-api.version>
+        <com.baomidou.version>3.5.0</com.baomidou.version>
+        <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -156,6 +158,18 @@
                 <scope>provided</scope>
             </dependency>
 
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>${com.baomidou.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-boot-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+
             <!-- 核心模块 -->
             <dependency>
                 <groupId>com.sunjoy</groupId>
@@ -261,6 +275,9 @@
         <module>sunjoy-auth</module>
         <module>sunjoy-gateway</module>
         <module>sunjoy-psv</module>
+        <module>sunjoy-visual</module>
+        <module>sunjoy-parking</module>
+        <module>sunjoy-common/sunjoy-common-codegen</module>
 
     </modules>
     <packaging>pom</packaging>
