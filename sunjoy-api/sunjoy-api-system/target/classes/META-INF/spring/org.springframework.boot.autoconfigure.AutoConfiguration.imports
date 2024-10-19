@@ -1,0 +1,3 @@
+com.sunjoy.system.api.factory.RemoteUserFallbackFactory
+com.sunjoy.system.api.factory.RemoteLogFallbackFactory
+com.sunjoy.system.api.factory.RemoteFileFallbackFactory

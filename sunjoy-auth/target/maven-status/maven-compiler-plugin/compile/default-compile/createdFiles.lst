@@ -1,0 +1,7 @@
+com\sunjoy\auth\form\LoginBody.class
+com\sunjoy\auth\form\RegisterBody.class
+com\sunjoy\auth\service\SysLoginService.class
+com\sunjoy\auth\service\SysPasswordService.class
+com\sunjoy\auth\SunjoyAuthApplication.class
+com\sunjoy\auth\controller\TokenController.class
+com\sunjoy\auth\service\SysRecordLogService.class

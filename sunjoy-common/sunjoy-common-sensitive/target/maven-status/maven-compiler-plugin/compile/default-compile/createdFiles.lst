@@ -1,0 +1,4 @@
+com\sunjoy\common\sensitive\enums\DesensitizedType.class
+com\sunjoy\common\sensitive\utils\DesensitizedUtil.class
+com\sunjoy\common\sensitive\annotation\Sensitive.class
+com\sunjoy\common\sensitive\config\SensitiveJsonSerializer.class

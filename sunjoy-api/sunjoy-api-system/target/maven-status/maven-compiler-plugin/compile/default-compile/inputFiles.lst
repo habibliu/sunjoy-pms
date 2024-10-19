@@ -1,0 +1,15 @@
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\domain\SysUser.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\model\LoginUser.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\domain\SysFile.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\domain\SysOperLog.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\RemoteFileService.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\factory\RemoteUserFallbackFactory.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\RemoteLogService.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\domain\SysDept.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\domain\SysDictType.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\factory\RemoteLogFallbackFactory.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\domain\SysRole.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\domain\SysLogininfor.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\RemoteUserService.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\domain\SysDictData.java
+D:\workspace\sunjoy-pms\sunjoy-api\sunjoy-api-system\src\main\java\com\sunjoy\system\api\factory\RemoteFileFallbackFactory.java

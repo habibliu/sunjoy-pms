@@ -1,0 +1,9 @@
+com\sunjoy\file\service\MinioSysFileServiceImpl.class
+com\sunjoy\file\config\ResourcesConfig.class
+com\sunjoy\file\service\LocalSysFileServiceImpl.class
+com\sunjoy\file\utils\FileUploadUtils.class
+com\sunjoy\file\config\MinioConfig.class
+com\sunjoy\file\SunjoyFileApplication.class
+com\sunjoy\file\controller\SysFileController.class
+com\sunjoy\file\service\ISysFileService.class
+com\sunjoy\file\service\FastDfsSysFileServiceImpl.class

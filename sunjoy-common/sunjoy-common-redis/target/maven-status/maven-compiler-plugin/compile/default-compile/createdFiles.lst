@@ -1,0 +1,3 @@
+com\sunjoy\common\redis\configure\FastJson2JsonRedisSerializer.class
+com\sunjoy\common\redis\configure\RedisConfig.class
+com\sunjoy\common\redis\service\RedisService.class
