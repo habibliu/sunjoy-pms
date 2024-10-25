@@ -12,7 +12,7 @@
     <artifactId>sunjoy-parking</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>sunjoy-park-model</module>
+        <module>sunjoy-parkmodel</module>
     </modules>
 
     <properties>

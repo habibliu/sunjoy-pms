@@ -14,10 +14,11 @@ import java.util.List;
 
 /**
  * 获取body请求数据（解决流不能重复读取问题）
+ * 已经废弃，改用GlobalRequestCacheFilter
  *
  * @author sunjoy
  */
-
+@Deprecated
 public class CacheRequestFilter extends AbstractGatewayFilterFactory<CacheRequestFilter.Config> {
     public CacheRequestFilter() {
         super(Config.class);
