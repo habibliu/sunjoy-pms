@@ -43,7 +43,7 @@ com.sunjoy
 │       └── sunjoy-job                                 // 定时任务 [8203]
 │       └── sunjoy-file                                // 文件服务 [8204]                              //     
 ├── sunjoy-parking                                     // 车场业务模块
-│       └── sunjoy-park-master                          // 车场模型 [8301]
+│       └── sunjoy-park-model                          // 车场模型 [8301]
 │       └── sunjoy-park-station                        // 车场岗亭 [8302]
 │       └── sunjoy-park-charging                       // 车场收费 [8303]
 │       └── sunjoy-park-device                         // 车场设备 [8304]

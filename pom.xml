@@ -277,7 +277,6 @@
         <module>sunjoy-psv</module>
         <module>sunjoy-visual</module>
         <module>sunjoy-parking</module>
-        <module>sunjoy-common/sunjoy-common-codegen</module>
 
     </modules>
     <packaging>pom</packaging>
