@@ -1,7 +1,11 @@
 <template>
-  <el-dialog :title="title" :visible.sync="dialogVisible" width="1440px" append-to-body>
+  <el-dialog
+    :title="localTitle"
+    :visible.sync="dialogVisible"
+    width="1440px"
+    append-to-body
+  >
     <div class="app-container">
-    
       <el-row :gutter="20">
         <el-col :span="8">
           <el-tag>设备信息</el-tag>
@@ -31,7 +35,6 @@
                     :options="opuOptions"
                     :show-count="true"
                     placeholder="请选择经营单位"
-                    
                   />
                 </el-form-item>
               </el-col>
@@ -73,15 +76,12 @@
             <el-row>
               <el-col :span="24">
                 <el-form-item label="设备功能" prop="functions">
-                  <el-checkbox-group
-                    v-model="checkedCities"
-                    @change="handleCheckedCitiesChange"
-                  >
+                  <el-checkbox-group v-model="checkFunctions">
                     <el-checkbox
-                      v-for="city in cities"
-                      :label="city"
-                      :key="city"
-                      >{{ city }}</el-checkbox
+                      v-for="dict in dict.type.pms_device_functions"
+                      :label="dict.value"
+                      :key="dict.value"
+                      >{{ dict.label }}</el-checkbox
                     >
                   </el-checkbox-group>
                 </el-form-item>
@@ -117,9 +117,7 @@
         </el-col>
         <el-col :span="16">
           <el-tag>设备参数</el-tag>
-          <DeviceParam
-            
-          />
+          <DeviceParam />
         </el-col>
       </el-row>
       <el-row :gutter="20">
@@ -134,30 +132,42 @@
   </el-dialog>
 </template>
 <script>
-import { addDevice,updateDevice } from "@/api/parking/device";
-import {opuTreeSelect} from '@/api/parking/park';
+import { addDevice, updateDevice, getDevice } from "@/api/parking/device";
+import { opuTreeSelect } from "@/api/parking/park";
 import Treeselect from "@riophae/vue-treeselect";
-import DeviceParam  from "./DeviceParam.vue";
-const cityOptions = ['放行', '显示', '广播', '感应','二维码展示','广告'];
+import DeviceParam from "./DeviceParam.vue";
+
 export default {
   props: {
-    dialogVisible: Boolean,
-    title: String
+    dialogVisible: {
+      type: Boolean,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: false,
+    },
+    deviceId: {
+      type: Number,
+      required: true,
+    },
   },
   name: "DeviceForm",
-  dicts: ["sys_normal_disable"],
-  components: { Treeselect,DeviceParam },
-  
+  dicts: ["sys_normal_disable", "pms_device_functions"],
+  components: { Treeselect, DeviceParam },
+
   data() {
     return {
-        
-        checkedCities: ['上海', '北京'],
-        cities: cityOptions,
-        form:{},
+      //设备功能
+      checkFunctions: [],
+      //创建title副本
+      localTitle: this.title,
 
-        opuOptions: [],
-        // 表单校验
-        rules: {
+      form: {},
+
+      opuOptions: [],
+      // 表单校验
+      rules: {
         deviceName: [
           { required: true, message: "设备名称不能为空", trigger: "blur" },
           {
@@ -182,70 +192,94 @@ export default {
     };
   },
   methods: {
-     /** 查询部门下拉树结构 */
-     getOpuTree() {
-     
-        opuTreeSelect().then(response => {
+    /** 查询部门下拉树结构 */
+    getOpuTree() {
+      opuTreeSelect().then((response) => {
         this.opuOptions = response.data;
-        });
+      });
     },
-    handleCheckedCitiesChange(value) {
-      let checkedCount = value.length;
-      this.checkAll = checkedCount === this.cities.length;
-      this.isIndeterminate =
-        checkedCount > 0 && checkedCount < this.cities.length;
-    },
+
     // 表单重置
     reset() {
       this.form = {
         status: "0",
       };
-      checkedCities=[];
+      this.checkFunctions = [];
       this.resetForm("form");
     },
-    submitForm(){
-        this.$refs["form"].validate(valid => {
-            if (valid) {
-                let submitObj=this.form;
-                if (submitObj.deviceId != undefined) {
-                    updateDevice(submitObj).then(response => {
-                    this.$modal.msgSuccess("修改成功");
-                    //this.open = false;
-                    closeForm("submit");
-                    
-                    });
-                } else {
-                    
-                    addDevice(submitObj).then(response => {
-                    this.$modal.msgSuccess("新增成功");
-                    //this.open = false;
-                    loseForm("submit");
-                    
-                    });
-                }
-            }
+    submitForm() {
+      this.$refs["form"].validate((valid) => {
+        if (valid) {
+          let submitObj = this.form;
+          
+          submitObj.functions=this.checkFunctions.join(',');
+       
+          let that = this;
+          if (submitObj.deviceId != undefined) {
+            updateDevice(submitObj).then((response) => {
+              this.$modal.msgSuccess("修改成功");
+              //this.open = false;
+              that.closeForm("submit");
+            });
+          } else {
+            addDevice(submitObj).then((response) => {
+              this.$modal.msgSuccess("新增成功");
+              //this.open = false;
+              that.closeForm("submit");
+            });
+          }
+        }
+      });
+    },
+    cancel() {
+      let that = this;
+      this.$modal
+        .confirm("是否确认放弃保存？确认后表单修改的数据会丢失!")
+        .then(function () {
+          that.closeForm("cancel");
         });
     },
-    cancel(){
-        this.$modal.confirm("是否确认删除当前行的通道？").then(function () {
-            closeForm("cancel");        
-        });
+    closeForm(type) {
+      this.reset();
+      this.$emit("close", type);
     },
-    closeForm(type){
-        this.reset();
-        this.$emit('close',type);
-
-    }
   },
-  created() {
-    this.getOpuTree();
-  }
+
+  watch: {
+    deviceId: {
+      handler(newVal, oldVal) {
+        console.log("Device prop changed:", newVal);
+        if ( Number.isNaN(newVal)||newVal == undefined ) {
+          return;
+        }
+
+        let that = this;
+        getDevice(newVal).then((response) => {
+          
+          that.form = response.data;
+          const functions=response.data.functions;
+          that.checkFunctions=response.data.functions.split(',');
+          console.log('that.checkFunctions:'+that.checkFunctions);
+        });
+        
+        // 处理 device prop 变化的逻辑
+      },
+      deep: true, // 如果需要深度监听，特别是对象
+    },
+    dialogVisible: {
+      handler(newVal, oldVal) {
+        if (newVal) {
+          this.getOpuTree();
+        }
+      },
+    },
+  },
 };
 </script>
 
 <style scoped>
-.dialog-footer{
-  display: flex; 
+.dialog-footer {
+  display: flex;
   justify-content: flex-end;
 }
 </style>

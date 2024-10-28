@@ -72,17 +72,17 @@
               style="width: 200px"
             >
               <el-option
-                v-for="dict in dict.type.sys_normal_disable"
+                v-for="dict in dict.type.pms_device_functions"
                 :key="dict.value"
                 :label="dict.label"
                 :value="dict.value"
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="状态" prop="status">
+          <el-form-item label="设备状态" prop="status">
             <el-select
               v-model="queryParams.status"
-              placeholder="车场状态"
+              placeholder="设备状态"
               clearable
               style="width: 100px"
             >
@@ -213,6 +213,7 @@
             prop="opuName"
             v-if="columns[2].visible"
             :show-overflow-tooltip="true"
+            :formatter="opuNameFormatter"
           />
           <el-table-column
             label="设备型号"
@@ -229,6 +230,7 @@
             prop="functions"
             v-if="columns[4].visible"
             width="120"
+            :formatter="formatFunctions"
           />
           <el-table-column
             label="供应商"
@@ -279,13 +281,13 @@
             width="160"
             class-name="small-padding fixed-width"
           >
-            <template slot-scope="scope" v-if="scope.row.parkId !== 1">
+            <template slot-scope="scope" v-if="scope.row.deviceId !== 1">
               <el-button
                 size="mini"
                 type="text"
                 icon="el-icon-edit"
                 @click="handleUpdate(scope.row)"
-                v-hasPermi="['parking:park:edit']"
+                v-hasPermi="['parking:device:edit']"
                 >修改</el-button
               >
               <el-button
@@ -293,7 +295,7 @@
                 type="text"
                 icon="el-icon-delete"
                 @click="handleDelete(scope.row)"
-                v-hasPermi="['parking:park:remove']"
+                v-hasPermi="['parking:device:remove']"
                 >删除</el-button
               >
             </template>
@@ -309,8 +311,8 @@
         />
       </el-col>
     </el-row>
-    <!--表单弹出框-->
-    <DeviceForm :dialogVisible="open" :title="title" @close="closeForm"/>
+    <!--设备表单弹出框-->
+    <DeviceForm :deviceId="selectDeviceId" :dialogVisible="open" :title="title" @close="closeForm"/>
   </div>
 </template>
 
@@ -318,19 +320,17 @@
 import {
   listDevice,
   getDevice,
-  addDevice,
-  updateDevice,
-  delDevice,
-  getDeviceLaneList,
+  delDevice
 } from "@/api/parking/device";
 import { opuTreeSelect } from "@/api/parking/park";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import DeviceForm  from "./DeviceForm.vue";
+import {selectDictLabels} from '@/utils/ruoyi'
 
 export default {
   name: "ParkDevice",
-  dicts: ["sys_normal_disable", "pms_park_type"],
+  dicts: ["sys_normal_disable", "pms_device_functions"],
   components: { Treeselect, DeviceForm },
   data() {
     return {
@@ -344,8 +344,11 @@ export default {
       single: true,
       // 非多个禁用
       multiple: true,
+      ids: [],
       // 车场表格数据
       deviceList: null,
+
+      selectDeviceId:  NaN,
 
       // 日期范围
       dateRange: [],
@@ -407,6 +410,8 @@ export default {
           { required: true, message: "经营单位不能为空", trigger: "blur" },
         ],
       },
+      //格式化代码开始
+      
     };
   },
   watch: {
@@ -466,7 +471,7 @@ export default {
 
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map((item) => item.parkId);
+      this.ids = selection.map((item) => item.deviceId);
       this.single = selection.length != 1;
       this.multiple = !selection.length;
     },
@@ -476,24 +481,24 @@ export default {
       this.form = {
         status: "0",
       };
+      this.selectDeviceId=NaN,
       this.resetForm("form");
     },
     /** 响应新增按钮操作 */
     handleAdd() {
       //this.currentComponent = DeviceForm; // 动态加载组件
+      this.selectDeviceId=NaN;
       this.open = true;
-      this.title = "添加设备";
+      this.title = "添加设备资料";
     
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
-      const deviceId = row.deviceId || this.ids;
-      getDevice(deviceId).then((response) => {
-        this.form = response.data;
-        this.open = true;
-        this.title = "修改车场";
-      });
+      this.selectDeviceId=row.deviceId || this.ids[0];
+      this.open = true;
+      this.title = "修改设备资料";
+      
     },
 
     // 取消按钮
@@ -586,6 +591,30 @@ export default {
     submitFileForm() {
       this.$refs.upload.submit();
     },
+    //---格式化代码开始
+    formatFunctions(row, column){
+     
+       return this.selectDictLabels(this.dict.type.pms_device_functions,row.functions,',');
+
+    },
+    opuNameFormatter(row, column){
+        if(this.opuOptions && this.opuOptions.length>0){
+            return this.recuTree(this.opuOptions[0],row.opuId);
+        }
+         
+    },
+    recuTree(node,value) {
+        
+        if(node.id==value){
+          
+            return node.label;
+        }
+        
+        for (const child of node.children) {
+            return this.recuTree(child,value); // 递归遍历子节点
+        }
+       
+    }
   },
 };
 </script>

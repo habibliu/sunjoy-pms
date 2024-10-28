@@ -149,7 +149,7 @@
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column label="车场编号" align="center" key="parkId" prop="parkId" v-if="columns[0].visible" width="100"/>
           <el-table-column label="车场名称" align="center" key="parkName" prop="parkName" v-if="columns[1].visible" :show-overflow-tooltip="true" />
-          <el-table-column label="经营单位" align="center" key="deptName" prop="opuName" v-if="columns[2].visible" :show-overflow-tooltip="true" />
+          <el-table-column label="经营单位" align="center" key="opuName" prop="opuName" v-if="columns[2].visible" :show-overflow-tooltip="true" />
           <el-table-column label="负责人" align="center" key="leader" prop="leader" v-if="columns[3].visible" :show-overflow-tooltip="true"/>
           <el-table-column label="手机号码" align="center" key="phone" prop="phone" v-if="columns[4].visible" width="120" />
           <el-table-column label="位置" align="center" key="region" prop="region" v-if="columns[5].visible" width="200" :formatter="formatRegion"/>
@@ -304,7 +304,7 @@
         </el-col>
         <el-col :span="16">
           <el-tag>车场通道</el-tag>
-          <ParkLane  @change="onLaneListchange" :laneList="laneList"/>
+          <ParkLane  @change="onLaneListchange" :laneList="laneList" :deviceList="deviceList"/>
 
         </el-col>
       </el-row>
@@ -350,6 +350,8 @@ export default {
       multiple: true,
       // 车场表格数据
       parkList: null,
+
+      ids:[],
       
       // 日期范围
       dateRange: [],
@@ -374,6 +376,8 @@ export default {
       dateRange: [],
       //通道列表
       laneList:[],
+      //设备列表
+      deviceList:[],
 
       // 查询参数
       queryParams: {
