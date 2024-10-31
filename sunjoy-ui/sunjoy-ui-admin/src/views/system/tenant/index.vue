@@ -1,12 +1,12 @@
 <template>
   <div class="app-container">
     <el-row :gutter="20">
-      <!--部门数据-->
+      <!--行政区数据-->
       <el-col :span="4" :xs="24">
         <div class="head-container">
           <el-input
-            v-model="opuName"
-            placeholder="请输入经营单位名称"
+            v-model="regionName"
+            placeholder="快速定位，请输入区域名称"
             clearable
             size="small"
             prefix-icon="el-icon-search"
@@ -15,19 +15,19 @@
         </div>
         <div class="head-container">
           <el-tree
-            :data="opuOptions"
-            :props="defaultProps"
+            :data="regionOptions"
+            :props="regionProps"
             :expand-on-click-node="false"
             :filter-node-method="filterNode"
             ref="tree"
-            node-key="id"
-            default-expand-all
+            node-key="regionId"
+            :default-expand-all="false"
             highlight-current
             @node-click="handleNodeClick"
           />
         </div>
       </el-col>
-      <!--车场查询表单-->
+      <!--租户查询表单-->
       <el-col :span="20" :xs="24">
         <el-form
           :model="queryParams"
@@ -37,10 +37,19 @@
           v-show="showSearch"
           label-width="68px"
         >
-          <el-form-item label="车场名称" prop="parkName">
+          <el-form-item label="租户名称" prop="tenantName">
             <el-input
-              v-model="queryParams.parkName"
-              placeholder="请输入车场名称"
+              v-model="queryParams.tenantName"
+              placeholder="请输入租户名称"
+              clearable
+              style="width: 200px"
+              @keyup.enter.native="handleQuery"
+            />
+          </el-form-item>
+          <el-form-item label="租户代码" prop="tenantCode">
+            <el-input
+              v-model="queryParams.tenantCode"
+              placeholder="请输入租户代码"
               clearable
               style="width: 200px"
               @keyup.enter.native="handleQuery"
@@ -49,7 +58,7 @@
           <el-form-item label="负责人" prop="leader">
             <el-input
               v-model="queryParams.leader"
-              placeholder="请输入车场负责人姓名"
+              placeholder="请输入租户负责人姓名"
               clearable
               style="width: 200px"
               @keyup.enter.native="handleQuery"
@@ -67,7 +76,7 @@
           <el-form-item label="状态" prop="status">
             <el-select
               v-model="queryParams.status"
-              placeholder="车场状态"
+              placeholder="租户状态"
               clearable
               style="width: 100px"
             >
@@ -112,7 +121,7 @@
               icon="el-icon-plus"
               size="mini"
               @click="handleAdd"
-              v-hasPermi="['parking:park:add']"
+              v-hasPermi="['system:tenant:add']"
               >新增</el-button
             >
           </el-col>
@@ -124,7 +133,7 @@
               size="mini"
               :disabled="single"
               @click="handleUpdate"
-              v-hasPermi="['parking:park:edit']"
+              v-hasPermi="['system:tenant:update']"
               >修改</el-button
             >
           </el-col>
@@ -136,7 +145,7 @@
               size="mini"
               :disabled="multiple"
               @click="handleDelete"
-              v-hasPermi="['parking:park:remove']"
+              v-hasPermi="['system:tenant:remove']"
               >删除</el-button
             >
           </el-col>
@@ -147,7 +156,7 @@
               icon="el-icon-upload2"
               size="mini"
               @click="handleImport"
-              v-hasPermi="['parking:park:import']"
+              v-hasPermi="['system:tenant:import']"
               >导入</el-button
             >
           </el-col>
@@ -158,7 +167,7 @@
               icon="el-icon-download"
               size="mini"
               @click="handleExport"
-              v-hasPermi="['parking:park:export']"
+              v-hasPermi="['system:tenant:export']"
               >导出</el-button
             >
           </el-col>
@@ -171,31 +180,31 @@
 
         <el-table
           v-loading="loading"
-          :data="parkList"
+          :data="tenantList"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column
-            label="车场编号"
+            label="租户编号"
             align="center"
-            key="parkId"
-            prop="parkId"
+            key="tenantId"
+            prop="tenantId"
             v-if="columns[0].visible"
             width="100"
           />
           <el-table-column
-            label="车场名称"
+            label="租户名称"
             align="center"
-            key="parkName"
-            prop="parkName"
+            key="tenantName"
+            prop="tenantName"
             v-if="columns[1].visible"
             :show-overflow-tooltip="true"
           />
           <el-table-column
-            label="经营单位"
+            label="租户代码"
             align="center"
-            key="opuName"
-            prop="opuName"
+            key="tenantCode"
+            prop="tenantCode"
             v-if="columns[2].visible"
             :show-overflow-tooltip="true"
           />
@@ -216,29 +225,31 @@
             width="120"
           />
           <el-table-column
+            label="注册日期"
+            align="center"
+            key="registrationDate"
+            prop="registrationDate"
+            v-if="columns[6].visible"
+            width="200"
+            :formatter="formatRegisterDate"
+          />
+          <el-table-column
             label="位置"
             align="center"
             key="region"
             prop="region"
             v-if="columns[5].visible"
-            width="200"
+            width="180"
             :formatter="formatRegion"
           />
+
           <el-table-column
-            label="分类"
+            label="详细地址"
             align="center"
-            key="parkType"
-            prop="parkType"
-            v-if="columns[6].visible"
-            width="80"
-          />
-          <el-table-column
-            label="总车位数"
-            align="center"
-            key="totalLots"
-            prop="totalLots"
+            key="address"
+            prop="address"
             v-if="columns[7].visible"
-            width="100"
+            width="200"
           />
           <el-table-column
             label="状态"
@@ -262,6 +273,7 @@
             prop="createTime"
             v-if="columns[9].visible"
             width="160"
+            :formatter="formatCreateTime"
           >
             <template slot-scope="scope">
               <span>{{ parseTime(scope.row.createTime) }}</span>
@@ -273,7 +285,7 @@
             width="160"
             class-name="small-padding fixed-width"
           >
-            <template slot-scope="scope" v-if="scope.row.parkId !== 1">
+            <template slot-scope="scope" v-if="scope.row.tenantId !== 1">
               <el-button
                 size="mini"
                 type="text"
@@ -304,61 +316,54 @@
       </el-col>
     </el-row>
 
-    <!-- 添加或修改车场对话框 -->
+    <!-- 添加或修改租户对话框 -->
     <el-dialog
       :title="title"
       :visible.sync="open"
-      width="1440px"
+      width="1024px"
       append-to-body
     >
       <el-row :gutter="20">
-        <el-col :span="8">
-          <el-tag>车场信息</el-tag>
+        <el-col :span="24">
           <el-form
             ref="form"
             :model="form"
             :rules="rules"
-            label-width="80px"
-            class="parkForm"
+            label-width="100px"
+            class="tenantForm"
           >
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="经营单位" prop="opuId">
-                  <treeselect
-                    v-model="form.opuId"
-                    :options="opuOptions"
-                    :show-count="true"
-                    placeholder="请选择经营单位"
-                    @select="onChangeOpu"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="车场名称" prop="parkName">
+            <el-row >
+              <el-col :span="12">
+                <el-form-item label="租户名称" prop="tenantName">
                   <el-input
-                    v-model="form.parkName"
+                    v-model="form.tenantName"
                     placeholder="请输入用户昵称"
                     maxlength="30"
                   />
                 </el-form-item>
               </el-col>
-            </el-row>
-
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="负责人" prop="leader">
+              <el-col :span="12">
+                <el-form-item label="租户代码" prop="tenantCode">
                   <el-input
-                    v-model="form.leader"
-                    placeholder="请输入车场负责人"
-                    maxlength="50"
+                    v-model="form.tenantCode"
+                    placeholder="请选择租户代码"
+                    maxlength="10"
                   />
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-row class="parkRow">
-              <el-col :span="24">
+
+            <el-row >
+              <el-col :span="12">
+                <el-form-item label="负责人" prop="leader">
+                  <el-input
+                    v-model="form.leader"
+                    placeholder="请输入租户负责人"
+                    maxlength="50"
+                  />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
                 <el-form-item label="手机号码" prop="phone">
                   <el-input
                     v-model="form.phone"
@@ -369,18 +374,17 @@
               </el-col>
             </el-row>
 
-            <el-row class="parkRow">
-              <el-col :span="24">
+            <el-row >
+              <el-col :span="12">
                 <el-form-item label="区域" prop="region">
                   <RegionSelect
                     v-model="form.region"
+                    :region="form.region"
                     @change="onRegionChange"
                   />
                 </el-form-item>
               </el-col>
-            </el-row>
-            <el-row class="parkRow">
-              <el-col :span="24">
+              <el-col :span="12">
                 <el-form-item label="详细地址" prop="address">
                   <el-input
                     v-model="form.address"
@@ -391,10 +395,23 @@
               </el-col>
             </el-row>
 
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="车场类型">
-                  <el-select v-model="form.parkType" placeholder="请选择l">
+            <el-row >
+              <el-col :span="12">
+                <el-form-item label="注册日期" prop="address">
+                  <el-date-picker
+                    v-model="form.registrationDate"
+                    type="date"
+                    placeholder="选择日期"
+                  >
+                  </el-date-picker>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="支付方式">
+                  <el-select
+                    v-model="form.paymentMethod"
+                    placeholder="请选择支付方式"
+                  >
                     <el-option
                       v-for="dict in dict.type.pms_park_type"
                       :key="dict.value"
@@ -405,23 +422,14 @@
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="总车位数" prop="totalLots">
-                  <el-input
-                    v-model="form.totalLots"
-                    placeholder="请输入车场总的车位数量"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
+            <el-row > </el-row>
 
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="状态">
-                  <el-radio-group v-model="form.status">
+            <el-row >
+              <el-col :span="12">
+                <el-form-item label="结算周期">
+                  <el-radio-group v-model="form.settlementCycle">
                     <el-radio
-                      v-for="dict in dict.type.sys_normal_disable"
+                      v-for="dict in dict.type.sys_settlement_cycle"
                       :key="dict.value"
                       :label="dict.value"
                       >{{ dict.label }}</el-radio
@@ -429,8 +437,41 @@
                   </el-radio-group>
                 </el-form-item>
               </el-col>
+              <el-col :span="12">
+                <el-form-item label="结算日">
+                  <el-slider
+                    v-model="form.settlementDate"
+                    show-input
+                    show-stops
+                    :min="1"
+                    :max="31"
+                   
+                  />
+                  
+                </el-form-item>
+              </el-col>
             </el-row>
-            <el-row class="parkRow">
+            <el-row>
+              <el-col :span="12">
+                <el-form-item label="微信帐号" prop="wechatAccoiunt">
+                  <el-input
+                    v-model="form.wechatAccoiunt"
+                    placeholder="微信帐号"
+                    maxlength="11"
+                  />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="支付宝帐号" prop="alipayAccount">
+                  <el-input
+                    v-model="form.alipayAccount"
+                    placeholder="支付宝帐号"
+                    maxlength="11"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row >
               <el-col :span="24">
                 <el-form-item label="备注">
                   <el-input
@@ -442,14 +483,6 @@
               </el-col>
             </el-row>
           </el-form>
-        </el-col>
-        <el-col :span="16">
-          <el-tag>车场通道</el-tag>
-          <ParkLane
-            @change="onLaneListchange"
-            :opuId="form.opuId"
-            :parkId="form.parkId"
-          />
         </el-col>
       </el-row>
       <el-row :gutter="20">
@@ -465,26 +498,23 @@
 </template>
 
 <script>
-import {
-  listPark,
-  getPark,
-  addPark,
-  updatePark,
-  delPark,
-  changeParkStatus,
-  opuTreeSelect,
-} from "@/api/parking/park";
+import { getPark, addPark, updatePark, delPark } from "@/api/parking/park";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import RegionSelect from "@/components/RegionSelect";
-import ParkLane from "./LaneList";
+import { getRegionTree, listTenant } from "@/api/system/tenant";
+import dayjs from "dayjs";
 
 export default {
   name: "Park",
-  dicts: ["sys_normal_disable", "pms_park_type"],
-  components: { Treeselect, RegionSelect, ParkLane },
+  dicts: ["sys_normal_disable", "sys_settlement_cycle"],
+  components: { Treeselect, RegionSelect },
   data() {
     return {
+      regionProps: {
+        children: "children", // 子节点属性名
+        label: "regionName", // 标签属性名
+      },
       // 遮罩层
       loading: false,
       // 总条数
@@ -495,8 +525,8 @@ export default {
       single: true,
       // 非多个禁用
       multiple: true,
-      // 车场表格数据
-      parkList: null,
+      // 租户表格数据
+      tenantList: null,
 
       ids: [],
 
@@ -509,60 +539,57 @@ export default {
       title: undefined,
       //弹出框是否显示
       open: false,
-
+       //区域树属性调整，适应区域
       defaultProps: {
         children: "children",
-        label: "label",
+        label: "regionName",
       },
-      // 经营单位树选项
-      opuOptions: undefined,
-      //经营单位名称，用于过滤
-      opuName: undefined,
+      // 地区树选项
+      regionOptions: undefined,
+      //区域名称，用于过滤
+      regionName: undefined,
 
       // 日期范围
       dateRange: [],
-      //通道列表
-      laneList: [],
-      //设备列表
-      deviceList: [],
-
+      
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        parkName: undefined,
+        tenantName: undefined,
         phonenNmber: undefined,
         leader: undefined,
-        opuId: undefined,
+        tenantCode: undefined,
+        region: undefined,
         status: undefined,
       },
 
       // 列信息
       columns: [
-        { key: 0, label: `车场编号`, visible: true },
-        { key: 1, label: `车场名称`, visible: true },
-        { key: 2, label: `经营单位`, visible: true },
+        { key: 0, label: `租户编号`, visible: true },
+        { key: 1, label: `租户名称`, visible: true },
+        { key: 2, label: `租户代码`, visible: true },
         { key: 3, label: `负责人`, visible: true },
         { key: 4, label: `手机号码`, visible: true },
         { key: 5, label: `区域`, visible: true },
-        { key: 6, label: `分类`, visible: true },
-        { key: 7, label: `总车位数`, visible: true },
+        { key: 6, label: `注册日期`, visible: true },
+        { key: 7, label: `详细地址`, visible: true },
         { key: 8, label: `状态`, visible: true },
         { key: 9, label: `创建时间`, visible: true },
       ],
       // 表单校验
       rules: {
-        parkName: [
-          { required: true, message: "车场名称不能为空", trigger: "blur" },
+        tenantName: [
+          { required: true, message: "租户名称不能为空", trigger: "blur" },
           {
             min: 2,
             max: 20,
-            message: "车场名称长度必须介于 2 和 20 之间",
+            message: "租户名称长度必须介于 2 和 20 之间",
             trigger: "blur",
           },
         ],
-        opuId: [
-          { required: true, message: "经营单位不能为空", trigger: "blur" },
+        tenantCode: [
+          { required: true, message: "租户代码不能为空", trigger: "blur" },
         ],
 
         phone: [
@@ -576,59 +603,49 @@ export default {
     };
   },
   watch: {
-    // 根据名称筛选部门树
-    deptName(val) {
+    // 根据名称筛选区域树
+    regionName(val) {
       this.$refs.tree.filter(val);
     },
   },
   created() {
-    this.getOpuTree();
+    this.initRegionTree();
     this.getList();
   },
   methods: {
-    //接收通道的变化信息
-    onLaneListchange(list) {
-      this.laneList = list;
+    formatRegion(region) {
+
     },
 
-    formatRegion(region) {},
-    //组opuName赋值
-    onChangeOpu(selectedOpu) {
-      this.form.opuName = selectedOpu.label;
-    },
     //为this.form.region构建格式化数据
-    onRegionChange(regions) {
-      this.form.region = regions.province;
-      if (regions.city != undefined) {
-        this.form.region = this.form.region + ":" + regions.city;
-      }
-      if (regions.district != undefined) {
-        this.form.region = this.form.region + ":" + regions.district;
-      }
+    onRegionChange(region) {
+    
+      this.form.region = region.regionId;
+      
     },
-    /** 查询车场列表 */
+    /** 查询租户列表 */
     getList() {
       this.loading = true;
-      listPark(this.queryParams).then((response) => {
-        this.parkList = response.rows;
+      listTenant(this.queryParams).then((response) => {
+        this.tenantList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
     },
-    /** 查询部门下拉树结构 */
-    getOpuTree() {
-      opuTreeSelect().then((response) => {
-        this.opuOptions = response.data;
+    /** 查询区域下拉树结构 */
+    initRegionTree() {
+      getRegionTree().then((response) => {
+        this.regionOptions = response.data;
       });
     },
     // 筛选节点
     filterNode(value, data) {
       if (!value) return true;
-      return data.label.indexOf(value) !== -1;
+      return data.regionName.indexOf(value) !== -1;
     },
     // 节点单击事件
     handleNodeClick(data) {
-      this.queryParams.opuId = data.id;
+      this.queryParams.region = data.regionId;
       this.handleQuery();
     },
     /** 搜索按钮操作 */
@@ -640,14 +657,14 @@ export default {
     resetQuery() {
       this.dateRange = [];
       this.resetForm("queryForm");
-      this.queryParams.opuId = undefined;
+      this.queryParams.tenantCode = undefined;
       this.$refs.tree.setCurrentKey(null);
       this.handleQuery();
     },
 
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map((item) => item.parkId);
+      this.ids = selection.map((item) => item.tenantId);
       this.single = selection.length != 1;
       this.multiple = !selection.length;
     },
@@ -655,36 +672,35 @@ export default {
     // 表单重置
     reset() {
       this.form = {
-        parkId: NaN,
+        tenantId: NaN,
         status: "0",
       };
       this.resetForm("form");
-      this.laneList = [];
+      
     },
     /** 响应新增按钮操作 */
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加车场";
+      this.title = "添加租户";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
-      const parkIds = row.parkId || this.ids;
-      
-      if (parkIds) {
-        let parkId= NaN;
-        if (Array.isArray(parkIds)) {
-          parkId = parkIds[0];
+      const tenantIds = row.tenantId || this.ids;
+
+      if (tenantIds) {
+        let tenantId = NaN;
+        if (Array.isArray(tenantIds)) {
+          tenantId = tenantIds[0];
         } else {
-          parkId = parkIds;
+          tenantId = tenantIds;
         }
 
-        getPark(parkId).then((response) => {
-          
+        getPark(tenantId).then((response) => {
           this.form = response.data;
           this.open = true;
-          this.title = "修改车场";
+          this.title = "修改租户";
         });
       }
     },
@@ -700,17 +716,15 @@ export default {
       this.$refs["form"].validate((valid) => {
         if (valid) {
           let submitObj = this.form;
-          if (this.laneList.length > 0) {
-            submitObj.laneList = this.laneList;
-          }
-          if (this.form.parkId != undefined) {
+         
+          if (this.form.tenantId != undefined) {
             updatePark(submitObj).then((response) => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            addPark(submitObj).then((response) => {
+            addTenant(submitObj).then((response) => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -721,11 +735,11 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const parkIds = row.parkId || this.ids;
+      const tenantIds = row.tenantId || this.ids;
       this.$modal
-        .confirm('是否确认删除用户编号为"' + parkIds + '"的数据项？')
+        .confirm('是否确认删除租户编号为"' + tenantIds + '"的数据项？')
         .then(function () {
-          return delPark(parkIds);
+          return delPark(tenantIds);
         })
         .then(() => {
           this.getList();
@@ -745,7 +759,7 @@ export default {
     },
     /** 导入按钮操作 */
     handleImport() {
-      this.upload.title = "车场导入";
+      this.upload.title = "租户导入";
       this.upload.open = true;
     },
     /** 下载模板操作 */
@@ -778,12 +792,19 @@ export default {
     submitFileForm() {
       this.$refs.upload.submit();
     },
+    //--------------------------格式化代码
+    formatRegisterDate(row) {
+      return dayjs(row.registrationDate).format("YYYY年MM月DD日"); // 自定义格式
+    },
+    formatCreateTime(row) {
+      return dayjs(row.createTime).format("YYYY-MM-DD HH:MM:ss"); // 自定义格式
+    },
   },
 };
 </script>
 
 <style scoped>
-.parkForm .parkRow {
+.tenantForm .parkRow {
   margin-bottom: 10px; /* 调整行间距 */
 }
 .dialog-footer {

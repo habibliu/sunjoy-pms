@@ -110,6 +110,16 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+
+                <configuration>
+                    <source>16</source> <!-- 设置为需要的版本 -->
+                    <target>16</target>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 

@@ -231,3 +231,23 @@ export function tansParams(params) {
 export function blobValidate(data) {
   return data.type !== 'application/json'
 }
+
+export function findTreeLabelById(treeList, matchId) {
+  for (const node of treeList) {
+    // 检查当前节点的 id 是否匹配
+    if (node.id === matchId) {
+      return node.label; // 返回匹配节点的 label 值
+    }
+
+    // 如果当前节点有子节点，则递归搜索子节点
+    if (node.children && Array.isArray(node.children)) {
+      const result = this.findTreeLabelById(node.children, matchId);
+      if (result) {
+        return result; // 如果在子节点中找到，返回结果
+      }
+    }
+  }
+
+  // 如果没有找到匹配的节点，返回 null 或 undefined
+  return null;
+}

@@ -86,7 +86,7 @@ public class PmsParkServiceImpl implements IPmsParkService {
             lane.setOpuId(park.getOpuId());
             //保存通道
             if (lane.getLaneId() == null) {
-                Long laneId = this.pmsLaneService.ceate(lane);
+                Long laneId = this.pmsLaneService.create(lane);
                 //保存车场通道关系
                 saveParkLaneRelation(park.getParkId(), laneId, lanePojo.getDirection());
             } else {

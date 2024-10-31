@@ -312,21 +312,22 @@
       </el-col>
     </el-row>
     <!--设备表单弹出框-->
-    <DeviceForm :deviceId="selectDeviceId" :dialogVisible="open" :title="title" @close="closeForm"/>
+    <DeviceForm
+      :deviceId="selectDeviceId"
+      :dialogVisible="open"
+      :title="title"
+      @close="closeForm"
+    />
   </div>
 </template>
 
 <script>
-import {
-  listDevice,
-  getDevice,
-  delDevice
-} from "@/api/parking/device";
+import { listDevice, getDevice, delDevice } from "@/api/parking/device";
 import { opuTreeSelect } from "@/api/parking/park";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
-import DeviceForm  from "./DeviceForm.vue";
-import {selectDictLabels} from '@/utils/ruoyi'
+import DeviceForm from "./DeviceForm.vue";
+
 
 export default {
   name: "ParkDevice",
@@ -348,7 +349,7 @@ export default {
       // 车场表格数据
       deviceList: null,
 
-      selectDeviceId:  NaN,
+      selectDeviceId: NaN,
 
       // 日期范围
       dateRange: [],
@@ -411,7 +412,6 @@ export default {
         ],
       },
       //格式化代码开始
-      
     };
   },
   watch: {
@@ -434,6 +434,7 @@ export default {
     getList() {
       this.loading = true;
       listDevice(this.queryParams).then((response) => {
+        console.log(response);
         this.deviceList = response.rows;
         this.total = response.total;
         this.loading = false;
@@ -481,30 +482,27 @@ export default {
       this.form = {
         status: "0",
       };
-      this.selectDeviceId=NaN,
-      this.resetForm("form");
+      (this.selectDeviceId = NaN), this.resetForm("form");
     },
     /** 响应新增按钮操作 */
     handleAdd() {
       //this.currentComponent = DeviceForm; // 动态加载组件
-      this.selectDeviceId=NaN;
+      this.selectDeviceId = NaN;
       this.open = true;
       this.title = "添加设备资料";
-    
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
-      this.selectDeviceId=row.deviceId || this.ids[0];
+      this.selectDeviceId = row.deviceId || this.ids[0];
       this.open = true;
       this.title = "修改设备资料";
-      
     },
 
     // 取消按钮
     closeForm(type) {
       this.open = false;
-      if(type=='submit'){
+      if (type == "submit") {
         this.getList();
       }
       this.reset();
@@ -592,30 +590,19 @@ export default {
       this.$refs.upload.submit();
     },
     //---格式化代码开始
-    formatFunctions(row, column){
-     
-       return this.selectDictLabels(this.dict.type.pms_device_functions,row.functions,',');
-
+    formatFunctions(row, column) {
+      return this.selectDictLabels(
+        this.dict.type.pms_device_functions,
+        row.functions,
+        ","
+      );
     },
-    opuNameFormatter(row, column){
-        if(this.opuOptions && this.opuOptions.length>0){
-            return this.recuTree(this.opuOptions[0],row.opuId);
-        }
-         
+    opuNameFormatter(row, column) {
+      if (this.opuOptions && this.opuOptions.length > 0) {
+        return this.findTreeLabelById(this.opuOptions, row.opuId);
+      }
     },
-    recuTree(node,value) {
-        
-        if(node.id==value){
-          
-            return node.label;
-        }
-        
-        for (const child of node.children) {
-            return this.recuTree(child,value); // 递归遍历子节点
-        }
-       
-    }
+   
   },
 };
 </script>
-

@@ -15,7 +15,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  */
 @Slf4j
 @EnableCustomConfig
-@EnableRyFeignClients
+@EnableRyFeignClients(basePackages = "com.sunjoy.system.api")
 @SpringBootApplication
 public class SunjoyParkModelApplication {
     public static void main(String[] args) {

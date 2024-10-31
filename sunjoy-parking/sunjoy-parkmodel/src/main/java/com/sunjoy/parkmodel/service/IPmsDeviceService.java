@@ -12,7 +12,13 @@ import java.util.List;
  */
 
 public interface IPmsDeviceService {
-    void addDevice(PmsDevice device);
+    /**
+     * 新增设备档案，反回设备档案的编号
+     *
+     * @param device
+     * @return
+     */
+    Long addDevice(PmsDevice device);
 
     PmsDevice getDevice(Long deviceId);
 
@@ -21,4 +27,12 @@ public interface IPmsDeviceService {
     void updateDevice(PmsDevice device);
 
     void deleteDevice(Long deviceId);
+
+    /**
+     * 根据
+     *
+     * @param deviceIds
+     * @return
+     */
+    List<PmsDevice> listDevices(List<Long> deviceIds);
 }

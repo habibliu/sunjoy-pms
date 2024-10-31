@@ -45,6 +45,17 @@ public interface PmsParkLaneMapper {
     @Select("SELECT * FROM pms_park_lane where park_id= #{parkId}")
     List<PmsParkLane> selectParkLanesByParkId(Long parkId);
 
-    @Delete("DELETE FROM pms_park_lane WHERE park_id=#{parkId} and lane_id=#{lane_id}")
+    @Delete("DELETE FROM pms_park_lane WHERE park_id=#{parkId} and lane_id=#{laneId}")
     void deleteParkLaneByParkIdAndLaneId(@Param("parkId") Long parkId, @Param("laneId") Long laneId);
+
+    @Select("""
+                <script>
+                    select * from pms_park_lane 
+                    WHERE lane_id IN
+                        <foreach item='id'  collection='laneIds' open='(' separator=',' close=')'>
+                            #{id}
+                        </foreach>
+                </script>
+            """)
+    List<PmsParkLane> selectParkLanesByLaneIds(@Param("laneIds") List<Long> laneIds);
 }

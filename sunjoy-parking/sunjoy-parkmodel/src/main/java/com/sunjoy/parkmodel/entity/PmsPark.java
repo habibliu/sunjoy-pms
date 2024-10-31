@@ -3,9 +3,7 @@ package com.sunjoy.parkmodel.entity;
 import com.sunjoy.common.core.annotation.Excel;
 import com.sunjoy.common.core.web.domain.BaseEntity;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * <p>
@@ -17,7 +15,10 @@ import lombok.ToString;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Builder
 @ToString(callSuper = false)
+@NoArgsConstructor
+@AllArgsConstructor
 public class PmsPark extends BaseEntity {
     /**
      * 主键

@@ -36,4 +36,15 @@ public interface PmsDeviceMapper {
 
     @Delete("DELETE FROM pms_device WHERE device_id = #{deviceId}")
     void delete(Long deviceId);
+
+    @Select("""
+                    <script>
+                    SELECT * FROM pms_device WHERE device_id IN 
+                                    
+                            <foreach item='id'  collection='deviceIds' open='(' separator=',' close=')'>
+                            #{id}
+                        </foreach>
+                                 </script>
+            """)
+    List<PmsDevice> selectByIdS(@Param("deviceIds") List<Long> deviceIds);
 }

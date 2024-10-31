@@ -10,13 +10,11 @@ package com.sunjoy.parkmodel.entity;
 import com.sunjoy.common.core.annotation.Excel;
 import com.sunjoy.common.core.web.domain.BaseEntity;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class PmsLane extends BaseEntity {

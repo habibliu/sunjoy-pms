@@ -1,5 +1,7 @@
 <template>
-  <div class="app-container"></div>
+  <div class="app-container">
+    每款设备的参数会根据实际的设备进行参数渲染
+  </div>
 </template>
 <script>
 

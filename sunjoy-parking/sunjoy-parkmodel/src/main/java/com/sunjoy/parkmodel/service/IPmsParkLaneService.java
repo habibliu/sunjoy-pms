@@ -31,4 +31,12 @@ public interface IPmsParkLaneService {
      */
     public void deleteParkLaneRelations(Long parkId, Long laneId);
 
+    /**
+     * 根据通道Id集合，获取其详细信息列表
+     *
+     * @param laneIds
+     * @return
+     */
+    public List<PmsParkLane> getParkLanes(List<Long> laneIds);
+
 }

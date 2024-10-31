@@ -1,5 +1,6 @@
 package com.sunjoy.parkmodel.entity;
 
+import com.sunjoy.common.core.web.domain.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +16,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PmsDevice {
+public class PmsDevice extends BaseEntity {
     // 设备id
     private Long deviceId;
     // 设备名称
@@ -36,5 +37,5 @@ public class PmsDevice {
     private String status;
     // 删除标志（0代表存在 2代表删除）
     private String delFlag;
-  
+
 }

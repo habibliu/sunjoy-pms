@@ -68,12 +68,3 @@ export function opuTreeSelect() {
   });
 }
 
-//获取车场通道列表
-export function getParkLaneList(parkId){
-  
-  return request({
-    url: '/parkmodel/park/parklane/list/' + parseStrEmpty(parkId),
-    method: 'get'
-   
-  });
-}

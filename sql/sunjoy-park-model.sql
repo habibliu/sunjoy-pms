@@ -136,6 +136,8 @@ create table pms_lane_device
 	id			 bigint(20) not null auto_increment comment '车场id',
 	device_id     bigint(20) not null comment '设备id',
 	lane_id     bigint(20) not null comment '通道id',
+	park_id     bigint(20) not null comment '车场id',
+	direction   char(1) default '' comment '通行方向:0－出，1－入，2－双向',
     status      char(1)     default '0' comment '状态（0正常 1停用）',
     del_flag    char(1)     default '0' comment '删除标志（0代表存在 2代表删除）',
     create_by   varchar(64) default '' comment '创建者',

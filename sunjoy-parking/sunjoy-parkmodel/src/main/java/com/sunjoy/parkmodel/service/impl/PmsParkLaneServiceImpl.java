@@ -42,4 +42,9 @@ public class PmsParkLaneServiceImpl implements IPmsParkLaneService {
     public void deleteParkLaneRelations(Long parkId, Long laneId) {
         this.pmsParkLaneMapper.deleteParkLaneByParkIdAndLaneId(parkId, laneId);
     }
+
+    @Override
+    public List<PmsParkLane> getParkLanes(List<Long> laneIds) {
+        return this.pmsParkLaneMapper.selectParkLanesByLaneIds(laneIds);
+    }
 }

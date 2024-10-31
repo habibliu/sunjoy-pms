@@ -2,7 +2,6 @@ package com.sunjoy.parkmodel.controller;
 
 
 import com.sunjoy.common.core.constant.SecurityConstants;
-import com.sunjoy.common.core.utils.bean.BeanUtils;
 import com.sunjoy.common.core.web.controller.BaseController;
 import com.sunjoy.common.core.web.domain.AjaxResult;
 import com.sunjoy.common.core.web.page.TableDataInfo;
@@ -10,13 +9,9 @@ import com.sunjoy.common.log.annotation.Log;
 import com.sunjoy.common.log.enums.BusinessType;
 import com.sunjoy.common.security.annotation.RequiresPermissions;
 import com.sunjoy.common.security.utils.SecurityUtils;
-import com.sunjoy.parkmodel.entity.PmsLane;
 import com.sunjoy.parkmodel.entity.PmsPark;
-import com.sunjoy.parkmodel.entity.PmsParkLane;
-import com.sunjoy.parkmodel.pojo.LanePojo;
 import com.sunjoy.parkmodel.pojo.ParkPojo;
 import com.sunjoy.parkmodel.service.IPmsLaneService;
-import com.sunjoy.parkmodel.service.IPmsParkLaneService;
 import com.sunjoy.parkmodel.service.IPmsParkService;
 import com.sunjoy.system.api.RemoteUserService;
 import com.sunjoy.system.api.domain.SysDept;
@@ -24,10 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -45,8 +37,7 @@ public class PmsParkController extends BaseController {
     private IPmsParkService pmsParkService;
     @Autowired
     private RemoteUserService remoteUserService;
-    @Autowired
-    private IPmsParkLaneService pmsParkLaneService;
+
     @Autowired
     private IPmsLaneService pmsLaneService;
 
@@ -74,7 +65,7 @@ public class PmsParkController extends BaseController {
     @RequiresPermissions("parking:park:list")
     @GetMapping("/opuTree")
     public AjaxResult getOpuTree(SysDept dept) {
-        AjaxResult result = remoteUserService.deptTree(dept, SecurityConstants.INNER);
+        AjaxResult result = this.remoteUserService.deptTree(dept, SecurityConstants.INNER);
         return success(result.get(AjaxResult.DATA_TAG));
     }
 
@@ -103,37 +94,5 @@ public class PmsParkController extends BaseController {
         return toAjax(pmsParkService.updatePark(park.getPmsPark(), park.getLaneList()));
     }
 
-    /**
-     * 获取车场通道
-     *
-     * @param parkId
-     * @return
-     */
-    //@RequiresPermissions("parking:park:list")
-    @GetMapping("/parklane/list/{parkId}")
-    public AjaxResult getParkLanes(@PathVariable(value = "parkId", required = true) Long parkId) {
-        List<PmsParkLane> parkLanes = pmsParkLaneService.getParkLanes(parkId);
-        if (!parkLanes.isEmpty()) {
-            // 将列表转换为 Map，以 laneId 为键
-            Map<Long, String> parkLaneMap = parkLanes.stream()
-                    .collect(Collectors.toMap(PmsParkLane::getLaneId, PmsParkLane::getDirection));
-
-            List<Long> laneIds = parkLanes.stream().map(PmsParkLane::getLaneId).collect(Collectors.toList());
-            List<PmsLane> lanes = this.pmsLaneService.listByLaneIds(laneIds);
-            if (!lanes.isEmpty()) {
-                List<LanePojo> lanePojoList = new ArrayList<LanePojo>();
-                lanes.forEach(item -> {
-                    LanePojo pojo = new LanePojo();
-                    BeanUtils.copyBeanProp(pojo, item);
-                    pojo.setDirection(parkLaneMap.get(item.getLaneId()));
-                    lanePojoList.add(pojo);
-                });
-                return success(lanePojoList);
-            }
-
-        }
-        //返回空
-        return success();
-    }
 
 }

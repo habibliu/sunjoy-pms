@@ -8,12 +8,77 @@ SET FOREIGN_KEY_CHECKS = 0;
 USE `sunjoy-system`;
 
 -- ----------------------------
--- 1、部门表
+-- 0、租户表
+-- ----------------------------
+drop table if exists sys_tenant;
+create table sys_tenant (
+  tenant_id           bigint(20)      not null auto_increment    comment '租户id',
+  tenant_name         varchar(30)     default ''                 comment '租户名称',
+  tenant_code	    varchar(20)     default ''                 comment '租户代码，租户用户登录时，帐号要加上@租户代码',
+  leader            varchar(20)     default null               comment '负责人',
+  phone             varchar(11)     default null               comment '联系电话',
+  email             varchar(50)     default null               comment '邮箱',
+  region			varchar(60)		default null 			   comment '区域',	
+  address			varchar(30)		default null		       comment '地址',
+  registration_date datetime		default null			   comment '注册日期',
+  payment_method	varchar(10)		default null 			   comment '支付方式',
+  settlement_cycle  varchar(10)		default null 			   comment '结算周期',
+  settlement_date   int(2)		    default null 			   comment '结算日',
+  wechat_account	varchar(200)	default null 			   comment '微信账号，openId',
+  alipay_account	varchar(200)	default null 			   comment '支付宝账号，openId',
+  status            char(1)         default '0'                comment '租户状态（0正常 1停用）',
+  del_flag          char(1)         default '0'                comment '删除标志（0代表存在 2代表删除）',
+  create_by         varchar(64)     default ''                 comment '创建者',
+  create_time 	    datetime                                   comment '创建时间',
+  update_by         varchar(64)     default ''                 comment '更新者',
+  update_time       datetime                                   comment '更新时间',
+  remark            varchar(500)    default null               comment '备注',
+  primary key (tenant_id)
+) engine=innodb auto_increment=0 comment = '租户表';
+
+INSERT INTO sys_tenant (
+    tenant_name,
+    tenant_code,
+    leader,
+    phone,
+    email,
+    registration_date,
+    payment_method,
+    settlement_cycle,
+    settlement_date,
+    wechat_account,
+    alipay_account,
+    status,
+    del_flag,
+    create_by,
+    create_time
+) VALUES (
+    '尚久科技集团',                -- tenant_name
+    NULL,         -- tenant_code
+    'Habib',                   -- leader
+    '13823255622',            -- phone
+    'habibliu@gmail.com',    -- email
+    NOW(),                    -- registration_date
+    'MONHT',                   -- payment_method
+    'T+1',                    -- settlement_cycle
+    5,                    -- settlement_date
+    null,      -- wechat_account (openId)
+    null,       -- alipay_account (openId)
+    '0',                      -- status
+    '0',                      -- del_flag
+    'admin',                  -- create_by
+    NOW()                    -- create_time
+);
+
+
+-- ----------------------------
+-- 1、租户内组织架构表
 -- ----------------------------
 drop table if exists sys_dept;
 create table sys_dept (
   dept_id           bigint(20)      not null auto_increment    comment '部门id',
   parent_id         bigint(20)      default 0                  comment '父部门id',
+  tenant_id           bigint(20)	default null 			   comment '租户id',
   ancestors         varchar(50)     default ''                 comment '祖级列表',
   dept_name         varchar(30)     default ''                 comment '部门名称',
   order_num         int(4)          default 0                  comment '显示顺序',
@@ -32,16 +97,16 @@ create table sys_dept (
 -- ----------------------------
 -- 初始化-部门表数据
 -- ----------------------------
-insert into sys_dept values(100,  0,   '0',          '若依科技',   0, '若依', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(101,  100, '0,100',      '深圳总公司', 1, '若依', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(102,  100, '0,100',      '长沙分公司', 2, '若依', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(103,  101, '0,100,101',  '研发部门',   1, '若依', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(104,  101, '0,100,101',  '市场部门',   2, '若依', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(105,  101, '0,100,101',  '测试部门',   3, '若依', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(106,  101, '0,100,101',  '财务部门',   4, '若依', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(107,  101, '0,100,101',  '运维部门',   5, '若依', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(108,  102, '0,100,102',  '市场部门',   1, '若依', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(109,  102, '0,100,102',  '财务部门',   2, '若依', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(100,  0,   '0',          '尚久科技',   0, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(101,  100, '0,100',      '深圳总公司', 1, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(102,  100, '0,100',      '长沙分公司', 2, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(103,  101, '0,100,101',  '研发部门',   1, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(104,  101, '0,100,101',  '市场部门',   2, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(105,  101, '0,100,101',  '测试部门',   3, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(106,  101, '0,100,101',  '财务部门',   4, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(107,  101, '0,100,101',  '运维部门',   5, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(108,  102, '0,100,102',  '市场部门',   1, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(109,  102, '0,100,102',  '财务部门',   2, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
 
 
 -- ----------------------------
@@ -74,8 +139,8 @@ create table sys_user (
 -- ----------------------------
 -- 初始化-用户信息表数据
 -- ----------------------------
-insert into sys_user values(1,  103, 'admin', '若依', '00', 'ry@163.com', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), 'admin', sysdate(), '', null, '管理员');
-insert into sys_user values(2,  105, 'ry',    '若依', '00', 'ry@qq.com',  '15666666666', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), 'admin', sysdate(), '', null, '测试员');
+insert into sys_user values(1,  103, 'admin', '尚久', '00', 'ry@163.com', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), 'admin', sysdate(), '', null, '管理员');
+insert into sys_user values(2,  105, 'ry',    '尚久', '00', 'ry@qq.com',  '15666666666', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), 'admin', sysdate(), '', null, '测试员');
 
 
 -- ----------------------------
@@ -88,6 +153,7 @@ create table sys_post
   post_code     varchar(64)     not null                   comment '岗位编码',
   post_name     varchar(50)     not null                   comment '岗位名称',
   post_sort     int(4)          not null                   comment '显示顺序',
+  tenant_id     bigint(20)	default null 			       comment '租户id',
   status        char(1)         not null                   comment '状态（0正常 1停用）',
   create_by     varchar(64)     default ''                 comment '创建者',
   create_time   datetime                                   comment '创建时间',
@@ -113,6 +179,7 @@ drop table if exists sys_role;
 create table sys_role (
   role_id              bigint(20)      not null auto_increment    comment '角色ID',
   role_name            varchar(30)     not null                   comment '角色名称',
+  tenant_id            bigint(20)	   default null 			  comment '租户id',
   role_key             varchar(100)    not null                   comment '角色权限字符串',
   role_sort            int(4)          not null                   comment '显示顺序',
   data_scope           char(1)         default '1'                comment '数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）',
@@ -142,6 +209,7 @@ drop table if exists sys_menu;
 create table sys_menu (
   menu_id           bigint(20)      not null auto_increment    comment '菜单ID',
   menu_name         varchar(50)     not null                   comment '菜单名称',
+  tenant_use		int(1)          default 1                  comment '是否为租户使用（1是 0否），如果为0，即租户不能使用',
   parent_id         bigint(20)      default 0                  comment '父菜单ID',
   order_num         int(4)          default 0                  comment '显示顺序',
   path              varchar(200)    default ''                 comment '路由地址',
@@ -170,7 +238,7 @@ create table sys_menu (
 insert into sys_menu values('1', '系统管理', '0', '1', 'system',           null, '', '', 1, 0, 'M', '0', '0', '', 'system',   'admin', sysdate(), '', null, '系统管理目录');
 insert into sys_menu values('2', '系统监控', '0', '2', 'monitor',          null, '', '', 1, 0, 'M', '0', '0', '', 'monitor',  'admin', sysdate(), '', null, '系统监控目录');
 insert into sys_menu values('3', '系统工具', '0', '3', 'tool',             null, '', '', 1, 0, 'M', '0', '0', '', 'tool',     'admin', sysdate(), '', null, '系统工具目录');
-insert into sys_menu values('4', '若依官网', '0', '4', 'http://ruoyi.vip', null, '', '', 0, 0, 'M', '0', '0', '', 'guide',    'admin', sysdate(), '', null, '若依官网地址');
+insert into sys_menu values('4', '尚久官网', '0', '4', 'http://ruoyi.vip', null, '', '', 0, 0, 'M', '0', '0', '', 'guide',    'admin', sysdate(), '', null, '尚久官网地址');
 -- 二级菜单
 insert into sys_menu values('100',  '用户管理',       '1',   '1', 'user',       'system/user/index',                 '', '', 1, 0, 'C', '0', '0', 'system:user:list',        'user',          'admin', sysdate(), '', null, '用户管理菜单');
 insert into sys_menu values('101',  '角色管理',       '1',   '2', 'role',       'system/role/index',                 '', '', 1, 0, 'C', '0', '0', 'system:role:list',        'peoples',       'admin', sysdate(), '', null, '角色管理菜单');
@@ -639,8 +707,8 @@ create table sys_notice (
 -- ----------------------------
 -- 初始化-公告信息表数据
 -- ----------------------------
-insert into sys_notice values('1', '温馨提醒：2018-07-01 若依新版本发布啦', '2', '新版本内容', '0', 'admin', sysdate(), '', null, '管理员');
-insert into sys_notice values('2', '维护通知：2018-07-01 若依系统凌晨维护', '1', '维护内容',   '0', 'admin', sysdate(), '', null, '管理员');
+insert into sys_notice values('1', '温馨提醒：2018-07-01 尚久新版本发布啦', '2', '新版本内容', '0', 'admin', sysdate(), '', null, '管理员');
+insert into sys_notice values('2', '维护通知：2018-07-01 尚久系统凌晨维护', '1', '维护内容',   '0', 'admin', sysdate(), '', null, '管理员');
 
 
 -- ----------------------------
@@ -702,3 +770,29 @@ create table gen_table_column (
   update_time       datetime                                   comment '更新时间',
   primary key (column_id)
 ) engine=innodb auto_increment=1 comment = '代码生成业务表字段';
+
+
+  
+  -- ----------------------------
+-- 20、中国行政区表
+-- ----------------------------
+drop table if exists sys_region;
+create table sys_region
+(
+    id     		int(4) not null auto_increment comment '自增主键',
+	region_id   varchar(6) not null  comment '区域id',
+    parent_id   varchar(6)  default null comment '父区域id',
+	ancestors   varchar(20)     default ''         comment '祖级列表',
+    region_name   varchar(30) default '' comment '区域名称',
+    status      char(1)     default '0' comment '状态（0正常 1停用）',
+    del_flag    char(1)     default '0' comment '删除标志（0代表存在 2代表删除）',
+    create_by   varchar(64) default '' comment '创建者',
+    create_time datetime comment '创建时间',
+    update_by   varchar(64) default '' comment '更新者',
+    update_time datetime comment '更新时间',
+    primary key (id)
+) engine = innodb
+  auto_increment = 1 comment = '中国行政区';
+  
+ALTER TABLE `sys_region` 
+ADD INDEX `IDX_PARENT_ID`(`parent_id`) USING BTREE;
