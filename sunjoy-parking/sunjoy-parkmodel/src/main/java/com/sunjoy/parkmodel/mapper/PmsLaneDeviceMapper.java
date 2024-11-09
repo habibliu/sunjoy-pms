@@ -1,6 +1,7 @@
 package com.sunjoy.parkmodel.mapper;
 
-import com.sunjoy.parkmodel.entity.PmsLaneDevice;
+
+import com.sunjoy.parking.entity.PmsLaneDevice;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;

@@ -1,9 +1,9 @@
 package com.sunjoy.parkmodel.service.impl;
 
 import com.sunjoy.common.security.utils.SecurityUtils;
-import com.sunjoy.parkmodel.entity.PmsLane;
-import com.sunjoy.parkmodel.entity.PmsLaneDevice;
-import com.sunjoy.parkmodel.entity.PmsParkLane;
+import com.sunjoy.parking.entity.PmsLane;
+import com.sunjoy.parking.entity.PmsLaneDevice;
+import com.sunjoy.parking.entity.PmsParkLane;
 import com.sunjoy.parkmodel.mapper.PmsLaneMapper;
 import com.sunjoy.parkmodel.service.IPmsLaneDeviceService;
 import com.sunjoy.parkmodel.service.IPmsLaneService;
@@ -37,6 +37,9 @@ public class PmsLaneServiceImpl implements IPmsLaneService {
 
     @Override
     public List<PmsLane> list(PmsLane pmsLane) {
+        if (pmsLane != null) {
+            pmsLane.setTenantId(SecurityUtils.getTenantId());
+        }
         return pmsLaneMapper.selectPmsLanesByCondition(pmsLane);
     }
 
@@ -50,6 +53,7 @@ public class PmsLaneServiceImpl implements IPmsLaneService {
     public Long create(PmsLane pmsLane) {
         pmsLane.setCreateBy(SecurityUtils.getUsername());
         pmsLane.setCreateTime(new Date());
+        pmsLane.setTenantId(SecurityUtils.getTenantId());
         pmsLaneMapper.insertPmsLane(pmsLane);
 
         return pmsLane.getLaneId();

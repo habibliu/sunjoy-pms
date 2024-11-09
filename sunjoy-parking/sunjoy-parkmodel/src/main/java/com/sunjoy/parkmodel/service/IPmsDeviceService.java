@@ -1,6 +1,7 @@
 package com.sunjoy.parkmodel.service;
 
-import com.sunjoy.parkmodel.entity.PmsDevice;
+
+import com.sunjoy.parking.entity.PmsDevice;
 
 import java.util.List;
 

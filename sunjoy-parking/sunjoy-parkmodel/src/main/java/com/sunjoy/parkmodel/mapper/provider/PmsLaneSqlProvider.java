@@ -1,6 +1,7 @@
 package com.sunjoy.parkmodel.mapper.provider;
 
-import com.sunjoy.parkmodel.entity.PmsLane;
+
+import com.sunjoy.parking.entity.PmsLane;
 import com.sunjoy.parkmodel.pojo.LanePojo;
 import org.apache.ibatis.jdbc.SQL;
 
@@ -18,6 +19,9 @@ public class PmsLaneSqlProvider {
             INNER_JOIN("pms_park_lane p on l.lane_id = p.lane_id");
             if (condition.getLaneName() != null && !condition.getLaneName().isEmpty()) {
                 WHERE(".lane_name = #{laneName}");
+            }
+            if (condition.getTenantId() != null) {
+                WHERE("l.tenant_id = #{tenantId}");
             }
             if (condition.getOpuId() != null) {
                 WHERE("l.opu_id = #{opuId}");

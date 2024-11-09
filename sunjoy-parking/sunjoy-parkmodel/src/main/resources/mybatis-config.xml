@@ -4,11 +4,15 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
     <settings>
+        <!-- 选择日志实现 -->
+        <setting name="logImpl" value="org.apache.ibatis.logging.stdout.StdOutImpl"/>
         <!-- 这里可以配置 MyBatis 的各种设置 -->
         <setting name="mapUnderscoreToCamelCase" value="true"/>
     </settings>
     <typeAliases>
-        <typeAlias alias="PmsPark" type="com.sunjoy.parkmodel.entity.PmsPark"/>
+        <typeAlias alias="PmsPark" type="com.sunjoy.parking.entity.PmsPark"/>
 
     </typeAliases>
+
+
 </configuration>

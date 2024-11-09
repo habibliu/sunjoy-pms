@@ -13,6 +13,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>sunjoy-parkmodel</module>
+        <module>sunjoy-parkctrl</module>
+        <module>sunjoy-parkpub</module>
     </modules>
 
     <properties>

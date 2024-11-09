@@ -1,6 +1,7 @@
 package com.sunjoy.parkmodel.mapper.provider;
 
-import com.sunjoy.parkmodel.entity.PmsDevice;
+
+import com.sunjoy.parking.entity.PmsDevice;
 import org.apache.ibatis.jdbc.SQL;
 
 /**
@@ -17,6 +18,9 @@ public class PmsDeviceSqlProvider {
 
             if (condition.getDeviceName() != null && !condition.getDeviceName().isEmpty()) {
                 WHERE("device_name LIKE CONCAT('%', #{deviceName}, '%')\"");
+            }
+            if (condition.getTenantId() != null) {
+                WHERE("tenant_id = #{tenantId}");
             }
             if (condition.getOpuId() != null) {
                 WHERE("opu_id = #{opuId}");

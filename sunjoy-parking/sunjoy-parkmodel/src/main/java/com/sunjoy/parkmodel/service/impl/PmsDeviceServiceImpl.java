@@ -1,9 +1,12 @@
 package com.sunjoy.parkmodel.service.impl;
 
+import com.sunjoy.common.redis.service.RedisService;
 import com.sunjoy.common.security.utils.SecurityUtils;
-import com.sunjoy.parkmodel.entity.PmsDevice;
+import com.sunjoy.parking.entity.PmsDevice;
+import com.sunjoy.parking.utils.RedisKeyConstants;
 import com.sunjoy.parkmodel.mapper.PmsDeviceMapper;
 import com.sunjoy.parkmodel.service.IPmsDeviceService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Class description
+ * 设备管理服务
  *
  * @author Habib
  * @date 2024/10/25
@@ -22,11 +25,26 @@ public class PmsDeviceServiceImpl implements IPmsDeviceService {
     @Autowired
     private PmsDeviceMapper pmsDeviceMapper;
 
+    @Autowired
+    private RedisService redisService;
+
+    @PostConstruct
+    private void initCache() {
+        PmsDevice pmsDevice = new PmsDevice();
+        List<PmsDevice> allDevcies = pmsDeviceMapper.selectPmsDevicesByCondition(pmsDevice);
+        if (!allDevcies.isEmpty()) {
+            //先删除
+            redisService.deleteObject(RedisKeyConstants.PARK_DEVICE);
+            redisService.setCacheList(RedisKeyConstants.PARK_DEVICE, allDevcies);
+        }
+    }
+
     @Override
     public Long addDevice(PmsDevice pmsDevice) {
         pmsDevice.setCreateBy(SecurityUtils.getUsername());
         pmsDevice.setCreateTime(new Date());
         pmsDevice.setDelFlag("0");
+        pmsDevice.setTenantId(SecurityUtils.getTenantId());
         pmsDeviceMapper.insert(pmsDevice);
         return pmsDevice.getDeviceId();
     }
@@ -38,6 +56,9 @@ public class PmsDeviceServiceImpl implements IPmsDeviceService {
 
     @Override
     public List<PmsDevice> listDevices(PmsDevice pmsDevice) {
+        if (pmsDevice != null) {
+            pmsDevice.setTenantId(SecurityUtils.getTenantId());
+        }
         return pmsDeviceMapper.selectPmsDevicesByCondition(pmsDevice);
     }
 

@@ -6,7 +6,7 @@ import com.sunjoy.common.core.web.page.TableDataInfo;
 import com.sunjoy.common.log.annotation.Log;
 import com.sunjoy.common.log.enums.BusinessType;
 import com.sunjoy.common.security.annotation.RequiresPermissions;
-import com.sunjoy.parkmodel.entity.PmsDevice;
+import com.sunjoy.parking.entity.PmsDevice;
 import com.sunjoy.parkmodel.service.IPmsDeviceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

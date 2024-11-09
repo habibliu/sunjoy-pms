@@ -1,4 +1,4 @@
-package com.sunjoy.parkmodel.entity;
+package com.sunjoy.parking.entity;
 
 import com.sunjoy.common.core.annotation.Excel;
 import com.sunjoy.common.core.web.domain.BaseEntity;
@@ -38,6 +38,10 @@ public class PmsPark extends BaseEntity {
      * 车场类型：1-室内，2-室外
      */
     private String parkType;
+    /**
+     * 租户ID
+     */
+    private Long tenantId;
 
     /**
      * 经营单位ID

@@ -1,26 +1,22 @@
-package com.sunjoy.parkmodel.entity;
+package com.sunjoy.parking.entity;
 
 import com.sunjoy.common.core.web.domain.BaseEntity;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
- * Class description
+ * 车场通道关系类
  *
  * @author Habib
- * @date 2024/10/29
+ * @date 2024/10/25
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PmsLaneDevice extends BaseEntity {
-    // 车场id
+public class PmsParkLane extends BaseEntity {
+    // 自增主键
     private Long id;
-    // 设备id
-    private Long deviceId;
     // 通道id
     private Long laneId;
     // 车场id
@@ -31,5 +27,4 @@ public class PmsLaneDevice extends BaseEntity {
     private String status;
     // 删除标志（0代表存在 2代表删除）
     private String delFlag;
-
 }

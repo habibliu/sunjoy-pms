@@ -1,9 +1,12 @@
 package com.sunjoy.parkmodel.service.impl;
 
+import com.sunjoy.common.redis.service.RedisService;
 import com.sunjoy.common.security.utils.SecurityUtils;
-import com.sunjoy.parkmodel.entity.PmsParkLane;
+import com.sunjoy.parking.entity.PmsParkLane;
+import com.sunjoy.parking.utils.RedisKeyConstants;
 import com.sunjoy.parkmodel.mapper.PmsParkLaneMapper;
 import com.sunjoy.parkmodel.service.IPmsParkLaneService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Class description
+ * 车场通道关系服务类
  *
  * @author Habib
  * @date 2024/10/25
@@ -20,6 +23,20 @@ import java.util.List;
 public class PmsParkLaneServiceImpl implements IPmsParkLaneService {
     @Autowired
     private PmsParkLaneMapper pmsParkLaneMapper;
+    @Autowired
+    private RedisService redisService;
+
+    /**
+     * 初始化所有车场通道到缓存中
+     */
+    @PostConstruct
+    private void initCache() {
+        List<PmsParkLane> parkLaneList = this.pmsParkLaneMapper.selectAll();
+        if (!parkLaneList.isEmpty()) {
+            this.redisService.deleteObject(RedisKeyConstants.PARK_LANE_REL);
+            this.redisService.setCacheList(RedisKeyConstants.PARK_LANE_REL, parkLaneList);
+        }
+    }
 
     @Override
     public void createParkLaneRelation(PmsParkLane parkLane) {
@@ -30,6 +47,9 @@ public class PmsParkLaneServiceImpl implements IPmsParkLaneService {
 
     @Override
     public void deleteParkLaneRelations(List<Long> ids) {
+        ids.forEach(id -> {
+            this.pmsParkLaneMapper.deletePmsParkLane(id);
+        });
 
     }
 

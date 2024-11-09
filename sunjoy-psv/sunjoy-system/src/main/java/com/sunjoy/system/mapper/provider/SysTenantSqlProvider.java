@@ -18,6 +18,9 @@ public class SysTenantSqlProvider {
             if (tenant.getTenantId() != null) {
                 WHERE("tenant_id = #{tenantId}");
             }
+            if (tenant.getRegion() != null) {
+                WHERE("region LIKE CONCAT(#{region}, '%')");
+            }
             if (tenant.getTenantName() != null && !tenant.getTenantName().isEmpty()) {
                 WHERE("tenant_name LIKE CONCAT('%', #{tenantName}, '%')");
             }

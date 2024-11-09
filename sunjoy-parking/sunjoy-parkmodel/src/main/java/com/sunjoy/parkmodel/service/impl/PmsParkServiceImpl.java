@@ -1,12 +1,16 @@
 package com.sunjoy.parkmodel.service.impl;
 
+import com.sunjoy.common.core.utils.bean.BeanUtils;
 import com.sunjoy.common.security.utils.SecurityUtils;
-import com.sunjoy.parkmodel.entity.PmsLane;
-import com.sunjoy.parkmodel.entity.PmsPark;
-import com.sunjoy.parkmodel.entity.PmsParkLane;
+import com.sunjoy.parking.entity.PmsLane;
+import com.sunjoy.parking.entity.PmsLaneDevice;
+import com.sunjoy.parking.entity.PmsPark;
+import com.sunjoy.parking.entity.PmsParkLane;
 import com.sunjoy.parkmodel.mapper.PmsParkMapper;
+import com.sunjoy.parkmodel.pojo.LaneDevicePojo;
 import com.sunjoy.parkmodel.pojo.LanePojo;
 import com.sunjoy.parkmodel.pojo.ParkPojo;
+import com.sunjoy.parkmodel.service.IPmsLaneDeviceService;
 import com.sunjoy.parkmodel.service.IPmsLaneService;
 import com.sunjoy.parkmodel.service.IPmsParkLaneService;
 import com.sunjoy.parkmodel.service.IPmsParkService;
@@ -37,26 +41,39 @@ public class PmsParkServiceImpl implements IPmsParkService {
     private IPmsLaneService pmsLaneService;
     @Autowired
     private IPmsParkLaneService pmsParkLaneService;
+    @Autowired
+    private IPmsLaneDeviceService pmsLaneDeviceService;
 
     @Override
     public List<PmsPark> listParks(ParkPojo park) {
+        park.setTenantId(SecurityUtils.getTenantId());
         return pmsParkMapper.selectParkList(park);
     }
 
     @Override
-    public int createPark(PmsPark park) {
-
-        return pmsParkMapper.insertPark(park);
-    }
-
-    @Override
     @Transactional
-    public int updatePark(PmsPark park, List<LanePojo> lanes) {
-        //处理通道信息
+    public int createPark(PmsPark park, List<LanePojo> lanes, List<LaneDevicePojo> devices) {
+        park.setCreateBy(SecurityUtils.getUsername());
+        park.setCreateTime(new Date());
+        park.setTenantId(SecurityUtils.getTenantId());
+        pmsParkMapper.insertPark(park);
+
+        //保存通道信息
         if (lanes != null && !lanes.isEmpty()) {
             //保存通道
             saveLanes(park, lanes);
         }
+        if (devices != null && !devices.isEmpty()) {
+            saveLaneDevices(park, devices);
+        }
+        return 1;
+    }
+
+    @Override
+
+    public int updatePark(PmsPark park) {
+        park.setUpdateBy(SecurityUtils.getUsername());
+        park.setUpdateTime(new Date());
         return pmsParkMapper.updatePark(park);
     }
 
@@ -84,6 +101,7 @@ public class PmsParkServiceImpl implements IPmsParkService {
         lanes.forEach(lanePojo -> {
             PmsLane lane = lanePojo.getPmsLane();
             lane.setOpuId(park.getOpuId());
+            lane.setTenantId(SecurityUtils.getTenantId());
             //保存通道
             if (lane.getLaneId() == null) {
                 Long laneId = this.pmsLaneService.create(lane);
@@ -116,6 +134,16 @@ public class PmsParkServiceImpl implements IPmsParkService {
         parkLane.setCreateTime(new Date());
         parkLane.setCreateBy(SecurityUtils.getUsername());
         this.pmsParkLaneService.createParkLaneRelation(parkLane);
+    }
+
+    private void saveLaneDevices(PmsPark park, List<LaneDevicePojo> devices) {
+        devices.forEach(laneDevicePojo -> {
+            PmsLaneDevice laneDevice = new PmsLaneDevice();
+            BeanUtils.copyBeanProp(laneDevice, laneDevicePojo);
+            laneDevice.setParkId(park.getParkId());
+
+            this.pmsLaneDeviceService.addLaneDevice(laneDevice);
+        });
     }
 
 }

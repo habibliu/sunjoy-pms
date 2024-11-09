@@ -48,6 +48,7 @@ public class TokenService {
         loginUser.setUserid(userId);
         loginUser.setUsername(userName);
         loginUser.setIpaddr(IpUtils.getIpAddr());
+        loginUser.setTenantId(loginUser.getSysUser().getTenantId());
         refreshToken(loginUser);
 
         // Jwt存储信息
@@ -55,6 +56,7 @@ public class TokenService {
         claimsMap.put(SecurityConstants.USER_KEY, token);
         claimsMap.put(SecurityConstants.DETAILS_USER_ID, userId);
         claimsMap.put(SecurityConstants.DETAILS_USERNAME, userName);
+        claimsMap.put(SecurityConstants.TEANANT_ID, loginUser.getTenantId());
 
         // 接口返回信息
         Map<String, Object> rspMap = new HashMap<String, Object>();

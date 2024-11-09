@@ -1,4 +1,4 @@
-package com.sunjoy.parkmodel.entity;
+package com.sunjoy.parking.entity;
 
 /**
  * Class description
@@ -24,6 +24,10 @@ public class PmsLane extends BaseEntity {
     @Excel(name = "通道名称")
     @NotNull
     private String laneName;
+    /**
+     * 租户ID
+     */
+    private Long tenantId;
     // 经营单位Id
     @Excel(name = "经营单位Id")
     @NotNull

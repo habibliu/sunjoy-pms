@@ -1,6 +1,8 @@
 package com.sunjoy.parkmodel.service;
 
-import com.sunjoy.parkmodel.entity.PmsPark;
+
+import com.sunjoy.parking.entity.PmsPark;
+import com.sunjoy.parkmodel.pojo.LaneDevicePojo;
 import com.sunjoy.parkmodel.pojo.LanePojo;
 import com.sunjoy.parkmodel.pojo.ParkPojo;
 
@@ -21,9 +23,9 @@ public interface IPmsParkService {
      */
     List<PmsPark> listParks(ParkPojo park);
 
-    public int createPark(PmsPark park);
+    public int createPark(PmsPark park, List<LanePojo> lanes, List<LaneDevicePojo> devices);
 
-    public int updatePark(PmsPark park, List<LanePojo> lanes);
+    public int updatePark(PmsPark park);
 
     public int removeParks(List<Long> idList);
 

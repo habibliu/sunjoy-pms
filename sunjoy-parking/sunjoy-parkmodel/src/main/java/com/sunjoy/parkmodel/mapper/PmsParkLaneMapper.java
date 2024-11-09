@@ -1,6 +1,7 @@
 package com.sunjoy.parkmodel.mapper;
 
-import com.sunjoy.parkmodel.entity.PmsParkLane;
+
+import com.sunjoy.parking.entity.PmsParkLane;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -58,4 +59,12 @@ public interface PmsParkLaneMapper {
                 </script>
             """)
     List<PmsParkLane> selectParkLanesByLaneIds(@Param("laneIds") List<Long> laneIds);
+
+    /**
+     * 获取全部车场通道
+     *
+     * @return
+     */
+    @Select("SELECT id,park_id,lane_id,direction FROM pms_park_lane where status='0' and del_flag='0'")
+    List<PmsParkLane> selectAll();
 }

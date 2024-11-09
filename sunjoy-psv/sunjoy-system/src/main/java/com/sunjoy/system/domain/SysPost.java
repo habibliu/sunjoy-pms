@@ -46,6 +46,11 @@ public class SysPost extends BaseEntity {
     private Integer postSort;
 
     /**
+     * 租户ID
+     */
+    private Long tenantId;
+
+    /**
      * 状态（0正常 1停用）
      */
     @Excel(name = "状态", readConverterExp = "0=正常,1=停用")
@@ -62,6 +67,14 @@ public class SysPost extends BaseEntity {
 
     public void setPostId(Long postId) {
         this.postId = postId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
     @NotBlank(message = "岗位编码不能为空")

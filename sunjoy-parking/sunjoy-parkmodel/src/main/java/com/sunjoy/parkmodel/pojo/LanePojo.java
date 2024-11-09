@@ -1,7 +1,7 @@
 package com.sunjoy.parkmodel.pojo;
 
 import com.sunjoy.common.core.utils.bean.BeanUtils;
-import com.sunjoy.parkmodel.entity.PmsLane;
+import com.sunjoy.parking.entity.PmsLane;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

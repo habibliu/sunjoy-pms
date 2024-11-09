@@ -1,16 +1,16 @@
 package com.sunjoy.system.api.model;
 
+import com.sunjoy.system.api.domain.SysUser;
+
 import java.io.Serializable;
 import java.util.Set;
-import com.sunjoy.system.api.domain.SysUser;
 
 /**
  * 用户信息
  *
  * @author sunjoy
  */
-public class LoginUser implements Serializable
-{
+public class LoginUser implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
@@ -24,6 +24,11 @@ public class LoginUser implements Serializable
     private Long userid;
 
     /**
+     * 租户ID
+     */
+    private Long tenantId;
+
+    /**
      * 用户名
      */
     private String username;
@@ -32,6 +37,7 @@ public class LoginUser implements Serializable
      * 登录时间
      */
     private Long loginTime;
+
 
     /**
      * 过期时间
@@ -58,93 +64,83 @@ public class LoginUser implements Serializable
      */
     private SysUser sysUser;
 
-    public String getToken()
-    {
+    public String getToken() {
         return token;
     }
 
-    public void setToken(String token)
-    {
+    public void setToken(String token) {
         this.token = token;
     }
 
-    public Long getUserid()
-    {
+    public Long getUserid() {
         return userid;
     }
 
-    public void setUserid(Long userid)
-    {
+    public void setUserid(Long userid) {
         this.userid = userid;
     }
 
-    public String getUsername()
-    {
+    public String getUsername() {
         return username;
     }
 
-    public void setUsername(String username)
-    {
+    public void setUsername(String username) {
         this.username = username;
     }
 
-    public Long getLoginTime()
-    {
+    public Long getLoginTime() {
         return loginTime;
     }
 
-    public void setLoginTime(Long loginTime)
-    {
+    public void setLoginTime(Long loginTime) {
         this.loginTime = loginTime;
     }
 
-    public Long getExpireTime()
-    {
+    public Long getExpireTime() {
         return expireTime;
     }
 
-    public void setExpireTime(Long expireTime)
-    {
+    public void setExpireTime(Long expireTime) {
         this.expireTime = expireTime;
     }
 
-    public String getIpaddr()
-    {
+    public String getIpaddr() {
         return ipaddr;
     }
 
-    public void setIpaddr(String ipaddr)
-    {
+    public void setIpaddr(String ipaddr) {
         this.ipaddr = ipaddr;
     }
 
-    public Set<String> getPermissions()
-    {
+    public Set<String> getPermissions() {
         return permissions;
     }
 
-    public void setPermissions(Set<String> permissions)
-    {
+    public void setPermissions(Set<String> permissions) {
         this.permissions = permissions;
     }
 
-    public Set<String> getRoles()
-    {
+    public Set<String> getRoles() {
         return roles;
     }
 
-    public void setRoles(Set<String> roles)
-    {
+    public void setRoles(Set<String> roles) {
         this.roles = roles;
     }
 
-    public SysUser getSysUser()
-    {
+    public SysUser getSysUser() {
         return sysUser;
     }
 
-    public void setSysUser(SysUser sysUser)
-    {
+    public void setSysUser(SysUser sysUser) {
         this.sysUser = sysUser;
+    }
+
+    public Long getTenantId() {
+        return this.sysUser.getTenantId();
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 }

@@ -30,6 +30,11 @@ public class SysDept extends BaseEntity {
     private Long parentId;
 
     /**
+     * 租户ID
+     */
+    private Long tenantId;
+
+    /**
      * 祖级列表
      */
     private String ancestors;
@@ -93,6 +98,14 @@ public class SysDept extends BaseEntity {
 
     public void setParentId(Long parentId) {
         this.parentId = parentId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
     public String getAncestors() {

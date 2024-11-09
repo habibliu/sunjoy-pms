@@ -32,6 +32,11 @@ public class SysRole extends BaseEntity {
     private String roleName;
 
     /**
+     * 租户ID
+     */
+    private Long tenantId;
+
+    /**
      * 角色权限
      */
     @Excel(name = "角色权限")
@@ -108,6 +113,14 @@ public class SysRole extends BaseEntity {
 
     public void setRoleId(Long roleId) {
         this.roleId = roleId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
     public boolean isAdmin() {

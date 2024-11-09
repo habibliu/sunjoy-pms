@@ -2,11 +2,10 @@ package com.sunjoy.common.core.constant;
 
 /**
  * 缓存常量信息
- * 
+ *
  * @author sunjoy
  */
-public class CacheConstants
-{
+public class CacheConstants {
     /**
      * 缓存有效期，默认720（分钟）
      */
@@ -56,4 +55,7 @@ public class CacheConstants
      * 登录IP黑名单 cache key
      */
     public static final String SYS_LOGIN_BLACKIPLIST = SYS_CONFIG_KEY + "sys.login.blackIPList";
+
+
+    public static final String SYS_DEPT_LIST_KEY = "sys:dept:list:";
 }

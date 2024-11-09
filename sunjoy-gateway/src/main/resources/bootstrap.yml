@@ -16,12 +16,12 @@ spring:
       password: nacos
       discovery:
         # 服务注册地址
-        server-addr: 192.168.2.5:30908
+        server-addr: 192.168.2.5:31000
         namespace: dev
         group: sunjoy-pms
       config:
         # 配置中心地址
-        server-addr: 192.168.2.5:30908
+        server-addr: 192.168.2.5:31000
         namespace: dev
         group: sunjoy-pms
         # 配置文件格式

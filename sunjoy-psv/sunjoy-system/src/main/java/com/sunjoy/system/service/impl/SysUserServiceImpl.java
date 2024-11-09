@@ -6,15 +6,18 @@ import com.sunjoy.common.core.utils.SpringUtils;
 import com.sunjoy.common.core.utils.StringUtils;
 import com.sunjoy.common.core.utils.bean.BeanValidators;
 import com.sunjoy.common.datascope.annotation.DataScope;
+import com.sunjoy.common.redis.service.RedisService;
 import com.sunjoy.common.security.utils.SecurityUtils;
 import com.sunjoy.system.api.domain.SysRole;
 import com.sunjoy.system.api.domain.SysUser;
 import com.sunjoy.system.domain.SysPost;
+import com.sunjoy.system.domain.SysTenant;
 import com.sunjoy.system.domain.SysUserPost;
 import com.sunjoy.system.domain.SysUserRole;
 import com.sunjoy.system.mapper.*;
 import com.sunjoy.system.service.ISysConfigService;
 import com.sunjoy.system.service.ISysDeptService;
+import com.sunjoy.system.service.ISysTenantService;
 import com.sunjoy.system.service.ISysUserService;
 import jakarta.validation.Validator;
 import org.slf4j.Logger;
@@ -52,6 +55,8 @@ public class SysUserServiceImpl implements ISysUserService {
     private ISysConfigService configService;
     @Autowired
     private ISysDeptService deptService;
+    @Autowired
+    private RedisService redisService;
 
     /**
      * 根据条件分页查询用户列表
@@ -62,6 +67,7 @@ public class SysUserServiceImpl implements ISysUserService {
     @Override
     @DataScope(deptAlias = "d", userAlias = "u")
     public List<SysUser> selectUserList(SysUser user) {
+        user.setTenantId(SecurityUtils.getTenantId());
         return userMapper.selectUserList(user);
     }
 
@@ -97,7 +103,7 @@ public class SysUserServiceImpl implements ISysUserService {
      */
     @Override
     public SysUser selectUserByUserName(String userName) {
-        return userMapper.selectUserByUserName(userName);
+        return userMapper.selectUserByUserName(userName, SecurityUtils.getTenantId());
     }
 
     /**
@@ -119,7 +125,7 @@ public class SysUserServiceImpl implements ISysUserService {
      */
     @Override
     public String selectUserRoleGroup(String userName) {
-        List<SysRole> list = roleMapper.selectRolesByUserName(userName);
+        List<SysRole> list = roleMapper.selectRolesByUserName(userName, SecurityUtils.getTenantId());
         if (CollectionUtils.isEmpty(list)) {
             return StringUtils.EMPTY;
         }
@@ -227,6 +233,14 @@ public class SysUserServiceImpl implements ISysUserService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public int insertUser(SysUser user) {
+        user.setCreateBy(SecurityUtils.getUsername());
+        user.setPassword(SecurityUtils.encryptPassword(user.getPassword()));
+        Long tenantId = user.getTenantId() == null ? SecurityUtils.getTenantId() : user.getTenantId();
+        if (1L != tenantId) {
+            SysTenant tenant = redisService.getCacheMapValue(ISysTenantService.KEY_REDIS_TENANT, tenantId.toString());
+            user.setUserName(user.getUserName() + "@" + tenant.getTenantCode());
+        }
+        user.setTenantId(tenantId);
         // 新增用户信息
         int rows = userMapper.insertUser(user);
         // 新增用户岗位关联
@@ -443,7 +457,7 @@ public class SysUserServiceImpl implements ISysUserService {
         for (SysUser user : userList) {
             try {
                 // 验证是否存在这个用户
-                SysUser u = userMapper.selectUserByUserName(user.getUserName());
+                SysUser u = userMapper.selectUserByUserName(user.getUserName(), SecurityUtils.getTenantId());
                 if (StringUtils.isNull(u)) {
                     BeanValidators.validateWithException(validator, user);
                     deptService.checkDeptDataScope(user.getDeptId());

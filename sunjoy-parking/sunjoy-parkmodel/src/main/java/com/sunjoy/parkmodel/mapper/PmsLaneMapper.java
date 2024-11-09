@@ -1,6 +1,6 @@
 package com.sunjoy.parkmodel.mapper;
 
-import com.sunjoy.parkmodel.entity.PmsLane;
+import com.sunjoy.parking.entity.PmsLane;
 import com.sunjoy.parkmodel.mapper.provider.PmsLaneSqlProvider;
 import org.apache.ibatis.annotations.*;
 
@@ -15,7 +15,7 @@ import java.util.List;
 @Mapper
 public interface PmsLaneMapper {
 
-    @Insert("INSERT INTO pms_lane (lane_name, opu_id, rap,link_outer, status, del_flag, create_by, create_time,  remark) VALUES (#{laneName}, #{opuId}, #{rap}, #{linkOuter}, #{status}, #{delFlag}, #{createBy}, #{createTime},  #{remark})")
+    @Insert("INSERT INTO pms_lane (lane_name, tenant_id,opu_id, rap,link_outer, status, del_flag, create_by, create_time,  remark) VALUES (#{laneName}, #{tenantId},#{opuId}, #{rap}, #{linkOuter}, #{status}, #{delFlag}, #{createBy}, #{createTime},  #{remark})")
     @Options(useGeneratedKeys = true, keyProperty = "laneId")
     int insertPmsLane(PmsLane pmsLane);
 

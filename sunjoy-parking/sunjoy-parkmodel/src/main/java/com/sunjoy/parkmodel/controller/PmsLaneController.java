@@ -6,10 +6,10 @@ import com.sunjoy.common.core.web.domain.AjaxResult;
 import com.sunjoy.common.log.annotation.Log;
 import com.sunjoy.common.log.enums.BusinessType;
 import com.sunjoy.common.security.annotation.RequiresPermissions;
-import com.sunjoy.parkmodel.entity.PmsDevice;
-import com.sunjoy.parkmodel.entity.PmsLane;
-import com.sunjoy.parkmodel.entity.PmsLaneDevice;
-import com.sunjoy.parkmodel.entity.PmsParkLane;
+import com.sunjoy.parking.entity.PmsDevice;
+import com.sunjoy.parking.entity.PmsLane;
+import com.sunjoy.parking.entity.PmsLaneDevice;
+import com.sunjoy.parking.entity.PmsParkLane;
 import com.sunjoy.parkmodel.pojo.LaneDevicePojo;
 import com.sunjoy.parkmodel.pojo.LanePojo;
 import com.sunjoy.parkmodel.service.IPmsDeviceService;
@@ -187,7 +187,7 @@ public class PmsLaneController extends BaseController {
     /**
      * 保存通道设备关系
      *
-     * @param laneDeviceList
+     * @param ids
      * @return
      */
     @RequiresPermissions("parking:lane:add")

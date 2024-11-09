@@ -1,9 +1,12 @@
 package com.sunjoy.parkmodel.service.impl;
 
+import com.sunjoy.common.redis.service.RedisService;
 import com.sunjoy.common.security.utils.SecurityUtils;
-import com.sunjoy.parkmodel.entity.PmsLaneDevice;
+import com.sunjoy.parking.entity.PmsLaneDevice;
+import com.sunjoy.parking.utils.RedisKeyConstants;
 import com.sunjoy.parkmodel.mapper.PmsLaneDeviceMapper;
 import com.sunjoy.parkmodel.service.IPmsLaneDeviceService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Class description
+ * 通道设备服务类
  *
  * @author Habib
  * @date 2024/10/29
@@ -19,8 +22,21 @@ import java.util.List;
 
 @Service
 public class PmsLaneDeviceServiceImpl implements IPmsLaneDeviceService {
+
     @Autowired
     private PmsLaneDeviceMapper laneDeviceMapper;
+
+    @Autowired
+    private RedisService redisService;
+
+    @PostConstruct
+    private void initCache() {
+        List<PmsLaneDevice> allList = this.laneDeviceMapper.selectAll();
+        if (!allList.isEmpty()) {
+            this.redisService.deleteObject(RedisKeyConstants.PARK_LANE_DEVICE);
+            this.redisService.setCacheList(RedisKeyConstants.PARK_LANE_DEVICE, allList);
+        }
+    }
 
     @Override
     public int addLaneDevice(PmsLaneDevice laneDevice) {
@@ -38,6 +54,8 @@ public class PmsLaneDeviceServiceImpl implements IPmsLaneDeviceService {
 
     @Override
     public int updateLaneDevice(PmsLaneDevice laneDevice) {
+        laneDevice.setUpdateBy(SecurityUtils.getUsername());
+        laneDevice.setUpdateTime(new Date());
         return laneDeviceMapper.update(laneDevice);
     }
 

@@ -1,7 +1,7 @@
 package com.sunjoy.parkmodel.pojo;
 
 import com.sunjoy.common.core.utils.bean.BeanUtils;
-import com.sunjoy.parkmodel.entity.PmsPark;
+import com.sunjoy.parking.entity.PmsPark;
 import lombok.Data;
 
 import java.util.List;
@@ -19,6 +19,8 @@ public class ParkPojo extends PmsPark {
      * 通道列表
      */
     private List<LanePojo> laneList;
+    //通道设备关系表
+    private List<LaneDevicePojo> laneDeviceList;
 
     /**
      * 获取PmsPark对象

@@ -2,11 +2,10 @@ package com.sunjoy.common.log.enums;
 
 /**
  * 操作人类别
- * 
+ *
  * @author sunjoy
  */
-public enum OperatorType
-{
+public enum OperatorType {
     /**
      * 其它
      */
@@ -20,5 +19,9 @@ public enum OperatorType
     /**
      * 手机端用户
      */
-    MOBILE
+    MOBILE,
+    /**
+     * 设备
+     */
+    DEVICE
 }

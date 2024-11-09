@@ -7,6 +7,7 @@
         <result column="park_name" property="parkName"/>
         <result column="park_type" property="parkType"/>
         <result column="opu_id" property="opuId"/>
+        <result column="tenant_id" property="tenantId"/>
         <result column="opu_name" property="opuName"/>
         <result column="leader" property="leader"/>
         <result column="phone" property="phone"/>
@@ -26,6 +27,7 @@
     <sql id="selectBaseColumn">
         select park_id,
                park_name,
+               tenant_id,
                park_type,
                opu_id,
                opu_name,
@@ -38,21 +40,7 @@
                create_time
         from pms_park
     </sql>
-
-    <select id="selectParkList" resultMap="BaseResultMap">
-        <include refid="selectBaseColumn"/>
-        <where>
-            <if test="parkName!=null  and parkName != ''">
-                and park_name like concat('%', #{parkName}, '%')
-            </if>
-            <if test="parkType!=null  and parkName != ''">
-                and park_type = #{parkType}
-            </if>
-            <if test="region!=null  and region != ''">
-                and region = #{region}
-            </if>
-        </where>
-    </select>
+    
 
     <insert id="insertPark" parameterType="PmsPark" useGeneratedKeys="true" keyProperty="parkId">
         insert into pms_park(
@@ -67,6 +55,9 @@
         </if>
         <if test="opuId != null and opuId != 0">
             opu_id,
+        </if>
+        <if test="tenantId != null and tenantId != 0">
+            tenant_id,
         </if>
         <if test="opuName != null and opuName != ''">
             opu_name,
@@ -113,6 +104,9 @@
         <if test="opuId != null and opuId != 0">
             #{opuId},
         </if>
+        <if test="tenantId != null and tenantId != 0">
+            #{tenantId},
+        </if>
         <if test="opuName != null and opuName != ''">
             #{opuName},
         </if>
@@ -148,7 +142,7 @@
         )
     </insert>
 
-    <select id="selectParkById" resultType="com.sunjoy.parkmodel.entity.PmsPark" parameterType="Long">
+    <select id="selectParkById" resultType="com.sunjoy.parking.entity.PmsPark" parameterType="Long">
         <include refid="selectBaseColumn"/>
         where park_id=#{parkId}
     </select>

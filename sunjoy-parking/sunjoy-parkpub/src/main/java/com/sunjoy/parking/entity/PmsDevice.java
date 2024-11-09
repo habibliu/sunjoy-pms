@@ -1,10 +1,7 @@
-package com.sunjoy.parkmodel.entity;
+package com.sunjoy.parking.entity;
 
 import com.sunjoy.common.core.web.domain.BaseEntity;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * Class description
@@ -12,6 +9,7 @@ import lombok.NoArgsConstructor;
  * @author Habib
  * @date 2024/10/25
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Builder
 @NoArgsConstructor
@@ -23,6 +21,10 @@ public class PmsDevice extends BaseEntity {
     private String deviceName;
     // 设备型号
     private String deviceModel;
+    /**
+     * 租户ID
+     */
+    private Long tenantId;
     // 经营单位Id
     private Long opuId;
     // 功能：REL--放行，DIS--显示，VOI--语音，SEN--感应,VEO--摄像

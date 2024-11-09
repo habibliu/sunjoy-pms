@@ -30,6 +30,10 @@ public class SysUser extends BaseEntity {
     private Long userId;
 
     /**
+     * 租户ID
+     */
+    private Long tenantId;
+    /**
      * 部门ID
      */
     @Excel(name = "部门编号", type = Type.IMPORT)
@@ -145,6 +149,14 @@ public class SysUser extends BaseEntity {
 
     public void setUserId(Long userId) {
         this.userId = userId;
+    }
+
+    public Long getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(Long tenantId) {
+        this.tenantId = tenantId;
     }
 
     public boolean isAdmin() {

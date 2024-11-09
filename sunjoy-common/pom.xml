@@ -26,6 +26,7 @@
         <module>sunjoy-common-datasource</module>
         <module>sunjoy-common-seata</module>
         <module>sunjoy-common-sensitive</module>
+        <module>sunjoy-common-mqtt</module>
     </modules>
 
     <properties>

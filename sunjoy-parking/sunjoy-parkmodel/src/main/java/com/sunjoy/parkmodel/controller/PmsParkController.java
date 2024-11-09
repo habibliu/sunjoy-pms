@@ -8,8 +8,7 @@ import com.sunjoy.common.core.web.page.TableDataInfo;
 import com.sunjoy.common.log.annotation.Log;
 import com.sunjoy.common.log.enums.BusinessType;
 import com.sunjoy.common.security.annotation.RequiresPermissions;
-import com.sunjoy.common.security.utils.SecurityUtils;
-import com.sunjoy.parkmodel.entity.PmsPark;
+import com.sunjoy.parking.entity.PmsPark;
 import com.sunjoy.parkmodel.pojo.ParkPojo;
 import com.sunjoy.parkmodel.service.IPmsLaneService;
 import com.sunjoy.parkmodel.service.IPmsParkService;
@@ -52,11 +51,9 @@ public class PmsParkController extends BaseController {
     @RequiresPermissions("parking:park:add")
     @Log(title = "车场管理", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@Validated @RequestBody PmsPark park) {
+    public AjaxResult add(@Validated @RequestBody ParkPojo park) {
 
-        park.setCreateBy(SecurityUtils.getUsername());
-
-        return toAjax(pmsParkService.createPark(park));
+        return toAjax(pmsParkService.createPark(park.getPmsPark(), park.getLaneList(), park.getLaneDeviceList()));
     }
 
     /**
@@ -91,7 +88,7 @@ public class PmsParkController extends BaseController {
     @PutMapping
     public AjaxResult updatePark(@Validated @RequestBody ParkPojo park) {
 
-        return toAjax(pmsParkService.updatePark(park.getPmsPark(), park.getLaneList()));
+        return toAjax(pmsParkService.updatePark(park.getPmsPark()));
     }
 
 

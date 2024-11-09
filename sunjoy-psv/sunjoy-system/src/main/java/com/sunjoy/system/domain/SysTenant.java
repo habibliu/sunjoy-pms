@@ -1,5 +1,6 @@
 package com.sunjoy.system.domain;
 
+import com.sunjoy.common.core.web.domain.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,7 +18,7 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SysTenant {
+public class SysTenant extends BaseEntity {
 
     private Long tenantId;
 

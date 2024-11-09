@@ -1,6 +1,6 @@
 package com.sunjoy.parkmodel.pojo;
 
-import com.sunjoy.parkmodel.entity.PmsLaneDevice;
+import com.sunjoy.parking.entity.PmsLaneDevice;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

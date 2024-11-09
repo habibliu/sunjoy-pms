@@ -2,11 +2,10 @@ package com.sunjoy.common.core.constant;
 
 /**
  * 权限相关通用常量
- * 
+ *
  * @author sunjoy
  */
-public class SecurityConstants
-{
+public class SecurityConstants {
     /**
      * 用户ID字段
      */
@@ -46,4 +45,9 @@ public class SecurityConstants
      * 角色权限
      */
     public static final String ROLE_PERMISSION = "role_permission";
+
+    /**
+     * 所属租户ID
+     */
+    public static final String TEANANT_ID = "tenantId";
 }

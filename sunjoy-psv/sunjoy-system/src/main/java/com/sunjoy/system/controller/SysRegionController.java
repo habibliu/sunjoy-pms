@@ -41,4 +41,13 @@ public class SysRegionController extends BaseController {
         log.info("成功返回区域记录数:{}", result.size());
         return success(result);
     }
+
+    @GetMapping("/list/all")
+    public AjaxResult list() {
+
+        List<SysRegion> result = this.regionService.getAllRegions();
+
+        log.info("成功返回区域记录数:{}", result.size());
+        return success(result);
+    }
 }
