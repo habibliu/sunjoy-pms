@@ -161,7 +161,21 @@ export const dynamicRoutes = [
         meta: { title: '修改生成配置', activeMenu: '/tool/gen' }
       }
     ]
-  }
+  },
+  {
+    path: '/parking/park-service',
+    component: Layout,
+    hidden: true,
+    permissions: ['parking:park:list'],
+    children: [
+      {
+        path: 'index/:parkId(\\d+)',
+        component: () => import('@/views/parking/park/service'),
+        name: 'ParkService',
+        meta: { title: '车场服务', activeMenu: '/parking/park' }
+      }
+    ]
+  },
 ]
 
 // 防止连续点击多次路由报错

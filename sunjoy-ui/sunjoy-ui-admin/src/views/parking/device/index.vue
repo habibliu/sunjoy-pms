@@ -207,11 +207,19 @@
             :show-overflow-tooltip="true"
           />
           <el-table-column
+            label="设备编号"
+            align="center"
+            key="deviceCode"
+            prop="deviceCode"
+            v-if="columns[2].visible"
+            :show-overflow-tooltip="true"
+          />
+          <el-table-column
             label="经营单位"
             align="center"
             key="opuName"
             prop="opuName"
-            v-if="columns[2].visible"
+            v-if="columns[3].visible"
             :show-overflow-tooltip="true"
             :formatter="opuNameFormatter"
           />
@@ -220,7 +228,7 @@
             align="center"
             key="deviceModel"
             prop="deviceModel"
-            v-if="columns[3].visible"
+            v-if="columns[4].visible"
             :show-overflow-tooltip="true"
           />
           <el-table-column
@@ -228,7 +236,7 @@
             align="center"
             key="functions"
             prop="functions"
-            v-if="columns[4].visible"
+            v-if="columns[5].visible"
             width="120"
             :formatter="formatFunctions"
           />
@@ -237,7 +245,7 @@
             align="center"
             key="vendor"
             prop="vendor"
-            v-if="columns[5].visible"
+            v-if="columns[6].visible"
             width="200"
           />
           <el-table-column
@@ -245,14 +253,14 @@
             align="center"
             key="producer"
             prop="producer"
-            v-if="columns[6].visible"
+            v-if="columns[7].visible"
             width="80"
           />
           <el-table-column
             label="状态"
             align="center"
             key="status"
-            v-if="columns[7].visible"
+            v-if="columns[8].visible"
             width="100"
           >
             <template slot-scope="scope">
@@ -281,7 +289,7 @@
             width="160"
             class-name="small-padding fixed-width"
           >
-            <template slot-scope="scope" v-if="scope.row.deviceId !== 1">
+            <template slot-scope="scope" v-if="scope.row.deviceId">
               <el-button
                 size="mini"
                 type="text"
@@ -297,6 +305,14 @@
                 @click="handleDelete(scope.row)"
                 v-hasPermi="['parking:device:remove']"
                 >删除</el-button
+              >
+              <el-button
+                size="mini"
+                type="text"
+                icon="el-icon-delete"
+                @click="handleCopy(scope.row)"
+                v-hasPermi="['parking:device:copy']"
+                >复制</el-button
               >
             </template>
           </el-table-column>
@@ -316,7 +332,9 @@
       :deviceId="selectDeviceId"
       :dialogVisible="open"
       :title="title"
-      @close="closeForm"
+      :opuId="queryParams.opuId"
+      :data="deviceObject"
+      @close="closeDeviceForm"
     />
   </div>
 </template>
@@ -353,6 +371,8 @@ export default {
 
       // 日期范围
       dateRange: [],
+      //动态传递给deviceForm组件
+      deviceObject:{},
 
       // 表单参数
       form: {},
@@ -388,13 +408,14 @@ export default {
       columns: [
         { key: 0, label: `设备编号`, visible: true },
         { key: 1, label: `设备名称`, visible: true },
-        { key: 2, label: `经营单位`, visible: true },
-        { key: 3, label: `设备型号`, visible: true },
-        { key: 4, label: `设备功能`, visible: true },
-        { key: 5, label: `供应商`, visible: true },
-        { key: 6, label: `生产商`, visible: true },
-        { key: 7, label: `状态`, visible: true },
-        { key: 8, label: `创建时间`, visible: true },
+        { key: 2, label: `设备编号`, visible: true },
+        { key: 3, label: `经营单位`, visible: true },
+        { key: 4, label: `设备型号`, visible: true },
+        { key: 5, label: `设备功能`, visible: true },
+        { key: 6, label: `供应商`, visible: true },
+        { key: 7, label: `生产商`, visible: true },
+        { key: 8, label: `状态`, visible: true },
+        { key: 9, label: `创建时间`, visible: true },
       ],
       // 表单校验
       rules: {
@@ -498,14 +519,25 @@ export default {
       this.open = true;
       this.title = "修改设备资料";
     },
-
+    /**
+     * 复制一套新设备
+     * @param row 
+     */
+    handleCopy(row){
+      debugger;
+      this.deviceObject=row;
+      this.open = true;
+      this.title = "复制设备资料";
+    },
     // 取消按钮
-    closeForm(type) {
+    closeDeviceForm(type) {
       this.open = false;
+      this.title=undefined;
       if (type == "submit") {
         this.getList();
+        this.reset();
       }
-      this.reset();
+      
     },
 
     /** 提交按钮 */

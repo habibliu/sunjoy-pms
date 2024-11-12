@@ -18,7 +18,7 @@ export function getPark(parkId) {
   })
 }
 
-// 新增用户
+// 新增车场
 export function addPark(data) {
   return request({
     url: '/parkmodel/park',
@@ -27,7 +27,7 @@ export function addPark(data) {
   })
 }
 
-// 修改用户
+// 修改车场
 export function updatePark(data) {
   return request({
     url: '/parkmodel/park',
@@ -68,3 +68,10 @@ export function opuTreeSelect() {
   });
 }
 
+// 查询车场下拉树结构
+export function getParkTree(opuId){
+  return request({
+    url: '/parkmodel/park/tree/' + parseStrEmpty(opuId),
+    method: 'get'
+  });
+}

@@ -18,17 +18,6 @@
           >
             <el-row>
               <el-col :span="24">
-                <el-form-item label="设备名称" prop="deviceName">
-                  <el-input
-                    v-model="form.deviceName"
-                    placeholder="请输入设备名称"
-                    maxlength="30"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row>
-              <el-col :span="24">
                 <el-form-item label="经营单位" prop="opuId">
                   <Treeselect
                     v-model="form.opuId"
@@ -41,11 +30,33 @@
             </el-row>
             <el-row>
               <el-col :span="24">
+                <el-form-item label="设备名称" prop="deviceName">
+                  <el-input
+                    v-model="form.deviceName"
+                    placeholder="请输入设备名称"
+                    maxlength="30"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-col :span="24">
                 <el-form-item label="设备型号 " prop="deviceModel">
                   <el-input
                     v-model="form.deviceModel"
                     placeholder="请输入设备型号"
                     maxlength="50"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-col :span="24">
+                <el-form-item label="设备编号" prop="deviceCode">
+                  <el-input
+                    v-model="form.deviceCode"
+                    placeholder="请输入设备编号"
+                    maxlength="30"
                   />
                 </el-form-item>
               </el-col>
@@ -81,8 +92,8 @@
                       v-for="dict in dict.type.pms_device_functions"
                       :label="dict.value"
                       :key="dict.value"
-                      >{{ dict.label }}</el-checkbox
-                    >
+                      >{{ dict.label }}
+                      </el-checkbox>
                   </el-checkbox-group>
                 </el-form-item>
               </el-col>
@@ -151,6 +162,14 @@ export default {
       type: Number,
       required: true,
     },
+    opuId: {
+      type: Number,
+      required: false,
+    },
+    data: {
+      type: Object,
+      required: false
+    }
   },
   name: "DeviceForm",
   dicts: ["sys_normal_disable", "pms_device_functions"],
@@ -158,6 +177,8 @@ export default {
 
   data() {
     return {
+      //是否已经初始化
+      init:false,
       //设备功能
       checkFunctions: [],
       //创建title副本
@@ -179,6 +200,15 @@ export default {
         ],
         opuId: [
           { required: true, message: "经营单位不能为空", trigger: "blur" },
+        ],
+        deviceCode: [
+          { required: true, message: "设备编号不能为空", trigger: "blur" },
+          {
+            min: 2,
+            max: 20,
+            message: "设备编号长度必须介于 2 和 30 之间",
+            trigger: "blur",
+          },
         ],
 
         phone: [
@@ -203,17 +233,19 @@ export default {
     reset() {
       this.form = {
         status: "0",
+        opuId: this.opuId,
       };
+      this.init=false;
       this.checkFunctions = [];
-      this.resetForm("form");
+      //this.resetForm("form");
     },
     submitForm() {
       this.$refs["form"].validate((valid) => {
         if (valid) {
           let submitObj = this.form;
-          
-          submitObj.functions=this.checkFunctions.join(',');
-       
+
+          submitObj.functions = this.checkFunctions.join(",");
+
           let that = this;
           if (submitObj.deviceId != undefined) {
             updateDevice(submitObj).then((response) => {
@@ -233,11 +265,15 @@ export default {
     },
     cancel() {
       let that = this;
-      this.$modal
-        .confirm("是否确认放弃保存？确认后表单修改的数据会丢失!")
-        .then(function () {
-          that.closeForm("cancel");
-        });
+      if (this.form.deviceName) {
+        this.$modal
+          .confirm("是否确认放弃保存？确认后表单修改的数据会丢失!")
+          .then(function () {
+            that.closeForm("cancel");
+          });
+      } else {
+        this.closeForm("cancel");
+      }
     },
     closeForm(type) {
       this.reset();
@@ -246,22 +282,43 @@ export default {
   },
 
   watch: {
+    data:{
+      handler(newVal, oldVal) {
+        debugger;
+        if(!this.init){
+          this.form=newVal;
+          this.form.deviceId=undefined;
+          this.form.deviceCode=undefined;
+          this.checkFunctions = newVal.functions.split(",");
+          this.init=true;
+        }
+      },
+      deep:true
+    },
+    opuId: {
+      handler(newVal, oldVal) {
+        if (newVal) {
+          this.form.opuId = newVal;
+        } else {
+          this.form.opuId = oldVal;
+        }
+      },
+    },
     deviceId: {
       handler(newVal, oldVal) {
         console.log("Device prop changed:", newVal);
-        if ( Number.isNaN(newVal)||newVal == undefined ) {
+        if (Number.isNaN(newVal) || newVal == undefined) {
           return;
         }
 
         let that = this;
         getDevice(newVal).then((response) => {
-          
           that.form = response.data;
-          const functions=response.data.functions;
-          that.checkFunctions=response.data.functions.split(',');
-          console.log('that.checkFunctions:'+that.checkFunctions);
+          const functions = response.data.functions;
+          that.checkFunctions = response.data.functions.split(",");
+          console.log("that.checkFunctions:" + that.checkFunctions);
         });
-        
+
         // 处理 device prop 变化的逻辑
       },
       deep: true, // 如果需要深度监听，特别是对象

@@ -72,7 +72,8 @@ export default {
     ...mapGetters([
       'sidebar',
       'avatar',
-      'device'
+      'device',
+      'region'
     ]),
     setting: {
       get() {
@@ -90,6 +91,9 @@ export default {
         return this.$store.state.settings.topNav
       }
     }
+  },
+  mounted() {
+    this.$store.dispatch('fetchRegions'); // 调用 action
   },
   methods: {
     toggleSideBar() {

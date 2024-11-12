@@ -27,7 +27,7 @@
           />
         </div>
       </el-col>
-      <!--车场查询表单-->
+      <!--收费标准查询表单-->
       <el-col :span="20" :xs="24">
         <el-form
           :model="queryParams"
@@ -37,37 +37,49 @@
           v-show="showSearch"
           label-width="68px"
         >
-          <el-form-item label="车场名称" prop="parkName">
+          <el-form-item label="名称" prop="priceName">
             <el-input
-              v-model="queryParams.parkName"
-              placeholder="请输入车场名称"
+              v-model="queryParams.priceName"
+              placeholder="请输入收费标准名称"
               clearable
               style="width: 200px"
               @keyup.enter.native="handleQuery"
             />
           </el-form-item>
-          <el-form-item label="负责人" prop="leader">
-            <el-input
-              v-model="queryParams.leader"
-              placeholder="请输入车场负责人姓名"
+          <el-form-item label="是否免费" prop="free">
+            <el-select
+              v-model="queryParams.free"
+              placeholder="请选择"
               clearable
               style="width: 200px"
               @keyup.enter.native="handleQuery"
-            />
+              ><el-option
+                v-for="dict in dict.type.sys_yes_no"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+              />
+            </el-select>
           </el-form-item>
-          <el-form-item label="手机号码" prop="phone">
-            <el-input
-              v-model="queryParams.phone"
-              placeholder="请输入手机号码"
+          <el-form-item label="统一价格" prop="uniformPrice">
+            <el-select
+              v-model="queryParams.uniformPrice"
+              placeholder="请选择"
               clearable
               style="width: 200px"
               @keyup.enter.native="handleQuery"
-            />
+              ><el-option
+                v-for="dict in dict.type.sys_yes_no"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="状态" prop="status">
             <el-select
               v-model="queryParams.status"
-              placeholder="车场状态"
+              placeholder="收费标准状态"
               clearable
               style="width: 100px"
             >
@@ -134,115 +146,93 @@
               plain
               icon="el-icon-delete"
               size="mini"
-              :disabled="multiple"
+              :disabled="canMultiDel"
               @click="handleDelete"
               v-hasPermi="['parking:park:remove']"
               >删除</el-button
             >
           </el-col>
-          <el-col :span="1.5">
-            <el-button
-              type="info"
-              plain
-              icon="el-icon-upload2"
-              size="mini"
-              @click="handleImport"
-              v-hasPermi="['parking:park:import']"
-              >导入</el-button
-            >
-          </el-col>
-          <el-col :span="1.5">
-            <el-button
-              type="warning"
-              plain
-              icon="el-icon-download"
-              size="mini"
-              @click="handleExport"
-              v-hasPermi="['parking:park:export']"
-              >导出</el-button
-            >
-          </el-col>
-          <right-toolbar
-            :showSearch.sync="showSearch"
-            @queryTable="getList"
-            :columns="columns"
-          ></right-toolbar>
+
+          
         </el-row>
 
         <el-table
           v-loading="loading"
-          :data="parkList"
+          :data="priceList"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column
-            label="车场编号"
+            label="编号"
             align="center"
-            key="parkId"
-            prop="parkId"
+            key="priceId"
+            prop="priceId"
             v-if="columns[0].visible"
             width="100"
           />
           <el-table-column
-            label="车场名称"
+            label="收费标准名称"
             align="left"
-            key="parkName"
-            prop="parkName"
+            key="priceName"
+            prop="priceName"
             v-if="columns[1].visible"
             :show-overflow-tooltip="true"
           />
-          
           <el-table-column
             label="经营单位"
             align="left"
-            key="opuName"
-            prop="opuName"
+            key="opuId"
+            prop="opuId"
             v-if="columns[2].visible"
             :show-overflow-tooltip="true"
-             width="140"
+            :formatter="opuFormatter"
           />
           <el-table-column
-            label="负责人"
+            label="是否免费"
             align="center"
-            key="leader"
-            prop="leader"
+            key="free"
+            prop="free"
             v-if="columns[3].visible"
             :show-overflow-tooltip="true"
+            :formatter=freeFormatter
           />
           <el-table-column
-            label="手机号码"
+            label="统一价格"
             align="center"
-            key="phone"
-            prop="phone"
+            key="uniformPrice"
+            prop="uniformPrice"
             v-if="columns[4].visible"
             width="120"
+            :formatter=uniformPriceFormatter
           />
           <el-table-column
-            label="位置"
-            align="left"
-            key="region"
-            prop="region"
+            label="免费时长(分钟)"
+            align="center"
+            key="freeDuration"
+            prop="freeDuration"
+            v-if="columns[4].visible"
+            width="160"
+          
+          />
+          <el-table-column
+            label="单价"
+            align="center"
+            key="price"
+            prop="price"
             v-if="columns[5].visible"
-            width="200"
-            :formatter="regionFormatter"
+            width="140"
+            :formatter="priceFormatter"
           />
           <el-table-column
-            label="分类"
+            label="最高收费"
             align="center"
-            key="parkType"
-            prop="parkType"
+            key="maxFee"
+            prop="maxFee"
             v-if="columns[6].visible"
-            width="80"
-            :formatter="parkTypeFormatter"
+            width="140"
+            :formatter="maxFeeFormatter"
           />
-          <el-table-column
-            label="总车位数"
-            align="center"
-            key="totalLots"
-            prop="totalLots"
-            v-if="columns[7].visible"
-            width="100"
-          />
+
           <el-table-column
             label="状态"
             align="center"
@@ -266,7 +256,7 @@
           <el-table-column
             label="操作"
             align="center"
-            width="300"
+            width="200"
             class-name="small-padding fixed-width"
           >
             <template slot-scope="scope">
@@ -303,16 +293,9 @@
                 icon="el-icon-video-pause"
                 @click="handleDisable(scope.row)"
                 v-hasPermi="['parking:park:enable']"
-                :disabled="scope.row.status==0||scope.row.status==2||scope.row.status==9"
+                :disabled="scope.row.status==0||scope.row.status==9"
                 >停用</el-button
               >
-              <el-divider direction="vertical"></el-divider>
-              <router-link
-                :to="'/parking/park-service/index/' + scope.row.parkId"
-                class="link-type"
-              >
-              <span><i class="el-icon-set-up"></i>服务套餐</span>
-              </router-link>
             </template>
           </el-table-column>
         </el-table>
@@ -327,16 +310,16 @@
       </el-col>
     </el-row>
 
-    <!-- 添加或修改车场对话框 -->
+    <!-- 添加或修改收费标准对话框 -->
     <el-dialog
       :title="title"
       :visible.sync="open"
-      width="1440px"
+      :width="dialogWidth"
       append-to-body
     >
       <el-row :gutter="20">
-        <el-col :span="8">
-          <el-tag>车场信息</el-tag>
+        <el-col :span="dialogFormSpan">
+     
           <el-form
             ref="form"
             :model="form"
@@ -359,10 +342,10 @@
             </el-row>
             <el-row class="parkRow">
               <el-col :span="24">
-                <el-form-item label="车场名称" prop="parkName">
+                <el-form-item label="名称" prop="priceName">
                   <el-input
-                    v-model="form.parkName"
-                    placeholder="请输入用户昵称"
+                    v-model="form.priceName"
+                    placeholder="请输入收费标准名称"
                     maxlength="30"
                   />
                 </el-form-item>
@@ -371,81 +354,10 @@
 
             <el-row class="parkRow">
               <el-col :span="24">
-                <el-form-item label="负责人" prop="leader">
-                  <el-input
-                    v-model="form.leader"
-                    placeholder="请输入车场负责人"
-                    maxlength="50"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="手机号码" prop="phone">
-                  <el-input
-                    v-model="form.phone"
-                    placeholder="请输入手机号码"
-                    maxlength="11"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="区域" prop="region">
-                  <RegionSelect
-                    v-model="form.region"
-                    :inputRegion="form.region"
-                    @change="onRegionChange"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="详细地址" prop="address">
-                  <el-input
-                    v-model="form.address"
-                    placeholder="请输入详细地址"
-                    maxlength="11"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="车场类型">
-                  <el-select v-model="form.parkType" placeholder="请选择l">
-                    <el-option
-                      v-for="dict in dict.type.pms_park_type"
-                      :key="dict.value"
-                      :label="dict.label"
-                      :value="dict.value"
-                    ></el-option>
-                  </el-select>
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="总车位数" prop="totalLots">
-                  <el-input
-                    v-model="form.totalLots"
-                    placeholder="请输入车场总的车位数量"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="状态">
-                  <el-radio-group v-model="form.status">
+                <el-form-item label="是否免费" prop="free">
+                  <el-radio-group v-model="form.free" @change="onFreeChange">
                     <el-radio
-                      v-for="dict in dict.type.sys_normal_disable"
+                      v-for="dict in dict.type.sys_yes_no"
                       :key="dict.value"
                       :label="dict.value"
                       >{{ dict.label }}</el-radio
@@ -454,25 +366,122 @@
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="备注">
-                  <el-input
-                    v-model="form.remark"
-                    type="textarea"
-                    placeholder="请输入内容"
-                  ></el-input>
-                </el-form-item>
-              </el-col>
-            </el-row>
+            <div v-show="form.free == 'N'">
+              <el-row class="parkRow">
+                <el-col :span="24">
+                  <el-form-item label="统一价格" prop="uniformPrice">
+                    <el-radio-group
+                      v-model="form.uniformPrice"
+                      @change="onUniformPriceChange"
+                    >
+                      <el-radio
+                        v-for="dict in dict.type.sys_yes_no"
+                        :key="dict.value"
+                        :label="dict.value"
+                        >{{ dict.label }}</el-radio
+                      >
+                    </el-radio-group>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row class="parkRow">
+                <el-col :span="24">
+                  <el-form-item label="免费时长" prop="region">
+                    <el-input-number
+                      v-model="form.freeDuration"
+                      placeholder="请输入免费时长"
+                      maxlength="11"
+                      :min="0"
+                      style="width: 200px"
+                    />分钟
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row class="parkRow">
+                <el-col :span="24">
+                  <el-form-item label="单价" prop="price">
+                    <el-input
+                      v-model="form.price"
+                      placeholder="请输入单价"
+                      maxlength="11"
+                      style="width: 80px"
+                    />
+                    元/
+                    <el-input
+                      v-model="form.priceQuantity"
+                      placeholder="请输入计费量"
+                      maxlength="11"
+                      style="width: 60px"
+                    /><el-select
+                      v-model="form.priceUnit"
+                      placeholder="请选择量化单位"
+                      style="width: 80px"
+                    >
+                      <el-option
+                        v-for="dict in dict.type.pms_price_unit"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                      ></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row class="parkRow">
+                <el-col :span="24">
+                  <el-form-item label="最高收费">
+                    <el-input
+                      v-model="form.maxFee"
+                      placeholder="请输入最高费用"
+                      maxlength="11"
+                      style="width: 80px"
+                    />
+                    元/
+                    <el-input
+                      v-model="form.maxQuantity"
+                      placeholder="请输入计费量"
+                      maxlength="11"
+                      style="width: 60px"
+                    />
+                    <el-select
+                      v-model="form.maxUnit"
+                      placeholder="请选择量化单位"
+                      style="width: 80px"
+                    >
+                      <el-option
+                        v-for="dict in dict.type.pms_price_unit"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                      ></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              
+            </div>
+              <el-row class="parkRow">
+                <el-col :span="24">
+                  <el-form-item label="备注">
+                    <el-input
+                      v-model="form.remark"
+                      type="textarea"
+                      placeholder="请输入内容"
+                    ></el-input>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            
           </el-form>
         </el-col>
-        <el-col :span="16">
-          <el-tag>车场通道</el-tag>
-          <ParkLane
-            @change="onLaneListchange"
+        <el-col :span="dialogDetailSpan" >
+          <PriceDetail
+            @change="onDetailListChange"
             :opuId="form.opuId"
-            :parkId="form.parkId"
+            :priceId="form.priceId"
           />
         </el-col>
       </el-row>
@@ -489,26 +498,30 @@
 </template>
 
 <script>
+import { opuTreeSelect } from "@/api/parking/park";
 import {
-  listPark,
-  getPark,
-  addPark,
-  updatePark,
-  delPark,
-  changeParkStatus,
-  opuTreeSelect,
-} from "@/api/parking/park";
+  listPrice,
+  getPrice,
+  addPrice,
+  updatePrice,
+  delPrice,
+  changePriceStatus,
+} from "@/api/parking/price";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import RegionSelect from "@/components/RegionSelect";
-import ParkLane from "./LaneList";
-
-import { formatRegion } from "@/utils/formatters";
+import PriceDetail from "./PriceDetail";
+import { findLabelById } from "@/utils/formatters";
 
 export default {
-  name: "Park",
-  dicts: ["sys_normal_disable", "pms_park_type", "sys_entity_status"],
-  components: { Treeselect, RegionSelect, ParkLane },
+  name: "ParkPrice",
+  dicts: [
+    "sys_normal_disable",
+    "sys_yes_no",
+    "pms_price_unit",
+    "sys_entity_status"
+  ],
+  components: { Treeselect, RegionSelect, PriceDetail },
   data() {
     return {
       // 遮罩层
@@ -521,8 +534,10 @@ export default {
       single: true,
       // 非多个禁用
       multiple: true,
-      // 车场表格数据
-      parkList: null,
+
+      canMultiDel: false,
+      // 收费标准表格数据
+      priceList: null,
 
       ids: [],
 
@@ -534,7 +549,7 @@ export default {
 
       regionId: undefined,
       //弹出框标题
-      title: "",
+      title: undefined,
       //弹出框是否显示
       open: false,
 
@@ -550,29 +565,32 @@ export default {
       // 日期范围
       dateRange: [],
       //通道列表
-      laneList: [],
-      //设备列表
-      deviceList: [],
+      detailList: [],
+
+
+      dialogWidth: "1024px",
+      dialogFormSpan: 24,
+      dialogDetailSpan: 0,
 
       // 查询参数
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        parkName: undefined,
-        phonenNmber: undefined,
-        leader: undefined,
+        priceName: undefined,
+        uniformPrice: undefined,
+        free: undefined,
         opuId: undefined,
         status: undefined,
       },
 
       // 列信息
       columns: [
-        { key: 0, label: `车场编号`, visible: true },
-        { key: 1, label: `车场名称`, visible: true },
+        { key: 0, label: `编号`, visible: true },
+        { key: 1, label: `收费标准名称`, visible: true },
         { key: 2, label: `经营单位`, visible: true },
-        { key: 3, label: `负责人`, visible: true },
-        { key: 4, label: `手机号码`, visible: true },
-        { key: 5, label: `区域`, visible: true },
+        { key: 3, label: `是否免费`, visible: true },
+        { key: 4, label: `统一价格`, visible: true },
+        { key: 5, label: `免费时长`, visible: true },
         { key: 6, label: `分类`, visible: true },
         { key: 7, label: `总车位数`, visible: true },
         { key: 8, label: `状态`, visible: true },
@@ -580,12 +598,12 @@ export default {
       ],
       // 表单校验
       rules: {
-        parkName: [
-          { required: true, message: "车场名称不能为空", trigger: "blur" },
+        priceName: [
+          { required: true, message: "收费标准名称不能为空", trigger: "blur" },
           {
             min: 2,
             max: 20,
-            message: "车场名称长度必须介于 2 和 20 之间",
+            message: "收费标准名称长度必须介于 2 和 20 之间",
             trigger: "blur",
           },
         ],
@@ -593,10 +611,10 @@ export default {
           { required: true, message: "经营单位不能为空", trigger: "blur" },
         ],
 
-        phone: [
+        price: [
           {
-            pattern: /^1[3|4|5|6|7|8|9][0-9]\d{8}$/,
-            message: "请输入正确的手机号码",
+            pattern: /^\d+(\.\d+)?$/, // 正则表达式：正小数
+            message: "请输入正确的单价",
             trigger: "blur",
           },
         ],
@@ -608,31 +626,33 @@ export default {
     deptName(val) {
       this.$refs.tree.filter(val);
     },
+    'form.uniformPrice'(newVal,oldVal){
+        this.onUniformPriceChange(newVal);
+    }
   },
   created() {
+    this.reset();
     this.getOpuTree();
     this.getList();
   },
   methods: {
-    //接收通道的变化信息
-    onLaneListchange(list) {
-      this.laneList = list;
+    //接收收费标准明细的变化信息
+    onDetailListChange(list) {
+      this.detailList = list;
     },
 
     //组opuName赋值
     onChangeOpu(selectedOpu) {
+      
       this.form.opuName = selectedOpu.label;
     },
 
-    onRegionChange(region) {
-      this.regionId = region.regionId;
-    },
-
-    /** 查询车场列表 */
+   
+    /** 查询收费标准列表 */
     getList() {
       this.loading = true;
-      listPark(this.queryParams).then((response) => {
-        this.parkList = response.rows;
+      listPrice(this.queryParams).then((response) => {
+        this.priceList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
@@ -650,8 +670,11 @@ export default {
     },
     // 节点单击事件
     handleNodeClick(data) {
+      //请求
       this.queryParams.opuId = data.id;
-      this.queryParams.ancestors = data.ancestors;
+      this.queryParams.params={'ancestors':data.ancestors}
+      
+      this.form.opuId = data.id;
       this.handleQuery();
     },
     /** 搜索按钮操作 */
@@ -668,57 +691,99 @@ export default {
       this.handleQuery();
     },
 
+    onFreeChange(value) {
+      if ("Y" == value) {
+        this.rules.price = this.rules.price.filter((rule) => !rule.required);
+        //收起明细
+        this.onUniformPriceChange('Y');
+      } else {
+        // 检查是否已经有 required 规则，避免重复添加
+        const hasRequiredRule = this.rules.price.some((rule) => rule.required);
+        if (!hasRequiredRule) {
+          this.rules.price.unshift({
+            required: true,
+            message: "请输入价格",
+            trigger: "blur",
+          });
+        }
+       
+        this.onUniformPriceChange(this.form.uniformPrice);
+      }
+    },
+
+    onUniformPriceChange(value) {
+      if (value == "N") {
+        this.dialogWidth = "1440px";
+        this.dialogFormSpan = 10;
+        this.dialogDetailSpan = 14;
+       
+      } else {
+        this.dialogWidth = "800px";
+        this.dialogFormSpan = 24;
+        this.dialogDetailSpan = 0;
+       
+      }
+    },
+
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map((item) => item.parkId);
+      this.ids = selection.map((item) => item.priceId);
       this.single = selection.length != 1;
       this.multiple = !selection.length;
+      this.canMultiDel=selection.some(item => item.status !== '0');
     },
 
     // 表单重置
     reset() {
       this.form = {
-        parkId: NaN,
+        priceId: NaN,
+        free: "N",
+        uniformPrice: "Y",
+        priceUnit: "HOUR",
+        priceQuantity: 1,
+        maxUnit: "DAY",
+        maxQuantity: 1,
         status: "0",
       };
       this.resetForm("form");
-      this.laneList = [];
-      this.deviceList = [];
-      this.serviceOpen = false;
-      this.open = false;
+      this.detailList = [];
+
+      this.onUniformPriceChange('Y');
+      
     },
     /** 响应新增按钮操作 */
     handleAdd() {
       this.reset();
       this.open = true;
-      this.title = "添加车场";
+      this.title = "添加收费标准";
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
-      const parkIds = row.parkId || this.ids;
+      const priceIds = row.priceId || this.ids;
 
-      if (parkIds) {
-        let parkId = NaN;
-        if (Array.isArray(parkIds)) {
-          parkId = parkIds[0];
+      if (priceIds) {
+        let priceId = NaN;
+        if (Array.isArray(priceIds)) {
+          priceId = priceIds[0];
         } else {
-          parkId = parkIds;
+          priceId = priceIds;
         }
 
-        getPark(parkId).then((response) => {
+        getPrice(priceId).then((response) => {
           this.form = response.data;
           this.open = true;
-          this.title = "修改车场";
+          this.title = "修改收费标准";
         });
       }
     },
-    //启用车场，启用后，不能物理删除，只能逻辑删除
+    //启用收费标准，启用后，不能物理删除，只能逻辑删除
     handleEnable(row) {
+
       this.$modal
-        .confirm('是否确认启用编号为"' + row.parkId + '"的车场？')
+        .confirm('是否确认启用编号为"' + row.priceId + '"的收费标准？')
         .then(function () {
-          return changeParkStatus(row.parkId,'1');
+          return changePriceStatus(row.priceId,'1');
         })
         .then(() => {
           this.getList();
@@ -727,18 +792,7 @@ export default {
         .catch(() => {});
     },
 
-    handleDisable(row) {
-      this.$modal
-        .confirm('是否确认停用编号为"' + row.parkId + '"的车场？')
-        .then(function () {
-          return changeParkStatus(row.parkId,'9');
-        })
-        .then(() => {
-          this.getList();
-          this.$modal.msgSuccess("停用成功");
-        })
-        .catch(() => {});
-    },
+    handleDisable(row) {},
 
     // 取消按钮
     cancel() {
@@ -750,26 +804,23 @@ export default {
     submitForm: function () {
       this.$refs["form"].validate((valid) => {
         if (valid) {
-          let submitObj = this.form;
-          debugger;
+         
           //回填form中的region，提交到后台
-          submitObj.region = this.regionId;
-          if (this.form.parkId != undefined && !isNaN(this.form.parkId)) {
+          this.form.region = this.regionId;
+          if (this.form.priceId != undefined && !isNaN(this.form.priceId)) {
             //修改
-            updatePark(submitObj).then((response) => {
+            updatePrice(this.form).then((response) => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
             
-            if (this.laneList.length > 0) {
-              submitObj.laneList = this.laneList;
+            if (this.detailList.length > 0) {
+              this.form.detailList = this.detailList;
             }
-            if (this.deviceList && Array.isArray(this.deviceList)) {
-              submitObj.deviceList = this.deviceList;
-            }
-            addPark(submitObj).then((response) => {
+           
+            addPrice(this.form).then((response) => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -780,11 +831,11 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const parkIds = row.parkId || this.ids;
+      const priceIds = row.priceId || this.ids;
       this.$modal
-        .confirm('是否确认删除用户编号为"' + parkIds + '"的数据项？')
+        .confirm('是否确认删除用户编号为"' + priceIds + '"的数据项？')
         .then(function () {
-          return delPark(parkIds);
+          return delPrice(priceIds);
         })
         .then(() => {
           this.getList();
@@ -804,7 +855,7 @@ export default {
     },
     /** 导入按钮操作 */
     handleImport() {
-      this.upload.title = "车场导入";
+      this.upload.title = "收费标准导入";
       this.upload.open = true;
     },
     /** 下载模板操作 */
@@ -839,16 +890,35 @@ export default {
     },
     //---------- formatters
 
-    regionFormatter(row) {
-      return formatRegion(row.region);
+    priceFormatter(row) {
+        if(row.price){
+            return row.price+" 元 / "+row.priceQuantity+" "+this.selectDictLabel(this.dict.type.pms_price_unit, row.priceUnit);
+        }else{
+            return "";
+        }
+        
     },
 
-    parkTypeFormatter(row) {
-      return this.selectDictLabel(this.dict.type.pms_park_type, row.parkType);
+    maxFeeFormatter(row) {
+        if(row.maxFee){
+            return row.maxFee+" 元 / "+row.maxQuantity+" "+this.selectDictLabel(this.dict.type.pms_price_unit, row.maxUnit);
+        }else{
+            return "";
+        }
     },
     statusFormatter(row) {
+        debugger
       return this.selectDictLabel(this.dict.type.sys_entity_status, row.status);
     },
+    freeFormatter(row){
+        return this.selectDictLabel(this.dict.type.sys_yes_no, row.free);
+    },
+    uniformPriceFormatter(row){
+        return this.selectDictLabel(this.dict.type.sys_yes_no, row.uniformPrice);
+    },
+    opuFormatter(row){
+        return findLabelById(this.opuOptions,row.opuId);
+    }
   },
 };
 </script>

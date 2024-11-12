@@ -108,7 +108,7 @@
             align="center"
             key="deviceId"
             prop="deviceId"
-            v-if="columns[0].visible"
+
             width="100"
           />
           <el-table-column
@@ -116,10 +116,16 @@
             align="center"
             key="deviceName"
             prop="deviceName"
-            v-if="columns[1].visible"
-            :show-overflow-tooltip="true"
+
           />
-         
+          
+          <el-table-column
+            label="设备编号"
+            align="center"
+            key="deviceCode"
+            prop="deviceCode"
+
+          />
           <el-table-column
             label="设备型号"
             align="center"
@@ -146,14 +152,7 @@
             :show-overflow-tooltip="true"
             :formatter="opuNameFormatter"
           />
-          <el-table-column
-            label="供应商"
-            align="center"
-            key="vendor"
-            prop="vendor"
-            v-if="columns[5].visible"
-            width="200"
-          />
+          
           <el-table-column
             label="生产商"
             align="center"
@@ -162,22 +161,7 @@
             v-if="columns[6].visible"
             width="80"
           />
-          <el-table-column
-            label="状态"
-            align="center"
-            key="status"
-            v-if="columns[7].visible"
-            width="100"
-          >
-            <template slot-scope="scope">
-              <el-switch
-                v-model="scope.row.status"
-                active-value="0"
-                inactive-value="1"
-                @change="handleStatusChange(scope.row)"
-              ></el-switch>
-            </template>
-          </el-table-column>
+          
           <el-table-column
             label="创建时间"
             align="center"
@@ -226,7 +210,8 @@ export default {
     },
     opuId: {
       type: Number,
-      required: true,
+      required: false,
+      default: Math.NaN
     },
   },
   name: "DeviceDialog",
@@ -302,6 +287,8 @@ export default {
       this.form = {
         status: "0",
       };
+      this.opuOptions=[];
+      this.ids=[];
 
       this.resetForm("form");
     },
@@ -315,6 +302,7 @@ export default {
       if (this.ids && this.ids.length > 0) {
         const filteredRecords = this.deviceList.filter(record => this.ids.includes(record.deviceId));
         this.$emit("submit", filteredRecords);
+        this.reset();
       } else {
         alert("最少选择一条记录！");
       }

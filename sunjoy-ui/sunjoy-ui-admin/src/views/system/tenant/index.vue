@@ -194,7 +194,7 @@
           />
           <el-table-column
             label="租户名称"
-            align="center"
+            align="left"
             key="tenantName"
             prop="tenantName"
             v-if="columns[1].visible"
@@ -202,7 +202,7 @@
           />
           <el-table-column
             label="租户代码"
-            align="center"
+            align="left"
             key="tenantCode"
             prop="tenantCode"
             v-if="columns[2].visible"
@@ -210,7 +210,7 @@
           />
           <el-table-column
             label="负责人"
-            align="center"
+            align="left"
             key="leader"
             prop="leader"
             v-if="columns[3].visible"
@@ -218,7 +218,7 @@
           />
           <el-table-column
             label="手机号码"
-            align="center"
+            align="left"
             key="phone"
             prop="phone"
             v-if="columns[4].visible"
@@ -235,17 +235,17 @@
           />
           <el-table-column
             label="位置"
-            align="center"
+            align="left"
             key="region"
             prop="region"
             v-if="columns[5].visible"
             width="180"
-            :formatter="formatRegion"
+            :formatter="regionFormatter"
           />
 
           <el-table-column
             label="详细地址"
-            align="center"
+            align="left"
             key="address"
             prop="address"
             v-if="columns[7].visible"
@@ -302,6 +302,14 @@
                 v-hasPermi="['parking:park:remove']"
                 >删除</el-button
               >
+              <el-button
+                size="mini"
+                type="text"
+                icon="el-icon-s-check"
+                @click="handleAudit(scope.row)"
+                v-hasPermi="['parking:park:auit']"
+                >审核</el-button
+              >
             </template>
           </el-table-column>
         </el-table>
@@ -320,11 +328,11 @@
     <el-dialog
       :title="title"
       :visible.sync="open"
-      width="1024px"
+      :width="dialogWidth"
       append-to-body
     >
       <el-row :gutter="20">
-        <el-col :span="24">
+        <el-col :span="dialogFormSpan">
           <el-form
             ref="form"
             :model="form"
@@ -332,7 +340,7 @@
             label-width="100px"
             class="tenantForm"
           >
-            <el-row >
+            <el-row>
               <el-col :span="12">
                 <el-form-item label="租户名称" prop="tenantName">
                   <el-input
@@ -353,7 +361,7 @@
               </el-col>
             </el-row>
 
-            <el-row >
+            <el-row>
               <el-col :span="12">
                 <el-form-item label="负责人" prop="leader">
                   <el-input
@@ -374,12 +382,12 @@
               </el-col>
             </el-row>
 
-            <el-row >
+            <el-row>
               <el-col :span="12">
                 <el-form-item label="区域" prop="region">
                   <RegionSelect
                     v-model="form.region"
-                    :region="form.region"
+                    :inputRegion="form.region"
                     @change="onRegionChange"
                   />
                 </el-form-item>
@@ -395,7 +403,7 @@
               </el-col>
             </el-row>
 
-            <el-row >
+            <el-row>
               <el-col :span="12">
                 <el-form-item label="注册日期" prop="address">
                   <el-date-picker
@@ -422,9 +430,9 @@
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-row > </el-row>
+            <el-row> </el-row>
 
-            <el-row >
+            <el-row>
               <el-col :span="12">
                 <el-form-item label="结算周期">
                   <el-radio-group v-model="form.settlementCycle">
@@ -445,9 +453,7 @@
                     show-stops
                     :min="1"
                     :max="31"
-                   
                   />
-                  
                 </el-form-item>
               </el-col>
             </el-row>
@@ -471,7 +477,7 @@
                 </el-form-item>
               </el-col>
             </el-row>
-            <el-row >
+            <el-row>
               <el-col :span="24">
                 <el-form-item label="备注">
                   <el-input
@@ -483,6 +489,12 @@
               </el-col>
             </el-row>
           </el-form>
+        </el-col>
+        <el-col :span="dialogMenuSpan">
+          <TenantMenu
+            :initMenu="initMenu"
+            ref="tenantMenu"
+          />
         </el-col>
       </el-row>
       <el-row :gutter="20">
@@ -498,17 +510,26 @@
 </template>
 
 <script>
-import { getPark, addPark, updatePark, delPark } from "@/api/parking/park";
+import { delPark } from "@/api/parking/park";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import RegionSelect from "@/components/RegionSelect";
-import { getRegionTree, listTenant } from "@/api/system/tenant";
+import TenantMenu from "./TenantMenu.vue";
+import {
+  getRegionTree,
+  listTenant,
+  addTenant,
+  updateTenant,
+  getTenant,
+  auditTenant,
+} from "@/api/system/tenant";
 import dayjs from "dayjs";
+import { formatRegion } from "@/utils/formatters";
 
 export default {
   name: "Park",
   dicts: ["sys_normal_disable", "sys_settlement_cycle"],
-  components: { Treeselect, RegionSelect },
+  components: { Treeselect, RegionSelect, TenantMenu },
   data() {
     return {
       regionProps: {
@@ -527,8 +548,16 @@ export default {
       multiple: true,
       // 租户表格数据
       tenantList: null,
-
+      //弹出框页面控制项
+      auditing: false,
+      dialogWidth: "1024px",
+      dialogFormSpan: 24,
+      dialogMenuSpan: 0,
+      initMenu: false,
+      //------结束
       ids: [],
+      //区域下拉框的绑定值
+      regionId: NaN,
 
       // 日期范围
       dateRange: [],
@@ -539,7 +568,7 @@ export default {
       title: undefined,
       //弹出框是否显示
       open: false,
-       //区域树属性调整，适应区域
+      //区域树属性调整，适应区域
       defaultProps: {
         children: "children",
         label: "regionName",
@@ -551,7 +580,7 @@ export default {
 
       // 日期范围
       dateRange: [],
-      
+
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -602,6 +631,7 @@ export default {
       },
     };
   },
+
   watch: {
     // 根据名称筛选区域树
     regionName(val) {
@@ -612,16 +642,30 @@ export default {
     this.initRegionTree();
     this.getList();
   },
-  methods: {
-    formatRegion(region) {
 
+  methods: {
+    
+    changeForm(audit) {
+      if (audit) {
+        this.dialogWidth = "1440px";
+        this.dialogFormSpan = 12;
+        this.dialogMenuSpan = 12;
+        this.initMenu = true;
+      } else {
+        this.dialogWidth = "1024px";
+        this.dialogFormSpan = 24;
+        this.dialogMenuSpan = 0;
+        this.initMenu = false;
+      }
+    },
+
+    regionFormatter(row) {
+      return formatRegion(row.region);
     },
 
     //为this.form.region构建格式化数据
     onRegionChange(region) {
-    
       this.form.region = region.regionId;
-      
     },
     /** 查询租户列表 */
     getList() {
@@ -646,6 +690,7 @@ export default {
     // 节点单击事件
     handleNodeClick(data) {
       this.queryParams.region = data.regionId;
+
       this.handleQuery();
     },
     /** 搜索按钮操作 */
@@ -658,6 +703,13 @@ export default {
       this.dateRange = [];
       this.resetForm("queryForm");
       this.queryParams.tenantCode = undefined;
+      this.queryParams.tenantName = undefined;
+      this.queryParams.phonenNmber = undefined;
+      this.queryParams.leader = undefined;
+      this.queryParams.region = undefined;
+      this.queryParams.status = undefined;
+      this.queryParams.createTime = undefined;
+
       this.$refs.tree.setCurrentKey(null);
       this.handleQuery();
     },
@@ -675,14 +727,15 @@ export default {
         tenantId: NaN,
         status: "0",
       };
+      this.auditing = false;
       this.resetForm("form");
-      
     },
     /** 响应新增按钮操作 */
     handleAdd() {
       this.reset();
       this.open = true;
       this.title = "添加租户";
+      this.changeForm(false);
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
@@ -697,14 +750,22 @@ export default {
           tenantId = tenantIds;
         }
 
-        getPark(tenantId).then((response) => {
+        getTenant(tenantId).then((response) => {
           this.form = response.data;
           this.open = true;
           this.title = "修改租户";
         });
       }
+      this.changeForm(false);
     },
 
+    handleAudit(row) {
+      this.handleUpdate(row);
+      this.changeForm(true);
+      this.auditing = true;
+      this.open = true;
+      this.title = "审核租户";
+    },
     // 取消按钮
     cancel() {
       this.open = false;
@@ -713,16 +774,32 @@ export default {
 
     /** 提交按钮 */
     submitForm: function () {
+       
       this.$refs["form"].validate((valid) => {
         if (valid) {
+         
           let submitObj = this.form;
          
-          if (this.form.tenantId != undefined) {
-            updatePark(submitObj).then((response) => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            });
+          if (!isNaN(this.form.tenantId)) {
+            if (this.auditing) {
+              let tenantMenuList = this.$refs.tenantMenu.getMenuChecked(); // 调用子组件的方法
+              submitObj.menuList=tenantMenuList;
+              debugger;
+              console.log("auditing...");
+              auditTenant(submitObj).then(resp=>{
+                this.$modal.msgSuccess("审核成功");
+                this.open = false;
+                this.auditing=false;
+                this.getList();
+                
+              });
+            } else {
+              updateTenant(submitObj).then((response) => {
+                this.$modal.msgSuccess("修改成功");
+                this.open = false;
+                this.getList();
+              });
+            }
           } else {
             addTenant(submitObj).then((response) => {
               this.$modal.msgSuccess("新增成功");

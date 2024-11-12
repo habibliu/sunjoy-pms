@@ -37,9 +37,17 @@ export function addTenant(data) {
   }
 
   // 查询租户详细
-export function getPark(tenantId) {
+export function getTenant(tenantId) {
     return request({
       url: '/system/tenant/' + parseStrEmpty(tenantId),
       method: 'get'
     })
-  }
+}
+//审批租户
+export function auditTenant(data){
+    return request({
+        url: '/system/tenant/audit',
+        method: 'put',
+        data: data
+      })
+}

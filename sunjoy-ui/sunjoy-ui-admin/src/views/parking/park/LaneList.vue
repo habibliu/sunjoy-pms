@@ -116,7 +116,7 @@
               size="mini"
               type="text"
               icon="el-icon-video-camera"
-              @click="bindDevice(scope.row)"
+              @click="onBindDevice(scope.row)"
               >绑定设备</el-button
             >
           </template>
@@ -182,7 +182,7 @@
           :formatter="formatFunctions"
           width="200"
         />
-       
+
         <el-table-column
           label="操作"
           align="center"
@@ -291,9 +291,9 @@
     <DeviceDialog
       :dialogVisible="deviceOpen"
       :title="deviceTitle"
-      :opuId="opuId || NaN"
+      :opuId="opuId"
       @close="closeDeviceDialog"
-      @submit="onSubmitDeviceSelect"
+      @submit="bindDevice"
     />
   </div>
 </template>
@@ -305,21 +305,28 @@ import {
   getParkLaneList,
   getLaneDeviceList,
   bindDevice,
-  unbindDevice
+  unbindDevice,
 } from "@/api/parking/lane";
 import DeviceDialog from "./../device/DeviceDialog";
 export default {
   name: "ParkLane",
-  dicts: ["sys_normal_disable", "pms_direction", "sys_yes_no","pms_device_functions"],
+  dicts: [
+    "sys_normal_disable",
+    "pms_direction",
+    "sys_yes_no",
+    "pms_device_functions",
+  ],
   components: { DeviceDialog },
   props: {
     opuId: {
       type: Number,
       required: false,
+      default: Math.NaN,
     },
     parkId: {
       type: Number,
-      required: true,
+      required: false,
+      default: Math.NaN,
     },
   },
   data() {
@@ -388,7 +395,6 @@ export default {
       this.multiple = !selection.length;
     },
     handleDeviceSelectionChange(selection) {
-      
       this.ralationIds = selection.map((item) => item.id);
     },
     handleAddLane() {
@@ -405,9 +411,7 @@ export default {
           .confirm("是否确认删除编号为" + selectLaneIds + "的通道？")
           .then(function () {
             if (that.parkId) {
-              delLane(that.parkId, selectLaneIds).then((resp) => {
-
-              });
+              delLane(that.parkId, selectLaneIds).then((resp) => {});
             }
             const freshList = that.laneList.filter(
               (item) => !selectLaneIds.includes(item.laneId)
@@ -428,13 +432,11 @@ export default {
       const selectLaneIds = row.laneId || this.laneIds;
       this.$modal.confirm("是否确认删除当前行的通道？").then(function () {
         //如果已经有车场ID，直接调用后台接口删除
-      
-        if (that.parkId) {
-          const laneIdList=[];
-          laneIdList.push(selectLaneIds);
-          delLane(that.parkId,laneIdList ).then((resp) => {
 
-          });
+        if (that.parkId) {
+          const laneIdList = [];
+          laneIdList.push(selectLaneIds);
+          delLane(that.parkId, laneIdList).then((resp) => {});
         }
         that.laneList = that.laneList.filter(
           (lane) => lane.laneName !== row.laneName
@@ -449,10 +451,18 @@ export default {
 
     // 表单重置
     reset() {
+    
       this.form = {
         parkId: NaN,
         status: "0",
       };
+      this.laneList = [];
+      this.deviceList = [];
+      this.selectedLane = [],
+        //通道ID列表，多选
+      this.laneIds = [],
+        //通道设备关系ID列表，多选
+      this.ralationIds = [],
       this.resetForm("form");
     },
 
@@ -465,16 +475,14 @@ export default {
 
     //通道表单提交按钮
     submitLane() {
-      let that=this;
+      let that = this;
       this.$refs["form"].validate((valid) => {
         if (valid) {
-          
           if (that.form.laneId) {
             //更新
             //先更新后台
             updateLane(that.form).then((resp) => {
               that.laneList.forEach((item) => {
-                
                 if (item.LaneId == that.form.laneId) {
                   item.laneName = that.form.laneName;
                   item.direction = that.form.direction;
@@ -494,15 +502,12 @@ export default {
               lane.parkId = this.parkId;
               lane.opuId = this.opuId;
               addLane(lane).then((resp) => {
-               
                 lane.laneId = resp.data;
                 this.laneList.push(lane);
               });
-            }else{
-            
+            } else {
               this.laneList.push(lane);
             }
-           
           }
 
           this.onLaneListChange();
@@ -512,7 +517,7 @@ export default {
       });
     },
 
-    bindDevice(row) {
+    onBindDevice(row) {
       this.selectedLane = row;
 
       this.deviceOpen = true;
@@ -523,29 +528,30 @@ export default {
       this.deviceOpen = false;
       this.deviceTitle = undefined;
     },
-    onSubmitDeviceSelect(devices) {
+    //绑定通道设备
+    bindDevice(devices) {
       //如果表单属于更新状态，即有车场id，即先提交到后台
-      let that=this;
+      let that = this;
       if (this.parkId) {
-        
-        
-        devices.forEach(item=>{
-         
-          Object.assign(item,{'parkId': that.parkId,'laneId': that.selectedLane.laneId});
+        devices.forEach((item) => {
+          Object.assign(item, {
+            parkId: that.parkId,
+            laneId: that.selectedLane.laneId,
+          });
         });
-        bindDevice(devices).then(resp=>{
+        bindDevice(devices).then((resp) => {
           //this.selectedLane= [];
         });
       }
       const lane = that.selectedLane;
-      
+
       devices.forEach((item) => {
         item.laneId = lane.laneid;
         item.laneName = lane.laneName;
-        item.direction=that.selectedLane.direction;
-        debugger
-        if(!that.deviceList || !Array.isArray(that.deviceList)){
-          that.deviceList=[];
+        item.direction = that.selectedLane.direction;
+      
+        if (!that.deviceList || !Array.isArray(that.deviceList)) {
+          that.deviceList = [];
         }
         that.deviceList.push(item);
       });
@@ -554,24 +560,28 @@ export default {
     },
     //解绑设备
     unbindDevice(row) {
-      let that=this;
-      this.$modal.confirm("是否确认解绑通道"+row.laneName+"的设备"+row.deviceName+"?").then(function () {
-        debugger;
-          const ids=row.id||that.ralationIds
-          unbindDevice(ids).then(resp=>{
-            
-            let delIds=[];
-            if(!Array.isArray(ids)){
+      let that = this;
+      this.$modal
+        .confirm(
+          "是否确认解绑通道" + row.laneName + "的设备" + row.deviceName + "?"
+        )
+        .then(function () {
+          debugger;
+          const ids = row.id || that.ralationIds;
+          unbindDevice(ids).then((resp) => {
+            let delIds = [];
+            if (!Array.isArray(ids)) {
               delIds.push(ids);
-            }else{
-              delIds=ids;
+            } else {
+              delIds = ids;
             }
             debugger;
-            let updatedDeviceList = that.deviceList.filter(ralation => !delIds.includes(ralation.id));
-            that.deviceList=updatedDeviceList;
+            let updatedDeviceList = that.deviceList.filter(
+              (ralation) => !delIds.includes(ralation.id)
+            );
+            that.deviceList = updatedDeviceList;
           });
-      });
-
+        });
     },
     //---格式化代码开始
     formatFunctions(row, column) {
@@ -581,25 +591,21 @@ export default {
         ","
       );
     },
-    linkOuterFormatter(row, column){
-      return this.selectDictLabel(
-        this.dict.type.sys_yes_no,
-        row.linkOuter
-      );
+    linkOuterFormatter(row, column) {
+      return this.selectDictLabel(this.dict.type.sys_yes_no, row.linkOuter);
     },
-    directionFormatter(row, column){
-      return this.selectDictLabel(
-        this.dict.type.pms_direction,
-        row.direction
-      );
-    }
+    directionFormatter(row, column) {
+      return this.selectDictLabel(this.dict.type.pms_direction, row.direction);
+    },
   },
 
   watch: {
     parkId: {
       handler(newVal, oldVal) {
-        
+        debugger
         if (Number.isNaN(newVal) || newVal == undefined) {
+          this.laneIdList=[];
+          this.deviceList=[];
           return;
         }
         //从后台取车场通道列表
@@ -607,12 +613,12 @@ export default {
           this.laneList = resp.data;
         });
         //从后台取通道设备列表
-        getLaneDeviceList(newVal).then(resp=>{
-          this.deviceList=resp.data;
+        getLaneDeviceList(newVal).then((resp) => {
+          this.deviceList = resp.data;
         });
       },
       deep: true,
-      immediate: true // 立即执行,这个配置必需要，否则要第二次才能触发监控
+      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
     },
   },
 };

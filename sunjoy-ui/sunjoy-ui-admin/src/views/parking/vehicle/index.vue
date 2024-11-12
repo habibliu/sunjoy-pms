@@ -37,19 +37,19 @@
           v-show="showSearch"
           label-width="68px"
         >
-          <el-form-item label="车场名称" prop="parkName">
+          <el-form-item label="车牌号码" prop="licensePlate">
             <el-input
-              v-model="queryParams.parkName"
-              placeholder="请输入车场名称"
+              v-model="queryParams.licensePlate"
+              placeholder="请输入车牌号码"
               clearable
               style="width: 200px"
               @keyup.enter.native="handleQuery"
             />
           </el-form-item>
-          <el-form-item label="负责人" prop="leader">
+          <el-form-item label="车主姓名" prop="leader">
             <el-input
               v-model="queryParams.leader"
-              placeholder="请输入车场负责人姓名"
+              placeholder="请输入车主姓名"
               clearable
               style="width: 200px"
               @keyup.enter.native="handleQuery"
@@ -63,6 +63,29 @@
               style="width: 200px"
               @keyup.enter.native="handleQuery"
             />
+          </el-form-item>
+          <el-form-item label="车场" prop="phone">
+            <el-cascader
+              v-model="queryParams.parkId"
+              :options="parkOptions"
+              :props="{ checkStrictly: true }"
+              clearable
+            ></el-cascader>
+          </el-form-item>
+          <el-form-item label="服务套餐" prop="serviceId">
+            <el-select
+              v-model="queryParams.serviceId"
+              placeholder="服务套餐"
+              clearable
+              style="width: 100px"
+            >
+              <el-option
+                v-for="dict in dict.type.sys_entity_status"
+                :key="dict.value"
+                :label="dict.label"
+                :value="dict.value"
+              />
+            </el-select>
           </el-form-item>
           <el-form-item label="状态" prop="status">
             <el-select
@@ -171,18 +194,27 @@
 
         <el-table
           v-loading="loading"
-          :data="parkList"
+          :data="vehicleList"
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="50" align="center" />
           <el-table-column
-            label="车场编号"
+            label="编号"
             align="center"
-            key="parkId"
-            prop="parkId"
+            key="vehicleId"
+            prop="vehicleId"
             v-if="columns[0].visible"
             width="100"
           />
+          <el-table-column
+            label="车牌号码"
+            align="left"
+            key="licensePlate"
+            prop="licensePlate"
+            v-if="columns[1].visible"
+            :show-overflow-tooltip="true"
+          />
+
           <el-table-column
             label="车场名称"
             align="left"
@@ -191,7 +223,7 @@
             v-if="columns[1].visible"
             :show-overflow-tooltip="true"
           />
-          
+
           <el-table-column
             label="经营单位"
             align="left"
@@ -199,10 +231,10 @@
             prop="opuName"
             v-if="columns[2].visible"
             :show-overflow-tooltip="true"
-             width="140"
+            width="140"
           />
           <el-table-column
-            label="负责人"
+            label="车主姓名"
             align="center"
             key="leader"
             prop="leader"
@@ -218,7 +250,7 @@
             width="120"
           />
           <el-table-column
-            label="位置"
+            label="车辆品牌"
             align="left"
             key="region"
             prop="region"
@@ -227,19 +259,27 @@
             :formatter="regionFormatter"
           />
           <el-table-column
-            label="分类"
+            label="车辆类型"
             align="center"
             key="parkType"
             prop="parkType"
             v-if="columns[6].visible"
             width="80"
-            :formatter="parkTypeFormatter"
+            :formatter="vehicleTypeFormatter"
           />
           <el-table-column
-            label="总车位数"
+            label="车位号码"
             align="center"
-            key="totalLots"
-            prop="totalLots"
+            key="lots"
+            prop="lots"
+            v-if="columns[7].visible"
+            width="100"
+          />
+          <el-table-column
+            label="服务套餐"
+            align="center"
+            key="lots"
+            prop="lots"
             v-if="columns[7].visible"
             width="100"
           />
@@ -276,7 +316,7 @@
                 icon="el-icon-edit"
                 @click="handleUpdate(scope.row)"
                 v-hasPermi="['parking:park:edit']"
-                :disabled="scope.row.status!=0"
+                :disabled="scope.row.status != 0"
                 >修改</el-button
               >
               <el-button
@@ -285,7 +325,7 @@
                 icon="el-icon-delete"
                 @click="handleDelete(scope.row)"
                 v-hasPermi="['parking:park:remove']"
-                :disabled="scope.row.status!=0"
+                :disabled="scope.row.status != 0"
                 >删除</el-button
               >
               <el-button
@@ -294,8 +334,8 @@
                 icon="el-icon-video-play"
                 @click="handleEnable(scope.row)"
                 v-hasPermi="['parking:park:enable']"
-                :disabled="scope.row.status!=0"
-                >启用</el-button
+                :disabled="scope.row.status != 0"
+                >审批</el-button
               >
               <el-button
                 size="mini"
@@ -303,15 +343,19 @@
                 icon="el-icon-video-pause"
                 @click="handleDisable(scope.row)"
                 v-hasPermi="['parking:park:enable']"
-                :disabled="scope.row.status==0||scope.row.status==2||scope.row.status==9"
-                >停用</el-button
+                :disabled="
+                  scope.row.status == 0 ||
+                  scope.row.status == 2 ||
+                  scope.row.status == 9
+                "
+                >注消</el-button
               >
               <el-divider direction="vertical"></el-divider>
               <router-link
-                :to="'/parking/park-service/index/' + scope.row.parkId"
+                :to="'/parking/park-service/index/' + scope.row.vehicleId"
                 class="link-type"
               >
-              <span><i class="el-icon-set-up"></i>服务套餐</span>
+                <span><i class="el-icon-set-up"></i>服务套餐</span>
               </router-link>
             </template>
           </el-table-column>
@@ -327,7 +371,7 @@
       </el-col>
     </el-row>
 
-    <!-- 添加或修改车场对话框 -->
+    <!-- 添加或修改车辆对话框 -->
     <el-dialog
       :title="title"
       :visible.sync="open"
@@ -335,17 +379,16 @@
       append-to-body
     >
       <el-row :gutter="20">
-        <el-col :span="8">
-          <el-tag>车场信息</el-tag>
+        <el-col :span="10">
           <el-form
             ref="form"
             :model="form"
             :rules="rules"
             label-width="80px"
-            class="parkForm"
+            class="vehicleForm"
           >
             <el-row class="parkRow">
-              <el-col :span="24">
+              <el-col :span="12">
                 <el-form-item label="经营单位" prop="opuId">
                   <treeselect
                     v-model="form.opuId"
@@ -356,71 +399,33 @@
                   />
                 </el-form-item>
               </el-col>
+              <el-col :span="12">
+                <el-form-item label="车场名称" prop="opuId">
+                  <treeselect
+                    v-model="form.parkId"
+                    :options="parkOptions"
+                    :show-count="true"
+                    placeholder="请选择经营单位"
+                  />
+                </el-form-item>
+              </el-col>
             </el-row>
+          
             <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="车场名称" prop="parkName">
+              <el-col :span="14">
+                <el-form-item label="车牌号码" prop="licensePlate">
                   <el-input
-                    v-model="form.parkName"
-                    placeholder="请输入用户昵称"
+                    v-model="form.licensePlate"
+                    placeholder="请输入车牌号码"
                     maxlength="30"
                   />
                 </el-form-item>
               </el-col>
-            </el-row>
-
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="负责人" prop="leader">
-                  <el-input
-                    v-model="form.leader"
-                    placeholder="请输入车场负责人"
-                    maxlength="50"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="手机号码" prop="phone">
-                  <el-input
-                    v-model="form.phone"
-                    placeholder="请输入手机号码"
-                    maxlength="11"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="区域" prop="region">
-                  <RegionSelect
-                    v-model="form.region"
-                    :inputRegion="form.region"
-                    @change="onRegionChange"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="详细地址" prop="address">
-                  <el-input
-                    v-model="form.address"
-                    placeholder="请输入详细地址"
-                    maxlength="11"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="车场类型">
-                  <el-select v-model="form.parkType" placeholder="请选择l">
+              <el-col :span="10">
+                <el-form-item label="车辆类型">
+                  <el-select v-model="form.vehicleType" placeholder="请选择">
                     <el-option
-                      v-for="dict in dict.type.pms_park_type"
+                      v-for="dict in dict.type.pms_vehicle_type"
                       :key="dict.value"
                       :label="dict.label"
                       :value="dict.value"
@@ -429,31 +434,73 @@
                 </el-form-item>
               </el-col>
             </el-row>
+
+            <el-row class="parkRow">
+              <el-col :span="12">
+                <el-form-item label="车主姓名" prop="ownerName">
+                  <el-input
+                    v-model="form.ownerName"
+                    placeholder="请输入车场车主姓名"
+                    maxlength="50"
+                  />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="手机号码" prop="ownerPhone">
+                  <el-input
+                    v-model="form.ownerPhone"
+                    placeholder="请输入手机号码"
+                    maxlength="11"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+           
             <el-row class="parkRow">
               <el-col :span="24">
-                <el-form-item label="总车位数" prop="totalLots">
+                <el-form-item label="居住地址" prop="address">
                   <el-input
-                    v-model="form.totalLots"
-                    placeholder="请输入车场总的车位数量"
+                    v-model="form.ownerAddr"
+                    placeholder="请输入详细地址"
+                    maxlength="11"
                   />
                 </el-form-item>
               </el-col>
             </el-row>
 
+          
+
             <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="状态">
-                  <el-radio-group v-model="form.status">
-                    <el-radio
-                      v-for="dict in dict.type.sys_normal_disable"
-                      :key="dict.value"
-                      :label="dict.value"
-                      >{{ dict.label }}</el-radio
-                    >
-                  </el-radio-group>
+              <el-col :span="12">
+                <el-form-item label="车辆品牌" prop="brand">
+                  <el-input
+                    v-model="form.brand"
+                    placeholder="请输入车辆品牌"
+                    maxlength="20"
+                  />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="车辆型号" prop="region">
+                  <el-input v-model="form.mod" placeholder="请输入车辆型号" />
                 </el-form-item>
               </el-col>
             </el-row>
+           
+            <el-row class="parkRow">
+              <el-col :span="24">
+                <el-form-item label="注册日期" prop="registDate">
+                  <el-date-picker
+                    v-model="form.registDate"
+                    type="date"
+                    placeholder="选择日期"
+                  >
+                  </el-date-picker>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            
+
             <el-row class="parkRow">
               <el-col :span="24">
                 <el-form-item label="备注">
@@ -467,12 +514,12 @@
             </el-row>
           </el-form>
         </el-col>
-        <el-col :span="16">
+        <el-col :span="14">
           <el-tag>车场通道</el-tag>
           <ParkLane
             @change="onLaneListchange"
             :opuId="form.opuId"
-            :parkId="form.parkId"
+            :vehicleId="form.vehicleId"
           />
         </el-col>
       </el-row>
@@ -490,24 +537,22 @@
 
 <script>
 import {
-  listPark,
-  getPark,
-  addPark,
-  updatePark,
-  delPark,
-  changeParkStatus,
+  
+
   opuTreeSelect,
+  getParkTree
 } from "@/api/parking/park";
+import { listVehicle,getVehicle,addVehicle,updateVehicle,delVehicle,changeVehicleStatus} from "@/api/parking/vehicle";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import RegionSelect from "@/components/RegionSelect";
-import ParkLane from "./LaneList";
+import ParkLane from "./../park/LaneList";
 
 import { formatRegion } from "@/utils/formatters";
 
 export default {
   name: "Park",
-  dicts: ["sys_normal_disable", "pms_park_type", "sys_entity_status"],
+  dicts: ["sys_normal_disable", "pms_vehicle_type", "sys_entity_status"],
   components: { Treeselect, RegionSelect, ParkLane },
   data() {
     return {
@@ -522,7 +567,11 @@ export default {
       // 非多个禁用
       multiple: true,
       // 车场表格数据
-      parkList: null,
+      vehicleList: null,
+      /**
+       * 车场选项
+       */
+      parkOptions: [],
 
       ids: [],
 
@@ -558,7 +607,7 @@ export default {
       queryParams: {
         pageNum: 1,
         pageSize: 10,
-        parkName: undefined,
+        licensePlate: undefined,
         phonenNmber: undefined,
         leader: undefined,
         opuId: undefined,
@@ -567,30 +616,39 @@ export default {
 
       // 列信息
       columns: [
-        { key: 0, label: `车场编号`, visible: true },
+        { key: 0, label: `编号`, visible: true },
         { key: 1, label: `车场名称`, visible: true },
-        { key: 2, label: `经营单位`, visible: true },
-        { key: 3, label: `负责人`, visible: true },
-        { key: 4, label: `手机号码`, visible: true },
-        { key: 5, label: `区域`, visible: true },
-        { key: 6, label: `分类`, visible: true },
-        { key: 7, label: `总车位数`, visible: true },
-        { key: 8, label: `状态`, visible: true },
-        { key: 9, label: `创建时间`, visible: true },
+        { key: 2, label: `车牌号码`, visible: true },
+        { key: 3, label: `经营单位`, visible: true },
+        { key: 4, label: `车主姓名`, visible: true },
+        { key: 5, label: `手机号码`, visible: true },
+        { key: 6, label: `车辆品牌`, visible: true },
+        { key: 7, label: `车辆类型`, visible: true },
+        { key: 8, label: `总车号码`, visible: true },
+        { key: 9, label: `服务套餐`, visible: true },
+        { key: 10, label: `状态`, visible: true },
+        { key: 11, label: `创建时间`, visible: true },
       ],
       // 表单校验
       rules: {
-        parkName: [
-          { required: true, message: "车场名称不能为空", trigger: "blur" },
+        licensePlate: [
+          { required: true, message: "车牌号码不能为空", trigger: "blur" },
           {
             min: 2,
             max: 20,
-            message: "车场名称长度必须介于 2 和 20 之间",
+            message: "车牌号码长度必须介于 2 和 20 之间",
             trigger: "blur",
           },
         ],
         opuId: [
           { required: true, message: "经营单位不能为空", trigger: "blur" },
+        ],
+        vehicleType:[
+        { required: true, message: "车辆类型不能为空", trigger: "blur" },
+        ],
+
+        ownerName:[
+        { required: true, message: "车主姓名不能为空", trigger: "blur" },
         ],
 
         phone: [
@@ -614,6 +672,11 @@ export default {
     this.getList();
   },
   methods: {
+    getParkTreeList(){
+      getParkTree(this.opuId).then(resp=>{
+        this.parkOptions=resp.data;
+      });
+    },
     //接收通道的变化信息
     onLaneListchange(list) {
       this.laneList = list;
@@ -631,8 +694,8 @@ export default {
     /** 查询车场列表 */
     getList() {
       this.loading = true;
-      listPark(this.queryParams).then((response) => {
-        this.parkList = response.rows;
+      listVehicle(this.queryParams).then((response) => {
+        this.vehicleList = response.rows;
         this.total = response.total;
         this.loading = false;
       });
@@ -653,6 +716,8 @@ export default {
       this.queryParams.opuId = data.id;
       this.queryParams.ancestors = data.ancestors;
       this.handleQuery();
+      //初始化车场树
+      this.getParkTreeList();
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -670,7 +735,7 @@ export default {
 
     // 多选框选中数据
     handleSelectionChange(selection) {
-      this.ids = selection.map((item) => item.parkId);
+      this.ids = selection.map((item) => item.vehicleId);
       this.single = selection.length != 1;
       this.multiple = !selection.length;
     },
@@ -678,7 +743,7 @@ export default {
     // 表单重置
     reset() {
       this.form = {
-        parkId: NaN,
+        vehicleId: NaN,
         status: "0",
       };
       this.resetForm("form");
@@ -696,17 +761,17 @@ export default {
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset();
-      const parkIds = row.parkId || this.ids;
+      const vehicleIds = row.vehicleId || this.ids;
 
-      if (parkIds) {
-        let parkId = NaN;
-        if (Array.isArray(parkIds)) {
-          parkId = parkIds[0];
+      if (vehicleIds) {
+        let vehicleId = NaN;
+        if (Array.isArray(vehicleIds)) {
+          vehicleId = vehicleIds[0];
         } else {
-          parkId = parkIds;
+          vehicleId = vehicleIds;
         }
 
-        getPark(parkId).then((response) => {
+        getVehicle(vehicleId).then((response) => {
           this.form = response.data;
           this.open = true;
           this.title = "修改车场";
@@ -716,9 +781,9 @@ export default {
     //启用车场，启用后，不能物理删除，只能逻辑删除
     handleEnable(row) {
       this.$modal
-        .confirm('是否确认启用编号为"' + row.parkId + '"的车场？')
+        .confirm('是否确认启用编号为"' + row.vehicleId + '"的车场？')
         .then(function () {
-          return changeParkStatus(row.parkId,'1');
+          return changeVehicleStatus(row.vehicleId, "1");
         })
         .then(() => {
           this.getList();
@@ -729,9 +794,9 @@ export default {
 
     handleDisable(row) {
       this.$modal
-        .confirm('是否确认停用编号为"' + row.parkId + '"的车场？')
+        .confirm('是否确认停用编号为"' + row.vehicleId + '"的车场？')
         .then(function () {
-          return changeParkStatus(row.parkId,'9');
+          return changeVehicleStatus(row.vehicleId, "9");
         })
         .then(() => {
           this.getList();
@@ -754,22 +819,21 @@ export default {
           debugger;
           //回填form中的region，提交到后台
           submitObj.region = this.regionId;
-          if (this.form.parkId != undefined && !isNaN(this.form.parkId)) {
+          if (this.form.vehicleId != undefined && !isNaN(this.form.vehicleId)) {
             //修改
-            updatePark(submitObj).then((response) => {
+            updateVehicle(submitObj).then((response) => {
               this.$modal.msgSuccess("修改成功");
               this.open = false;
               this.getList();
             });
           } else {
-            
             if (this.laneList.length > 0) {
               submitObj.laneList = this.laneList;
             }
             if (this.deviceList && Array.isArray(this.deviceList)) {
               submitObj.deviceList = this.deviceList;
             }
-            addPark(submitObj).then((response) => {
+            addVehicle(submitObj).then((response) => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
               this.getList();
@@ -780,11 +844,11 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const parkIds = row.parkId || this.ids;
+      const vehicleIds = row.vehicleId || this.ids;
       this.$modal
-        .confirm('是否确认删除用户编号为"' + parkIds + '"的数据项？')
+        .confirm('是否确认删除用户编号为"' + vehicleIds + '"的数据项？')
         .then(function () {
-          return delPark(parkIds);
+          return delVehicle(vehicleIds);
         })
         .then(() => {
           this.getList();
@@ -843,8 +907,8 @@ export default {
       return formatRegion(row.region);
     },
 
-    parkTypeFormatter(row) {
-      return this.selectDictLabel(this.dict.type.pms_park_type, row.parkType);
+    vehicleTypeFormatter(row) {
+      return this.selectDictLabel(this.dict.type.pms_vehicle_type, row.vehicleType);
     },
     statusFormatter(row) {
       return this.selectDictLabel(this.dict.type.sys_entity_status, row.status);
@@ -854,7 +918,7 @@ export default {
 </script>
 
 <style scoped>
-.parkForm .parkRow {
+.vehicleForm .parkRow {
   margin-bottom: 10px; /* 调整行间距 */
 }
 .dialog-footer {
