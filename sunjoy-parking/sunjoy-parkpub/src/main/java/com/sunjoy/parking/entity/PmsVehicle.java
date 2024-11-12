@@ -1,5 +1,6 @@
 package com.sunjoy.parking.entity;
 
+import com.sunjoy.common.core.web.domain.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PmsVehicle {
+public class PmsVehicle extends BaseEntity {
     /**
      * 车辆id
      */
@@ -26,6 +27,11 @@ public class PmsVehicle {
      * 租户id
      */
     private Long tenantId;
+
+    /**
+     * 经营单位id
+     */
+    private Long opuId;
 
     /**
      * 车牌号码

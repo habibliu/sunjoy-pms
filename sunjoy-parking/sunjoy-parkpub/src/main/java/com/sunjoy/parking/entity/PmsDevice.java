@@ -22,6 +22,10 @@ public class PmsDevice extends BaseEntity {
     // 设备型号
     private String deviceModel;
     /**
+     * 设备编号
+     */
+    private String deviceCode;
+    /**
      * 租户ID
      */
     private Long tenantId;

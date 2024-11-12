@@ -27,14 +27,7 @@ public interface PmsParkPriceMapper {
     @Select("SELECT * FROM pms_park_price WHERE price_id = #{priceId}")
     PmsParkPrice selectById(Long priceId);
 
-    @Update("UPDATE pms_park_price SET tenant_id = #{tenantId}, opu_id = #{opuId}, " +
-            "price_name = #{priceName}, free = #{free}, free_duration = #{freeDuration}, " +
-            "uniform_price = #{uniformPrice}, price = #{price}, price_unit = #{priceUnit}, " +
-            "price_quantity = #{priceQuantity}, max_fee = #{maxFee}, max_unit = #{maxUnit}, " +
-            "max_quantity = #{maxQuantity}, status = #{status}, del_flag = #{delFlag}, " +
-            "create_by = #{createBy}, create_time = #{createTime}, update_by = #{updateBy}, " +
-            "update_time = #{updateTime}, remark = #{remark} " +
-            "WHERE price_id = #{priceId}")
+    @UpdateProvider(type = PmsParkPriceSqlProvider.class, method = "updateParkPrice")
     void update(PmsParkPrice parkPrice);
 
     @Delete("DELETE FROM pms_park_price WHERE price_id = #{priceId}")

@@ -34,4 +34,49 @@ public class PmsParkServiceSqlProvider {
             // 可以根据需要添加更多条件
         }}.toString();
     }
+
+    public String updatePmsParkService(PmsParkService parkService) {
+        return new SQL() {{
+            UPDATE("pms_park_service");
+
+            if (parkService.getTenantId() != null) {
+                SET("tenant_id = #{tenantId}");
+            }
+            if (parkService.getOpuId() != null) {
+                SET("opu_id = #{opuId}");
+            }
+            if (parkService.getParkId() != null) {
+                SET("park_id = #{parkId}");
+            }
+            if (parkService.getPriceId() != null) {
+                SET("price_id = #{priceId}");
+            }
+            if (parkService.getStartDate() != null) {
+                SET("start_date = #{startDate}");
+            }
+            if (parkService.getEndDate() != null) {
+                SET("end_date = #{endDate}");
+            }
+            if (parkService.getExpiredAllowed() != null) {
+                SET("expired_allowed = #{expiredAllowed}");
+            }
+            if (parkService.getExpiredDuration() != null) {
+                SET("expired_duration = #{expiredDuration}");
+            }
+            if (parkService.getEntryMessage() != null) {
+                SET("entry_message = #{entryMessage}");
+            }
+            if (parkService.getExitMessage() != null) {
+                SET("exit_message = #{exitMessage}");
+            }
+            if (parkService.getStatus() != null) {
+                SET("status = #{status}");
+            }
+            if (parkService.getDelFlag() != null) {
+                SET("del_flag = #{delFlag}");
+            }
+
+            WHERE("service_id = #{serviceId}");
+        }}.toString();
+    }
 }

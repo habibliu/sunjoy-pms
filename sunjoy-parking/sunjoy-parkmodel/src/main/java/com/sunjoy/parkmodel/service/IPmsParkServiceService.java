@@ -27,4 +27,6 @@ public interface IPmsParkServiceService {
      * @return
      */
     int addParkService(PmsParkService parkService);
+
+    void enableParkService(Long serviceId);
 }

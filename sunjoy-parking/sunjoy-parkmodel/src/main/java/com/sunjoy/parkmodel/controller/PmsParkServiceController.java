@@ -49,4 +49,12 @@ public class PmsParkServiceController extends BaseController {
 
         return toAjax(pmsParkServices.size());
     }
+
+    @RequiresPermissions("parking:service:update")
+    @Log(title = "车场服务-变更状态", businessType = BusinessType.UPDATE)
+    @PutMapping("/changeStatus/{serviceId}")
+    public AjaxResult enableParkService(@PathVariable Long serviceId) {
+        pmsParkServiceService.enableParkService(serviceId);
+        return toAjax(1);
+    }
 }

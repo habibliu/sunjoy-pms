@@ -15,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 车场收费标准控制类
@@ -87,6 +88,16 @@ public class PmsParkPriceController extends BaseController {
     public AjaxResult addDetail(@Validated @RequestBody PmsParkPriceDetail parkPriceDetail) {
         Long id = pmsParkPriceService.createParkPriceDetail(parkPriceDetail);
         return toAjax(1).put(AjaxResult.DATA_TAG, id);
+    }
+
+    @RequiresPermissions("parking:price:update")
+    @Log(title = "收费标准设置-变更状态", businessType = BusinessType.UPDATE)
+    @PutMapping("/changeStatus")
+    public AjaxResult enablePark(@Validated @RequestBody Map<String, Object> service) {
+        PmsParkPrice parkPrice = new PmsParkPrice();
+        parkPrice.setPriceId(Long.parseLong(service.get("priceId").toString()));
+        parkPrice.setStatus(service.get("status").toString());
+        return toAjax(pmsParkPriceService.updateParkPrice(parkPrice));
     }
 
 }

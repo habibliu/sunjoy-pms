@@ -1,11 +1,13 @@
 package com.sunjoy.parkmodel.service.impl;
 
 import com.sunjoy.common.core.utils.bean.BeanUtils;
+import com.sunjoy.common.redis.service.RedisService;
 import com.sunjoy.common.security.utils.SecurityUtils;
 import com.sunjoy.parking.entity.PmsLane;
 import com.sunjoy.parking.entity.PmsLaneDevice;
 import com.sunjoy.parking.entity.PmsPark;
 import com.sunjoy.parking.entity.PmsParkLane;
+import com.sunjoy.parking.utils.RedisKeyConstants;
 import com.sunjoy.parkmodel.mapper.PmsParkMapper;
 import com.sunjoy.parkmodel.pojo.LaneDevicePojo;
 import com.sunjoy.parkmodel.pojo.LanePojo;
@@ -14,6 +16,7 @@ import com.sunjoy.parkmodel.service.IPmsLaneDeviceService;
 import com.sunjoy.parkmodel.service.IPmsLaneService;
 import com.sunjoy.parkmodel.service.IPmsParkLaneService;
 import com.sunjoy.parkmodel.service.IPmsParkService;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,6 +46,21 @@ public class PmsParkServiceImpl implements IPmsParkService {
     private IPmsParkLaneService pmsParkLaneService;
     @Autowired
     private IPmsLaneDeviceService pmsLaneDeviceService;
+
+    @Autowired
+    private RedisService redisService;
+
+    @PostConstruct
+    private void initCache() {
+        ParkPojo condition = new ParkPojo();
+
+        List<PmsPark> results = this.pmsParkMapper.selectParkList(condition);
+        //非0状态下的信息才会被缓存
+        for (PmsPark pmsPark : results.stream().filter(item -> !item.getStatus().equals("0")).toList()) {
+            redisService.setCacheObject(RedisKeyConstants.PARK_INFO + pmsPark.getParkId(), pmsPark);
+        }
+    }
+
 
     @Override
     public List<PmsPark> listParks(ParkPojo park) {

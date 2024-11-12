@@ -15,9 +15,9 @@ import java.util.List;
  */
 @Mapper
 public interface PmsDeviceMapper {
-    @Insert("INSERT INTO pms_device (device_name, device_model,tenant_id opu_id, functions, vendor, producer, " +
+    @Insert("INSERT INTO pms_device (device_name, device_model,tenant_id, opu_id, device_code,functions, vendor, producer, " +
             "params_parse, status, del_flag, create_by, create_time,  remark) " +
-            "VALUES (#{deviceName}, #{deviceModel},#{tenantId}, #{opuId}, #{functions}, #{vendor}, #{producer}, " +
+            "VALUES (#{deviceName}, #{deviceModel},#{tenantId}, #{opuId},#{deviceCode}, #{functions}, #{vendor}, #{producer}, " +
             "#{paramsParse}, #{status}, #{delFlag}, #{createBy}, #{createTime},#{remark})")
     @Options(useGeneratedKeys = true, keyProperty = "deviceId")
     void insert(PmsDevice device);
@@ -28,7 +28,7 @@ public interface PmsDeviceMapper {
     @SelectProvider(type = PmsDeviceSqlProvider.class, method = "selectPmsDevicesByCondition")
     List<PmsDevice> selectPmsDevicesByCondition(PmsDevice device);
 
-    @Update("UPDATE pms_device SET device_name = #{deviceName}, device_model = #{deviceModel}, opu_id = #{opuId}, " +
+    @Update("UPDATE pms_device SET device_name = #{deviceName}, device_model = #{deviceModel}, device_code = #{deviceCode}, opu_id = #{opuId}, " +
             "functions = #{functions}, vendor = #{vendor}, producer = #{producer}, params_parse = #{paramsParse}, " +
             "status = #{status}, del_flag = #{delFlag}, " +
             "update_by = #{updateBy}, update_time = #{updateTime}, remark = #{remark} " +

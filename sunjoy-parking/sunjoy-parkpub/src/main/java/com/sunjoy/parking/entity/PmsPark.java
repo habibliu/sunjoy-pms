@@ -3,7 +3,11 @@ package com.sunjoy.parking.entity;
 import com.sunjoy.common.core.annotation.Excel;
 import com.sunjoy.common.core.web.domain.BaseEntity;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * <p>
@@ -15,10 +19,7 @@ import lombok.*;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Builder
-@ToString(callSuper = false)
 @NoArgsConstructor
-@AllArgsConstructor
 public class PmsPark extends BaseEntity {
     /**
      * 主键
@@ -85,4 +86,9 @@ public class PmsPark extends BaseEntity {
 
 
     private String status;
+
+    // 删除标志（0代表存在 2代表删除）
+    private String delFlag;
+
+    private List<PmsPark> children;
 }

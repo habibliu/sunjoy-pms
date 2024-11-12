@@ -4,6 +4,8 @@ import com.sunjoy.common.core.web.domain.BaseEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 /**
  * 车场服务实体类
  *
@@ -37,6 +39,16 @@ public class PmsParkService extends BaseEntity {
      * 价格id
      */
     private Long priceId;
+
+    /**
+     * 启用日期
+     */
+    private Date startDate;
+
+    /**
+     * 停用日期
+     */
+    private Date endDate;
 
     /**
      * 过期是否允许出入场

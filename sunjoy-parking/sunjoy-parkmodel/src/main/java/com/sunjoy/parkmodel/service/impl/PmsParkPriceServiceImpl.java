@@ -68,6 +68,14 @@ public class PmsParkPriceServiceImpl implements IPmsParkPriceService {
         return pmsParkPriceDetail.getId();
     }
 
+    @Override
+    public int updateParkPrice(PmsParkPrice pmsParkPrice) {
+        pmsParkPrice.setUpdateBy(SecurityUtils.getUsername());
+        pmsParkPrice.setUpdateTime(new Date());
+        this.pmsParkPriceMapper.update(pmsParkPrice);
+        return 1;
+    }
+
     private void insertDetail(PmsParkPrice pmsParkPrice, List<PmsParkPriceDetail> detailList) {
         if (detailList != null && !detailList.isEmpty()) {
             for (PmsParkPriceDetail detail : detailList) {

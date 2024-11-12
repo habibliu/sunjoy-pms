@@ -18,7 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -91,5 +94,57 @@ public class PmsParkController extends BaseController {
         return toAjax(pmsParkService.updatePark(park.getPmsPark()));
     }
 
+    @RequiresPermissions("parking:park:update")
+    @Log(title = "车场管理-变更状态", businessType = BusinessType.UPDATE)
+    @PutMapping("/changeStatus")
+    public AjaxResult enablePark(@Validated @RequestBody Map<String, Object> park) {
+        PmsPark pmsPark = new PmsPark();
+        pmsPark.setParkId(Long.parseLong(park.get("parkId").toString()));
+        pmsPark.setStatus(park.get("status").toString());
+        return toAjax(pmsParkService.updatePark(pmsPark));
+    }
+
+    /**
+     * 获取部门树列表
+     */
+    @RequiresPermissions("parking:park:list")
+    @GetMapping("/park/tree/{opuId}")
+    public AjaxResult getParkTree(@PathVariable(value = "opuId", required = true) Long opuId) {
+        ParkPojo condition = new ParkPojo();
+        condition.setOpuId(opuId);
+        List<PmsPark> opuParks = pmsParkService.listParks(condition);
+        if (!opuParks.isEmpty()) {
+            List<PmsPark> treeList = buildTree(opuParks);
+            return success(treeList);
+        }
+
+        return success(opuParks);
+    }
+
+
+    private List<PmsPark> buildTree(List<PmsPark> parks) {
+        Map<Long, PmsPark> parkMap = new HashMap<>();
+        List<PmsPark> tree = new ArrayList<>();
+
+        // 将所有节点放入 Map 中
+        for (PmsPark park : parks) {
+            parkMap.put(park.getParkId(), park);
+        }
+
+        // 构建树形结构
+        for (PmsPark park : parks) {
+            if (park.getParentId() == null) {
+                // 如果没有父级 ID，说明是根节点
+                tree.add(park);
+            } else {
+                // 如果有父级 ID，将其添加到对应的父节点的 children 列表中
+                PmsPark parent = parkMap.get(park.getParentId());
+                if (parent != null) {
+                    parent.getChildren().add(park);
+                }
+            }
+        }
+        return tree;
+    }
 
 }

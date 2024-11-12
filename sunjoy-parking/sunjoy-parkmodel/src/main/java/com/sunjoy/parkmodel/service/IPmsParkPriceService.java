@@ -52,4 +52,12 @@ public interface IPmsParkPriceService {
      * @param pmsParkPriceDetail
      */
     Long createParkPriceDetail(PmsParkPriceDetail pmsParkPriceDetail);
+
+    /**
+     * 更新车场收费标准
+     *
+     * @param pmsParkPrice
+     * @return
+     */
+    int updateParkPrice(PmsParkPrice pmsParkPrice);
 }

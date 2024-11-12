@@ -1,6 +1,7 @@
 package com.sunjoy.parkmodel.mapper;
 
 import com.sunjoy.parking.entity.PmsVehicleService;
+import com.sunjoy.parkmodel.mapper.provider.PmsVehicleServiceSqlProvider;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -25,13 +26,7 @@ public interface PmsVehicleServiceMapper {
     @Select("SELECT * FROM pms_vehicle_service WHERE id = #{id}")
     PmsVehicleService selectById(Long id);
 
-    @Update("UPDATE pms_vehicle_service SET service_id = #{serviceId}, tenant_id = #{tenantId}, " +
-            "opu_id = #{opuId}, park_id = #{parkId}, vehicle_id = #{vehicleId}, " +
-            "license_plate = #{licensePlate}, start_date = #{startDate}, end_date = #{endDate}, " +
-            "owner_name = #{ownerName}, owner_phone = #{ownerPhone}, status = #{status}, " +
-            "del_flag = #{delFlag}, create_by = #{createBy}, create_time = #{createTime}, " +
-            "update_by = #{updateBy}, update_time = #{updateTime}, remark = #{remark} " +
-            "WHERE id = #{id}")
+    @UpdateProvider(type = PmsVehicleServiceSqlProvider.class, method = "updatePmsVehicleService")
     void update(PmsVehicleService vehicleService);
 
     @Delete("DELETE FROM pms_vehicle_service WHERE id = #{id}")
@@ -39,4 +34,7 @@ public interface PmsVehicleServiceMapper {
 
     @Select("SELECT * FROM pms_vehicle_service where del_flag='0' and status!='2'")
     List<PmsVehicleService> selectAll();
+
+    @SelectProvider(type = PmsVehicleServiceSqlProvider.class, method = "selectByVehicleIds")
+    List<PmsVehicleService> selectByVehicleIds(List<Long> vehicleIds);
 }

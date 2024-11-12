@@ -1,18 +1,27 @@
 package com.sunjoy.parkmodel.service;
 
-import com.sunjoy.parking.entity.PmsVehicleService;
+import com.sunjoy.parking.entity.PmsVehicle;
 
 import java.util.List;
 
 /**
- * 车辆服务类接口
+ * 车辆档案服务接口
  *
  * @author Habib
- * @date 2024/11/6
+ * @date 2024/11/11
  */
 public interface IPmsVehicleService {
     /**
+     * 条件查询
+     *
+     * @param vehicle
      * @return
      */
-    List<PmsVehicleService> getAllVehicleService();
+    List<PmsVehicle> getVehiclesByCondition(PmsVehicle vehicle);
+
+    void createVehicle(PmsVehicle vehicle);
+
+    void updateVehicle(PmsVehicle vehicle);
+
+    int deleteVehicle(PmsVehicle vehicle);
 }

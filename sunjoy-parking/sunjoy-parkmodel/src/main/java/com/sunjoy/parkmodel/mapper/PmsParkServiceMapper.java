@@ -6,6 +6,7 @@ import com.sunjoy.parkmodel.pojo.ParkServicePojo;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.SelectProvider;
+import org.apache.ibatis.annotations.UpdateProvider;
 
 import java.util.List;
 
@@ -26,5 +27,9 @@ public interface PmsParkServiceMapper {
             "VALUES (#{tenantId}, #{opuId}, #{parkId}, #{priceId}, #{expiredAllowed}, " +
             "#{expiredDuration}, #{entryMessage}, #{exitMessage}, #{status}, #{delFlag}, " +
             "#{createBy}, #{createTime}, #{updateBy}, #{updateTime}, #{remark})")
-    int insertParkService(PmsParkService parkService);
+    int insert(PmsParkService parkService);
+
+
+    @UpdateProvider(type = PmsParkServiceSqlProvider.class, method = "updatePmsParkService")
+    void update(PmsParkService parkService);
 }
