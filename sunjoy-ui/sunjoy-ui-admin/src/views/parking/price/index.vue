@@ -177,6 +177,7 @@
             prop="priceName"
             v-if="columns[1].visible"
             :show-overflow-tooltip="true"
+            
           />
           <el-table-column
             label="经营单位"
@@ -186,6 +187,7 @@
             v-if="columns[2].visible"
             :show-overflow-tooltip="true"
             :formatter="opuFormatter"
+            width="200"
           />
           <el-table-column
             label="是否免费"
@@ -195,7 +197,9 @@
             v-if="columns[3].visible"
             :show-overflow-tooltip="true"
             :formatter=freeFormatter
+            width="120"
           />
+          
           <el-table-column
             label="统一价格"
             align="center"
@@ -256,8 +260,9 @@
           <el-table-column
             label="操作"
             align="center"
-            width="200"
+            width="220"
             class-name="small-padding fixed-width"
+            fixed="right"
           >
             <template slot-scope="scope">
               <el-button
@@ -907,7 +912,7 @@ export default {
         }
     },
     statusFormatter(row) {
-        debugger
+        
       return this.selectDictLabel(this.dict.type.sys_entity_status, row.status);
     },
     freeFormatter(row){

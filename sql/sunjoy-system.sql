@@ -26,8 +26,8 @@ create table sys_tenant (
   settlement_date   int(2)		    default null 			   comment '结算日',
   wechat_account	varchar(200)	default null 			   comment '微信账号，openId',
   alipay_account	varchar(200)	default null 			   comment '支付宝账号，openId',
-  status            char(1)         default '0'                comment '租户状态（0正常 1停用）',
-  del_flag          char(1)         default '0'                comment '删除标志（0代表存在 2代表删除）',
+  status            char(1)         default '0'                comment '租户状态（0未生效 1已生效,2注销）',
+  del_flag          char(1)         default '0'                comment '删除标志（0代表存在 1代表删除）',
   create_by         varchar(64)     default ''                 comment '创建者',
   create_time 	    datetime                                   comment '创建时间',
   update_by         varchar(64)     default ''                 comment '更新者',
@@ -97,16 +97,16 @@ create table sys_dept (
 -- ----------------------------
 -- 初始化-部门表数据
 -- ----------------------------
-insert into sys_dept values(100,  0,   '0',          '尚久科技',   0, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(101,  100, '0,100',      '深圳总公司', 1, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(102,  100, '0,100',      '长沙分公司', 2, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(103,  101, '0,100,101',  '研发部门',   1, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(104,  101, '0,100,101',  '市场部门',   2, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(105,  101, '0,100,101',  '测试部门',   3, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(106,  101, '0,100,101',  '财务部门',   4, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(107,  101, '0,100,101',  '运维部门',   5, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(108,  102, '0,100,102',  '市场部门',   1, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
-insert into sys_dept values(109,  102, '0,100,102',  '财务部门',   2, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(100,  0,   1,	'0',          '尚久科技',   0, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(101,  100, 1,	'0,100',      '深圳总公司', 1, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(102,  100, 1,	'0,100',      '长沙分公司', 2, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(103,  101, 1,	'0,100,101',  '研发部门',   1, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(104,  101, 1,	'0,100,101',  '市场部门',   2, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(105,  101, 1,	'0,100,101',  '测试部门',   3, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(106,  101, 1,	'0,100,101',  '财务部门',   4, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(107,  101, 1,	'0,100,101',  '运维部门',   5, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(108,  102, 1,	'0,100,102',  '市场部门',   1, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
+insert into sys_dept values(109,  102, 1,	'0,100,102',  '财务部门',   2, '尚久', '15888888888', 'ry@qq.com', '0', '0', 'admin', sysdate(), '', null);
 
 
 -- ----------------------------
@@ -115,6 +115,7 @@ insert into sys_dept values(109,  102, '0,100,102',  '财务部门',   2, '尚�
 drop table if exists sys_user;
 create table sys_user (
   user_id           bigint(20)      not null auto_increment    comment '用户ID',
+  tenant_id         bigint(20)	    default null 			   comment '租户id',
   dept_id           bigint(20)      default null               comment '部门ID',
   user_name         varchar(30)     not null                   comment '用户账号',
   nick_name         varchar(30)     not null                   comment '用户昵称',
@@ -139,8 +140,8 @@ create table sys_user (
 -- ----------------------------
 -- 初始化-用户信息表数据
 -- ----------------------------
-insert into sys_user values(1,  103, 'admin', '尚久', '00', 'ry@163.com', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), 'admin', sysdate(), '', null, '管理员');
-insert into sys_user values(2,  105, 'ry',    '尚久', '00', 'ry@qq.com',  '15666666666', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), 'admin', sysdate(), '', null, '测试员');
+insert into sys_user values(1, 1, 103, 'admin', '尚久', '00', 'ry@163.com', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), 'admin', sysdate(), '', null, '管理员');
+insert into sys_user values(2, 1, 105, 'ry',    '尚久', '00', 'ry@qq.com',  '15666666666', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), 'admin', sysdate(), '', null, '测试员');
 
 
 -- ----------------------------
@@ -166,10 +167,10 @@ create table sys_post
 -- ----------------------------
 -- 初始化-岗位信息表数据
 -- ----------------------------
-insert into sys_post values(1, 'ceo',  '董事长',    1, '0', 'admin', sysdate(), '', null, '');
-insert into sys_post values(2, 'se',   '项目经理',  2, '0', 'admin', sysdate(), '', null, '');
-insert into sys_post values(3, 'hr',   '人力资源',  3, '0', 'admin', sysdate(), '', null, '');
-insert into sys_post values(4, 'user', '普通员工',  4, '0', 'admin', sysdate(), '', null, '');
+insert into sys_post values(1, 'ceo',  '董事长',    1,	1, 	'0', 'admin', sysdate(), '', null, '');
+insert into sys_post values(2, 'se',   '项目经理',  2, 	1,	'0', 'admin', sysdate(), '', null, '');
+insert into sys_post values(3, 'hr',   '人力资源',  3, 	1,	'0', 'admin', sysdate(), '', null, '');
+insert into sys_post values(4, 'user', '普通员工',  4, 	1,	'0', 'admin', sysdate(), '', null, '');
 
 
 -- ----------------------------
@@ -198,8 +199,8 @@ create table sys_role (
 -- ----------------------------
 -- 初始化-角色信息表数据
 -- ----------------------------
-insert into sys_role values('1', '超级管理员',  'admin',  1, 1, 1, 1, '0', '0', 'admin', sysdate(), '', null, '超级管理员');
-insert into sys_role values('2', '普通角色',    'common', 2, 2, 1, 1, '0', '0', 'admin', sysdate(), '', null, '普通角色');
+insert into sys_role values('1', '超级管理员', 1,  'admin',  1, 1, 1, 1, '0', '0', 'admin', sysdate(), '', null, '超级管理员');
+insert into sys_role values('2', '普通角色',   1, 'common', 2, 2, 1, 1, '0', '0', 'admin', sysdate(), '', null, '普通角色');
 
 
 -- ----------------------------
@@ -493,6 +494,7 @@ insert into sys_user_post values ('2', '2');
 drop table if exists sys_oper_log;
 create table sys_oper_log (
   oper_id           bigint(20)      not null auto_increment    comment '日志主键',
+  tenant_id		 	bigint(20)		default null			   comment '租户id',
   title             varchar(50)     default ''                 comment '模块标题',
   business_type     int(2)          default 0                  comment '业务类型（0其它 1新增 2修改 3删除）',
   method            varchar(200)    default ''                 comment '方法名称',
@@ -510,9 +512,9 @@ create table sys_oper_log (
   oper_time         datetime                                   comment '操作时间',
   cost_time         bigint(20)      default 0                  comment '消耗时间',
   primary key (oper_id),
-  key idx_sys_oper_log_bt (business_type),
-  key idx_sys_oper_log_s  (status),
-  key idx_sys_oper_log_ot (oper_time)
+  key idx_sys_oper_log_bt (tenant_id,business_type),
+  key idx_sys_oper_log_s  (tenant_id,status),
+  key idx_sys_oper_log_ot (tenant_id,oper_time)
 ) engine=innodb auto_increment=100 comment = '操作日志记录';
 
 
@@ -632,14 +634,15 @@ insert into sys_config values(5, '用户登录-黑名单列表',           'sys.
 drop table if exists sys_logininfor;
 create table sys_logininfor (
   info_id        bigint(20)     not null auto_increment   comment '访问ID',
+  tenant_id		 bigint(20)		default null			   comment '租户id',
   user_name      varchar(50)    default ''                comment '用户账号',
   ipaddr         varchar(128)   default ''                comment '登录IP地址',
   status         char(1)        default '0'               comment '登录状态（0成功 1失败）',
   msg            varchar(255)   default ''                comment '提示信息',
   access_time    datetime                                 comment '访问时间',
   primary key (info_id),
-  key idx_sys_logininfor_s  (status),
-  key idx_sys_logininfor_lt (access_time)
+  key idx_sys_logininfor_s  (tenant_id,status),
+  key idx_sys_logininfor_lt (tenant_id,access_time)
 ) engine=innodb auto_increment=100 comment = '系统访问记录';
 
 
@@ -796,3 +799,14 @@ create table sys_region
   
 ALTER TABLE `sys_region` 
 ADD INDEX `IDX_PARENT_ID`(`parent_id`) USING BTREE;
+
+
+-- ----------------------------
+-- 租户和菜单关联表  租户1-N菜单
+-- ----------------------------
+drop table if exists sys_tenant_menu;
+create table sys_tenant_menu (
+  tenant_id   bigint(20) not null comment '角色ID',
+  menu_id   bigint(20) not null comment '菜单ID',
+  primary key(tenant_id, menu_id)
+) engine=innodb comment = '租户和菜单关联表';

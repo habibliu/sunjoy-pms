@@ -288,6 +288,7 @@
             align="center"
             width="160"
             class-name="small-padding fixed-width"
+            fixed="right"
           >
             <template slot-scope="scope" v-if="scope.row.deviceId">
               <el-button
@@ -524,7 +525,6 @@ export default {
      * @param row 
      */
     handleCopy(row){
-      debugger;
       this.deviceObject=row;
       this.open = true;
       this.title = "复制设备资料";

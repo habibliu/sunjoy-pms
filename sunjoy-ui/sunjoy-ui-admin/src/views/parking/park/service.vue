@@ -107,6 +107,15 @@
           />
         </el-table-column>
         <el-table-column
+            label="免费时长(分钟)"
+            align="center"
+            key="freeDuration"
+            prop="freeDuration"
+            v-if="columns[4].visible"
+            width="120"
+          
+          />
+        <el-table-column
           label="单价"
           align="center"
           key="price"
@@ -169,6 +178,7 @@
           label="操作"
           align="center"
           width="200"
+          fixed="right"
           class-name="small-padding fixed-width"
         >
           <template slot-scope="scope" v-if="scope.row.LaneId !== 1">
@@ -391,7 +401,7 @@
 </template>
 <script>
 import { addLane, updateLane, delLane } from "@/api/parking/lane";
-import { findLabelById } from "@/utils/formatters";
+
 import { getParkServices, batchAddParkServices,changeParkServiceStatus } from "@/api/parking/service";
 import { listPrice } from "@/api/parking/price";
 import { getPark } from "@/api/parking/park";
@@ -415,12 +425,16 @@ export default {
       single: false,
       // 非多个禁用
       multiple: false,
-      // 车场表格数据
+      // 车场收费标准数据
       serviceList: [],
       //弹出框是否显示
       open: false,
       //通道表单显示
       title: undefined,
+      /**
+       * 车场ID,从route参数中传递过来
+       */
+      parkId: undefined,
 
       //车场服务对象表单信息
       form: {},
@@ -531,7 +545,7 @@ export default {
     submitPrice() {
       //将selectedPriceList与已经保存的serviceList比较，不存在的才提效到后台
       // 使用 filter 和 some 来过滤 selectedPriceList
-      debugger;
+      
       const filteredPriceList = this.selectedPriceList.filter(
         (selectedPrice) =>
           !this.serviceList.some(
@@ -606,7 +620,8 @@ export default {
           return changeParkServiceStatus(row.serviceId);
         })
         .then(() => {
-          this.getList();
+          
+          this.getList(this.parkId);
           this.$modal.msgSuccess("启用成功");
         })
         .catch(() => {});
@@ -623,7 +638,7 @@ export default {
         parkId: NaN,
         expiredDuration: "0",
       };
-      debugger;
+    
       this.serviceList = [];
 
       //服务ID列表，多选
@@ -750,9 +765,9 @@ export default {
     },
   },
   created() {
-    const parkId = this.$route.params && this.$route.params.parkId;
-    this.getParkInfo(parkId);
-    this.getList(parkId);
+    this.parkId = this.$route.params && this.$route.params.parkId;
+    this.getParkInfo(this.parkId);
+    this.getList(this.parkId);
   },
 };
 </script>

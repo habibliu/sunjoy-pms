@@ -41,22 +41,20 @@
       <el-col :sm="24" :lg="12" style="padding-left: 20px">
         <h2>尚久后台管理框架</h2>
         <p>
-          一直想做一款后台管理系统，看了很多优秀的开源项目但是发现没有合适自己的。于是利用空闲休息时间开始自己写一套后台系统。如此有了尚久管理系统，她可以用于所有的Web应用程序，如网站管理后台，网站会员中心，CMS，CRM，OA等等，当然，您也可以对她进行深度定制，以做出更强系统。所有前端后台代码封装过后十分精简易上手，出错概率低。同时支持移动客户端访问。系统会陆续更新一些实用功能。
+          一直想做一款后台管理系统，看了很多优秀的开源项目但是发现没有合适自己的。于是利用空闲休息时间开始自己写一套后台系统。如此有了尚久管理系统，她可以用于所有的Web应用程序,如网站管理后台，网站会员中心，CMS，CRM，OA等等。当然，您也可以对她进行深度定制，以做出更强系统。最近加上多租户模式支持，您可以用它进行运营，为其他行业用户提供saas服务。所有前端后台代码封装过后十分精简易上手，出错概率低。同时支持移动客户端访问。系统会陆续更新一些实用功能。
         </p>
         <p>
           <b>当前版本:</b> <span>v{{ version }}</span>
         </p>
-        <p>
-          <el-tag type="danger">&yen;免费开源</el-tag>
-        </p>
+        
         <p>
           <el-button
             type="primary"
             size="mini"
             icon="el-icon-cloudy"
             plain
-            @click="goTarget('https://gitee.com/y_project/RuoYi-Cloud')"
-            >访问码云</el-button
+            @click="goTarget('https://github.com/habibliu/sunjoy-pms')"
+            >访问GitHub（目前处于私有状态，适时开源）</el-button
           >
           <el-button
             size="mini"
@@ -84,6 +82,8 @@
               <li>Sentinel</li>
               <li>Seata</li>
               <li>Minio</li>
+              <li>Oss</li>
+              <li>Emqx</li>
               <li>...</li>
             </ul>
           </el-col>
@@ -914,7 +914,7 @@ export default {
   data() {
     return {
       // 版本号
-      version: "3.6.4",
+      version: "1.0.4",
     };
   },
   methods: {

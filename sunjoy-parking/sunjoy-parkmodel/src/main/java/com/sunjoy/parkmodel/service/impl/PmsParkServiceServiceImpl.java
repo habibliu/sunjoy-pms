@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -45,8 +46,13 @@ public class PmsParkServiceServiceImpl implements IPmsParkServiceService {
 
     @Override
     public List<ParkServicePojo> listParkServices(PmsParkService parkService) {
-        parkService.setTenantId(SecurityUtils.getTenantId());
-        return pmsParkServiceMapper.selectByConditions(parkService);
+        //必须指定车场ID
+        if (parkService.getParkId() != null) {
+            parkService.setTenantId(SecurityUtils.getTenantId());
+            return pmsParkServiceMapper.selectByConditions(parkService);
+        } else {
+            return new ArrayList<ParkServicePojo>();
+        }
     }
 
     @Override

@@ -190,6 +190,7 @@
             prop="parkName"
             v-if="columns[1].visible"
             :show-overflow-tooltip="true"
+             width="200"
           />
           
           <el-table-column
@@ -199,7 +200,7 @@
             prop="opuName"
             v-if="columns[2].visible"
             :show-overflow-tooltip="true"
-             width="140"
+             width="200"
           />
           <el-table-column
             label="负责人"
@@ -267,6 +268,7 @@
             label="操作"
             align="center"
             width="300"
+            fixed="right"
             class-name="small-padding fixed-width"
           >
             <template slot-scope="scope">
@@ -276,7 +278,7 @@
                 icon="el-icon-edit"
                 @click="handleUpdate(scope.row)"
                 v-hasPermi="['parking:park:edit']"
-                :disabled="scope.row.status!=0"
+                :disabled="scope.row.status==9"
                 >修改</el-button
               >
               <el-button
@@ -353,6 +355,7 @@
                     :show-count="true"
                     placeholder="请选择经营单位"
                     @select="onChangeOpu"
+                    :disabled="form.status==1"
                   />
                 </el-form-item>
               </el-col>
@@ -362,8 +365,9 @@
                 <el-form-item label="车场名称" prop="parkName">
                   <el-input
                     v-model="form.parkName"
-                    placeholder="请输入用户昵称"
+                    placeholder="请输入车场名称"
                     maxlength="30"
+                    :disabled="form.status==1"
                   />
                 </el-form-item>
               </el-col>
@@ -418,7 +422,7 @@
             <el-row class="parkRow">
               <el-col :span="24">
                 <el-form-item label="车场类型">
-                  <el-select v-model="form.parkType" placeholder="请选择l">
+                  <el-select v-model="form.parkType" placeholder="请选择">
                     <el-option
                       v-for="dict in dict.type.pms_park_type"
                       :key="dict.value"
@@ -440,20 +444,7 @@
               </el-col>
             </el-row>
 
-            <el-row class="parkRow">
-              <el-col :span="24">
-                <el-form-item label="状态">
-                  <el-radio-group v-model="form.status">
-                    <el-radio
-                      v-for="dict in dict.type.sys_normal_disable"
-                      :key="dict.value"
-                      :label="dict.value"
-                      >{{ dict.label }}</el-radio
-                    >
-                  </el-radio-group>
-                </el-form-item>
-              </el-col>
-            </el-row>
+           
             <el-row class="parkRow">
               <el-col :span="24">
                 <el-form-item label="备注">
@@ -751,7 +742,7 @@ export default {
       this.$refs["form"].validate((valid) => {
         if (valid) {
           let submitObj = this.form;
-          debugger;
+          
           //回填form中的region，提交到后台
           submitObj.region = this.regionId;
           if (this.form.parkId != undefined && !isNaN(this.form.parkId)) {

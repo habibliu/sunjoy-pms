@@ -1,7 +1,11 @@
 package com.sunjoy.parkmodel.mapper.provider;
 
+import com.sunjoy.common.security.utils.SecurityUtils;
 import com.sunjoy.parking.entity.PmsParkService;
 import org.apache.ibatis.jdbc.SQL;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Class description
@@ -22,7 +26,11 @@ public class PmsParkServiceSqlProvider {
                 WHERE("s.tenant_id = #{tenantId}");
             }
             if (conditions.getOpuId() != null) {
-                WHERE("s.opu_id = #{opuId}");
+                List<Long> opuIds = SecurityUtils.getAuthDeptIds(SecurityUtils.getUserId(), conditions.getOpuId());
+                String inClause = opuIds.stream()
+                        .map(String::valueOf) // 将 Long 转换为 String
+                        .collect(Collectors.joining(", ")); // 连接成字符串
+                WHERE("s.opu_id IN (" + inClause + ")");
             }
             if (conditions.getParkId() != null) {
                 WHERE("s.park_id = #{parkId}");

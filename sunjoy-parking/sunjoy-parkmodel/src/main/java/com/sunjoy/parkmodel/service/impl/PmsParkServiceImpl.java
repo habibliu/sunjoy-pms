@@ -7,6 +7,7 @@ import com.sunjoy.parking.entity.PmsLane;
 import com.sunjoy.parking.entity.PmsLaneDevice;
 import com.sunjoy.parking.entity.PmsPark;
 import com.sunjoy.parking.entity.PmsParkLane;
+import com.sunjoy.parking.enums.EntityStatusEnum;
 import com.sunjoy.parking.utils.RedisKeyConstants;
 import com.sunjoy.parkmodel.mapper.PmsParkMapper;
 import com.sunjoy.parkmodel.pojo.LaneDevicePojo;
@@ -57,8 +58,13 @@ public class PmsParkServiceImpl implements IPmsParkService {
         List<PmsPark> results = this.pmsParkMapper.selectParkList(condition);
         //非0状态下的信息才会被缓存
         for (PmsPark pmsPark : results.stream().filter(item -> !item.getStatus().equals("0")).toList()) {
-            redisService.setCacheObject(RedisKeyConstants.PARK_INFO + pmsPark.getParkId(), pmsPark);
+            //redisService.setCacheObject(RedisKeyConstants.PARK_INFO + pmsPark.getParkId(), pmsPark);
+            setCache(pmsPark);
         }
+    }
+
+    private void setCache(PmsPark pmsPark) {
+        redisService.setCacheObject(RedisKeyConstants.PARK_INFO + pmsPark.getParkId(), pmsPark);
     }
 
 
@@ -92,7 +98,12 @@ public class PmsParkServiceImpl implements IPmsParkService {
     public int updatePark(PmsPark park) {
         park.setUpdateBy(SecurityUtils.getUsername());
         park.setUpdateTime(new Date());
-        return pmsParkMapper.updatePark(park);
+        pmsParkMapper.updatePark(park);
+        if (!park.getStatus().equals(EntityStatusEnum.NEW)) {
+            setCache(park);
+        }
+        return 1;
+
     }
 
     @Override

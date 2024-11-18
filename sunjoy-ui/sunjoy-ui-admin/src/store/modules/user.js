@@ -80,7 +80,6 @@ const user = {
 
     // 刷新token
     RefreshToken({commit, state}) {
-      debugger
       return new Promise((resolve, reject) => {
         refreshToken(state.token).then(res => {
           setExpiresIn(res.data)

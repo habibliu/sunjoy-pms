@@ -176,6 +176,20 @@ export const dynamicRoutes = [
       }
     ]
   },
+  {
+    path: '/parking/vehicle-service',
+    component: Layout,
+    hidden: true,
+    permissions: ['parking:vehicle:list'],
+    children: [
+      {
+        path: 'index/:vehicleId(.+)',
+        component: () => import('@/views/parking/vehicle/service'),
+        name: 'ParkService',
+        meta: { title: '车辆服务', activeMenu: '/parking/vehicle' }
+      }
+    ]
+  },
 ]
 
 // 防止连续点击多次路由报错

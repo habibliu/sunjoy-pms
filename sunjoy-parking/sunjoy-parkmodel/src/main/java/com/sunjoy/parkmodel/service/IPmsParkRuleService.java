@@ -14,10 +14,27 @@ import java.util.List;
 @Service
 public interface IPmsParkRuleService {
     /**
-     * 根据条件查询
+     * 根据条件查询车场通行规则
      *
      * @param parkRule
      * @return
      */
     List<PmsParkRule> getParkRules(PmsParkRule parkRule);
+
+    /**
+     * 创建车场通行规则
+     *
+     * @param pmsParkRule
+     * @return
+     */
+    void create(PmsParkRule pmsParkRule);
+
+    PmsParkRule getParkRule(Long ruleId);
+
+    /**
+     * 更新车场通行规则
+     *
+     * @param pmsParkRule
+     */
+    void update(PmsParkRule pmsParkRule);
 }

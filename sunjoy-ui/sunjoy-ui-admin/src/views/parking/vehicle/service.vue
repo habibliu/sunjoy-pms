@@ -1,68 +1,30 @@
 <template>
   <div class="app-container">
-    <el-row>
-      <el-form
-        ref="parkForm"
-        :model="parkForm"
-        :rules="rules"
-        label-width="80px"
-      >
-        <el-row>
-          <el-col :span="6">
-            <el-form-item label="车场编号">
-              <el-input v-model="parkForm.parkId" :disabled="true" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="6">
-            <el-form-item label="车场名称">
-              <el-input v-model="parkForm.parkName" :disabled="true" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="6">
-            <el-form-item label="车场类型">
-              <el-select v-model="parkForm.parkType">
-                <el-option
-                  v-for="dict in dict.type.pms_park_type"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                  :disabled="true"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-          <el-col :span="6">
-            <el-form-item label="总车位数">
-              <el-input v-model="parkForm.totalLots" :disabled="true" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-    </el-row>
     <el-row :gutter="20">
       <el-row :gutter="10" class="mb8">
+        <el-col :span="9">
+          <span>车场名称</span>
+          <el-cascader
+            v-model="parkIds"
+            :options="parkOptions"
+            :props="parkProps"
+            :show-count="true"
+            placeholder="请选择车场名称"
+          />
+        </el-col>
+
         <el-col :span="1.5">
           <el-button
             type="primary"
             plain
             icon="el-icon-plus"
             size="mini"
-            @click="handleAddPrice"
-            >新增</el-button
-          >
-        </el-col>
-        <el-col :span="1.5">
-          <el-button
-            type="danger"
-            plain
-            icon="el-icon-delete"
-            size="mini"
-            :disabled="!multiple && !single"
-            @click="handleDeletePrice"
-            >删除</el-button
+            @click="handlerAddService"
+            >选择收费标准</el-button
           >
         </el-col>
       </el-row>
+      <!-- 车辆收费标准 -->
       <el-table
         v-loading="loading"
         :data="serviceList"
@@ -74,224 +36,120 @@
           align="center"
           key="serviceId"
           prop="serviceId"
-      
-          width="80"
+          width="60"
         />
         <el-table-column
           label="收费标准"
           align="left"
-          key="priceName"
-          prop="priceName"
-      
+          key="serviceName"
+          prop="serviceName"
           :show-overflow-tooltip="true"
-          width="300"
-        />
-        <el-table-column label="是否" align="center">
-          <el-table-column
-            label="免费"
-            align="center"
-        
-            :show-overflow-tooltip="true"
-            :formatter="freeFormatter"
-            width="80"
-          />
-          <el-table-column
-            label="统一价"
-            align="center"
-            key="uniformPrice"
-            prop="uniformPrice"
-           
-            :show-overflow-tooltip="true"
-            :formatter="uniformPriceFormatter"
-            width="80"
-          />
-        </el-table-column>
-        <el-table-column
-          label="单价"
-          align="center"
-          key="price"
-        
-          :show-overflow-tooltip="true"
-          :formatter="priceFormatter"
+          width="200"
         />
         <el-table-column
-          label="最高收费"
-          align="center"
-          key="maxFee"
-         
-          width="160"
-          :formatter="maxFeeFormatter"
+          label="车场ID"
+          align="left"
+          key="parkId"
+          prop="parkId"
+          v-if="false"
+          :show-overflow-tooltip="true"
         />
-        <el-table-column label="服务过期处理" align="center">
-          <el-table-column
-            label="允许通行"
-            align="center"
-            key="expiredAllowed"
-        
-            width="100"
-            :formatter="allowedFormatter"
-          />
-          <el-table-column
-            label="保留身份时限"
-            align="center"
-            key="expiredDuration"
-          
-            width="100"
-            :formatter="durationFormatter"
-          />
+        <el-table-column
+          label="车场名称"
+          align="left"
+          key="parkName"
+          prop="parkName"
+          :show-overflow-tooltip="true"
+        />
+
+        <el-table-column label="车位编号" align="center" width="100"
+          ><template #default="scope">
+            <div v-if="scope.row.status === 0">
+              <el-input
+                v-model="scope.row.lotNos"
+                placeholder="请输入车位编号"
+                maxlength="20"
+              />
+            </div>
+            <div v-else>
+              {{ scope.row.lotNos }}
+            </div>
+          </template>
         </el-table-column>
-        <el-table-column label="欢迎语" align="center">
-          <el-table-column
-            label="入场"
-            align="center"
-            key="entryMessage"
-            width="120"
-            :formatter="entryMessageFormatter"
-          />
-          <el-table-column
-            label="出场"
-            align="center"
-            key="exitMessage"
-            width="120"
-            :formatter="exitMessageFormatter"
-          />
+
+        <el-table-column label="开始日期" width="120" align="center">
+          <template #default="scope">
+            <div v-if="scope.row.status === 0">
+              <el-date-picker
+                v-model="scope.row.startDate"
+                type="date"
+                placeholder="选择日期"
+              />
+            </div>
+            <div v-else>
+              {{ formatDate(scope.row.startDate) }}
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column label="结束日期" width="120" align="center">
+          <template #default="scope">
+            <div v-if="scope.row.status === 0">
+              <el-date-picker
+                v-model="scope.row.endDate"
+                type="date"
+                placeholder="选择日期"
+              />
+            </div>
+            <div v-else>
+              {{ formatDate(scope.row.endDate) }}
+            </div>
+          </template>
         </el-table-column>
         <el-table-column
           label="状态"
           align="center"
           key="status"
-         
-          width="100"
+          width="80"
           :formatter="statusFormatter"
         />
 
         <el-table-column
           label="操作"
           align="center"
-          width="200"
+          width="160"
           class-name="small-padding fixed-width"
         >
-          <template slot-scope="scope" v-if="scope.row.LaneId !== 1">
-            <el-button
-              size="mini"
-              type="text"
-              icon="el-icon-edit"
-              @click="handleUpdate(scope.row)"
-              >修改</el-button
-            >
+          <template slot-scope="scope">
             <el-button
               size="mini"
               type="text"
               icon="el-icon-delete"
-              @click="handleDeleteLane(scope.row)"
-              :disabled="scope.row.status!=0"
+              @click="handleDelVehiclePrice(scope.row)"
+              :disabled="scope.row.status != 0"
               >删除</el-button
             >
             <el-button
-                size="mini"
-                type="text"
-                icon="el-icon-video-play"
-                @click="handleEnable(scope.row)"
-                
-                :disabled="scope.row.status!=0"
-                >启用</el-button
-              >
-              <el-button
-                size="mini"
-                type="text"
-                icon="el-icon-video-pause"
-                @click="handleDisable(scope.row)"
-                :disabled="scope.row.status!=1"
-                >停用</el-button
-              >
+              size="mini"
+              type="text"
+              icon="el-icon-video-play"
+              @click="handleEnable(scope.row)"
+              :disabled="scope.row.status != 0"
+              v-if="vehicleId"
+              >启用</el-button
+            >
+            <el-button
+              size="mini"
+              type="text"
+              icon="el-icon-video-pause"
+              @click="handleDisable(scope.row)"
+              v-if="vehicleId"
+              :disabled="scope.row.status != 1"
+              >停用</el-button
+            >
           </template>
         </el-table-column>
       </el-table>
     </el-row>
-
-    <!-- 添加或修改通道配置对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="700px" append-to-body>
-      <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="收费标准" prop="priceName">
-              <el-input v-model="form.serviceId" style="display: none" />
-              <el-input
-                v-model="form.priceName"
-                placeholder="请输入用户昵称"
-                maxlength="30"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="进出方向" prop="free">
-              <el-select v-model="form.free" placeholder="请选择车辆出入场方向">
-                <el-option
-                  v-for="dict in dict.type.pms_direction"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="是否外围" prop="uniformPrice">
-              <el-select
-                v-model="form.uniformPrice"
-                placeholder="请选择是否与外界连通"
-              >
-                <el-option
-                  v-for="dict in dict.type.sys_yes_no"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="收费放行" prop="price">
-              <el-select
-                v-model="form.price"
-                placeholder="请选择是否收费才放行"
-              >
-                <el-option
-                  v-for="dict in dict.type.sys_yes_no"
-                  :key="dict.value"
-                  :label="dict.label"
-                  :value="dict.value"
-                ></el-option>
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-row>
-          <el-col :span="24">
-            <el-form-item label="状态">
-              <el-radio-group v-model="form.expiredDuration">
-                <el-radio
-                  v-for="dict in dict.type.sys_normal_disable"
-                  :key="dict.value"
-                  :label="dict.value"
-                  >{{ dict.label }}</el-radio
-                >
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </el-form>
-      <div slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitChange">确 定</el-button>
-        <el-button @click="cancelChange">取 消</el-button>
-      </div>
-    </el-dialog>
 
     <el-dialog
       :title="title"
@@ -303,7 +161,7 @@
         <el-col :span="24">
           <el-table
             v-loading="loading"
-            :data="priceList"
+            :data="parkServiceList"
             @selection-change="handlePriceSelectionChange"
           >
             <el-table-column type="selection" width="50" align="center" />
@@ -374,14 +232,16 @@
             :total="total"
             :page.sync="queryParams.pageNum"
             :limit.sync="queryParams.pageSize"
-            @pagination="getPriceList"
+            @pagination="pageAction"
           />
         </el-col>
       </el-row>
       <el-row :gutter="20">
         <el-col :span="24">
           <div class="dialog-footer">
-            <el-button type="primary" @click="submitPrice">确 定</el-button>
+            <el-button type="primary" @click="onSelectParkService"
+              >确 定</el-button
+            >
             <el-button @click="cancelPrice">取 消</el-button>
           </div>
         </el-col>
@@ -390,21 +250,38 @@
   </div>
 </template>
 <script>
-import { addLane, updateLane, delLane } from "@/api/parking/lane";
-import { findLabelById } from "@/utils/formatters";
-import { getParkServices, batchAddParkServices,changeParkServiceStatus } from "@/api/parking/service";
-import { listPrice } from "@/api/parking/price";
-import { getPark } from "@/api/parking/park";
+import {
+  addService,
+  updateService,
+  delService,
+  getVehicleService,
+  changeVehicleServiceStatus,
+} from "@/api/parking/vehicle";
+import { formatDate } from "@/utils/formatters";
+import { getParkServices } from "@/api/parking/service";
+import { getParkTree } from "@/api/parking/park";
+import {  addOneMonth } from "@/utils/ruoyi";
 
 export default {
-  name: "ParkService",
+  name: "VehicleService",
   dicts: [
     "sys_normal_disable",
     "pms_price_unit",
     "sys_yes_no",
     "sys_entity_status",
   ],
-
+  props: {
+    opuId: {
+      type: Number,
+      required: false,
+      default: NaN,
+    },
+    vehicleId: {
+      type: Number,
+      required: false,
+      default: NaN,
+    },
+  },
   data() {
     return {
       // 总条数
@@ -424,14 +301,18 @@ export default {
 
       //车场服务对象表单信息
       form: {},
-      //车场信息
-      parkForm: {},
+
+      //车场下拉框选项
+      parkOptions: [],
+
+      selectParkId: NaN,
+
       //车场服务ID，多选
       serviceIds: [],
-      //收费标准列表
-      priceList: [],
+      //车场收费标准列表
+      parkServiceList: [],
 
-      selectedPriceList: [],
+      selectedParkServiceList: [],
 
       // 查询参数
       queryParams: {
@@ -439,72 +320,61 @@ export default {
         pageSize: 10,
         status: "1",
       },
+      /**
+       * 车场下拉框绑定的数据
+       */
+      parkIds: [],
 
-      priceOpen: false,
-
-      // 列信息
-      columns: [
-        { key: 0, label: `编号`, visible: true },
-        { key: 1, label: `收费标准`, visible: true },
-        { key: 2, label: `是否免费`, visible: true },
-        { key: 3, label: `是否统一价`, visible: true },
-        { key: 4, label: `单价`, visible: true },
-        { key: 5, label: `最高收费`, visible: true },
-        { key: 6, label: `过期允许通行`, visible: true },
-        { key: 7, label: `过期身份保留时间`, visible: true },
-        { key: 8, label: `状态`, visible: true },
-      ],
-      // 表单校验
-      rules: {
-        priceName: [
-          { required: true, message: "通道名称不能为空", trigger: "blur" },
-          {
-            min: 2,
-            max: 20,
-            message: "通道名称长度必须介于 2 和 20 之间",
-            trigger: "blur",
-          },
-        ],
-        free: [
-          { required: true, message: "进出方向不能为空", trigger: "blur" },
-        ],
-        uniformPrice: [
-          { required: true, message: "是否外围不能为空", trigger: "blur" },
-        ],
-        price: [
-          { required: true, message: "收费放行不能为空", trigger: "blur" },
-        ],
+      parkProps: {
+        value: "parkId",
+        label: "parkName",
+        checkStrictly: true,
       },
+      priceOpen: false,
+     
     };
   },
   methods: {
-    getList(parkId) {
-      this.loading = true;
-      
-      getParkServices(parkId).then((resp) => {
-        this.serviceList = resp.data;
-       
-      });
-      this.loading = false;
-    },
-    /**
-     * 获取车场信息
-     * @param parkId
-     */
-    getParkInfo(parkId) {
-      getPark(parkId).then((resp) => {
-        this.parkForm = resp.data;
+    getParkTreeList(opuId) {
+      getParkTree(opuId).then((resp) => {
+        this.parkOptions = resp.data;
       });
     },
 
-    /** 查询收费标准列表 */
+    /**
+     * 查询车辆服务列表
+     * @param vehicleId
+     */
+    getList(vehicleId) {
+      this.loading = true;
+
+      getVehicleService(vehicleId).then((resp) => {
+        this.serviceList = resp.data;
+      });
+      this.loading = false;
+    },
+
+    pageAction() {
+      if (this.vehicleId) {
+        this.getList(this.vehicleId);
+      }
+    },
+
+    /** 查询车场收费标准列表 */
     getPriceList() {
       this.loading = true;
-      listPrice(this.queryParams).then((response) => {
-        this.priceList = response.rows;
-        this.total = response.total;
+      getParkServices(this.selectParkId, "1").then((response) => {
+        this.parkServiceList = response.data;
+
         this.loading = false;
       });
+    },
+
+    // 转换 priceName 的示例函数
+    transformPriceName(priceName) {
+      // 在这里进行 priceName 的转换逻辑
+      // 例如，可以简单地返回 priceName，或者进行其他处理
+      return `${priceName}`; // 示例处理
     },
 
     handleSelectionChange(selection) {
@@ -517,113 +387,112 @@ export default {
      * 收费标准弹出框选中事件
      */
     handlePriceSelectionChange(selection) {
-      this.selectedPriceList = selection;
+      this.selectedParkServiceList = selection;
     },
     /**
      * 弹出收费标准选择框
      */
-    handleAddPrice() {
+    handlerAddService() {
+      if (isNaN(this.selectParkId)) {
+        alert("请先选择车场!");
+        return;
+      }
       this.getPriceList();
       this.priceOpen = true;
       this.title = "添加收费标准";
     },
-
-    submitPrice() {
+    /**
+     * 选择车场服务
+     */
+    onSelectParkService() {
       //将selectedPriceList与已经保存的serviceList比较，不存在的才提效到后台
-      // 使用 filter 和 some 来过滤 selectedPriceList
-      debugger;
-      const filteredPriceList = this.selectedPriceList.filter(
+      // 使用 filter 和 some 来过滤 selectedParkServiceList
+
+      const filteredPriceList = this.selectedParkServiceList.filter(
         (selectedPrice) =>
           !this.serviceList.some(
-            (service) => service.priceId === selectedPrice.priceId
+            (service) => service.serviceId === selectedPrice.serviceId
           )
       );
 
-      //提交到后台
-      if (filteredPriceList && Array.isArray(filteredPriceList)) {
-        //提交前补充一些信息
-        filteredPriceList.forEach((item) => {
-          item.parkId = this.parkForm.parkId;
-          item.opuId = this.parkForm.opuId;
-        });
-        batchAddParkServices(filteredPriceList).then((resp) => {
-          this.serviceList.push(filteredPriceList);
-        });
-      }
+      // 转换函数
+      const transformedArray = filteredPriceList.map((item) => ({
+        serviceId: item.serviceId,
+        serviceName: this.transformPriceName(item.priceName), // 转换 priceName 为 serviceName
+        parkId: this.selectParkId,
+        parkName: this.findParkName(this.parkOptions, this.selectParkId),
+        status: "0",
+        startDate: new Date(),
+        endDate: addOneMonth(new Date()),
+      }));
 
+      this.serviceList = this.serviceList.concat(transformedArray);
+      this.$emit("submit", this.serviceList);
       this.priceOpen = false;
     },
+
+    findParkName(parkOptions, targetId) {
+      for (const park of parkOptions) {
+        if (park.parkId === targetId) {
+          return park.parkName; // 找到匹配的 parkId，返回 parkName
+        }
+        // 如果有子节点，递归查找
+        if (park.children) {
+          const result = findParkName(park.children, targetId);
+          if (result) {
+            return result; // 如果在子节点中找到，返回结果
+          }
+        }
+      }
+      return ""; // 如果没有找到，返回空字符串
+    },
+
     cancelPrice() {
       this.priceOpen = false;
     },
 
-    handleDeletePrice() {
-      const selectserviceIds = this.serviceIds;
-      //闭包传对象
-      const that = this;
-      selectserviceIds &&
-        this.$modal
-          .confirm("是否确认删除编号为" + selectserviceIds + "的通道？")
-          .then(function () {
-            if (that.parkId) {
-              delLane(that.parkId, selectserviceIds).then((resp) => {});
-            }
-            const freshList = that.serviceList.filter(
-              (item) => !selectserviceIds.includes(item.serviceId)
-            );
-
-            that.serviceList = freshList;
-          });
-    },
-    handleUpdate(row) {
-      this.form = row;
-      this.open = true;
-      this.title = "修改车场服务";
-    },
-    handleDeleteLane(row) {
+    handleDelVehiclePrice(row) {
       //闭包传对象
       const that = this;
       const selectserviceIds = row.serviceId || this.serviceIds;
-      this.$modal.confirm("是否确认删除当前行的通道？").then(function () {
-        //如果已经有车场ID，直接调用后台接口删除
+      this.$modal
+        .confirm("是否确认删除当前行[" + row.serviceName + "]的收费标准？")
+        .then(function () {
+          //如果已经有车辆ID，直接调用后台接口删除
 
-        if (that.parkId) {
-          const laneIdList = [];
-          laneIdList.push(selectserviceIds);
-          delLane(that.parkId, laneIdList).then((resp) => {});
-        }
-        that.serviceList = that.serviceList.filter(
-          (lane) => lane.priceName !== row.priceName
-        );
-      });
+          if (that.vehicleId) {
+            delService(that.vehicleId, selectserviceIds).then((resp) => {});
+          }
+          that.serviceList = that.serviceList.filter(
+            (service) => service.serviceName !== row.serviceName
+          );
+        });
     },
     //启用收费服务
-    handleEnable(row){
-      
-        this.$modal
-        .confirm('是否确认启用编号为"' + row.serviceId + '"的车场收费服务？')
+    handleEnable(row) {
+      this.$modal
+        .confirm('是否确认启用编号为"' + row.id + '"的车场收费服务？')
         .then(function () {
-          return changeParkServiceStatus(row.serviceId);
+          
+          return changeVehicleServiceStatus({ id: row.id, status: "1" });
         })
         .then(() => {
-          this.getList();
+          if (this.vehicleId) {
+            this.getList(this.vehicleId);
+          }
           this.$modal.msgSuccess("启用成功");
         })
         .catch(() => {});
-        
     },
     //停用收费服务
-    handleDisable(row){
+    handleDisable(row) {
       alert(row.status);
     },
 
     // 表单重置
     reset() {
-      this.form = {
-        parkId: NaN,
-        expiredDuration: "0",
-      };
-      debugger;
+      this.form = {};
+
       this.serviceList = [];
 
       //服务ID列表，多选
@@ -633,56 +502,10 @@ export default {
         this.resetForm("form");
     },
 
-    // 取消按钮
-    cancelChange() {
-      this.open = false;
-      this.deviceOpen = false;
-    },
-
-    //通道表单提交按钮
-    submitChange() {
-      let that = this;
-      this.$refs["form"].validate((valid) => {
-        if (valid) {
-          if (that.form.serviceId) {
-            //更新
-            //先更新后台
-            updateLane(that.form).then((resp) => {
-              that.serviceList.forEach((item) => {
-                if (item.LaneId == that.form.serviceId) {
-                  item.priceName = that.form.priceName;
-                  item.free = that.form.free;
-                  item.uniformPrice = that.form.uniformPrice;
-                  item.price = that.form.price;
-                  item.expiredDuration = that.form.expiredDuration;
-                }
-              });
-            });
-          } else {
-            //新增
-            const lane = Object.assign({}, this.form);
-
-            //如果已经有车场ID可以绑定，就直接提效到后台
-            if (this.parkId) {
-              //提交到后台再返回
-              lane.parkId = this.parkId;
-              lane.opuId = this.opuId;
-              addLane(lane).then((resp) => {
-                lane.serviceId = resp.data;
-                this.serviceList.push(lane);
-              });
-            } else {
-              this.serviceList.push(lane);
-            }
-          }
-
-          this.open = false;
-          this.title = undefined;
-        }
-      });
-    },
-
     //---格式化代码开始
+    formatDate(date) {
+      return formatDate(date);
+    },
 
     priceFormatter(row) {
       if (row.price) {
@@ -720,40 +543,49 @@ export default {
     uniformPriceFormatter(row) {
       return this.selectDictLabel(this.dict.type.sys_yes_no, row.uniformPrice);
     },
+  },
+  watch: {
+    opuId: {
+      handler(newVal, oldVal) {
+        this.parkOptions = [];
+        if (newVal) {
+          this.getParkTreeList(newVal);
+        }
+      },
+      deep: true,
+      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
+    },
+    parkIds: {
+      handler(newVal, oldVal) {
+        if (newVal && Array.isArray(newVal)) {
+          this.selectParkId = newVal[0];
+        } else {
+          this.selectParkId = undefined;
+        }
+      },
+      deep: true,
+      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
+    },
+    vehicleId: {
+      handler(newVal, oldVal) {
+       
+        if (newVal) {
+          this.getList(newVal);
+        }
+      },
+      deep: true,
+      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
+    },
+  },
 
-    allowedFormatter(row) {
-      if (row.expiredAllowed) {
-        return this.selectDictLabel(
-          this.dict.type.sys_yes_no,
-          row.expiredAllowed
-        );
-      } else {
-        return "否";
-      }
-    },
-    durationFormatter(row) {
-      if (row.expiredDuration) {
-        return row.expiredDuration + " 天";
-      } else {
-        return "０天";
-      }
-    },
-    entryMessageFormatter(row){
-      if (!row.entryMessage) {
-        return "系统默认"
-      }
-    },
-    exitMessageFormatter(row){
-      if (!row.exitMessage) {
-        return "系统默认"
-      }
-    },
-  },
-  created() {
-    const parkId = this.$route.params && this.$route.params.parkId;
-    this.getParkInfo(parkId);
-    this.getList(parkId);
-  },
+  created(){
+    const combine = this.$route.params && this.$route.params.vehicleId;
+    const splitArray = combine.split('-');
+    debugger
+    this.vehicleId=Number(splitArray[0]);
+    this.opuId=Number(splitArray[1]);
+    //this.getList(this.vehicleId);
+  }
 };
 </script>
 

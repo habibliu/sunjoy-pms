@@ -382,7 +382,7 @@ export default {
             //如果已经有车场ID可以绑定，就直接提效到后台
             if (this.priceId) {
               //提交到后台再返回
-              debugger
+          
               priceDetail.priceId = this.priceId;
               priceDetail.timeStart = formatDateTime(this.form.timeStart,'HH:mm');
               priceDetail.timeEnd = formatDateTime(this.form.timeEnd,'HH:mm');

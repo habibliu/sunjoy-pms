@@ -105,10 +105,10 @@ public class PmsParkController extends BaseController {
     }
 
     /**
-     * 获取部门树列表
+     * 获取车场树列表
      */
     @RequiresPermissions("parking:park:list")
-    @GetMapping("/park/tree/{opuId}")
+    @GetMapping("/tree/{opuId}")
     public AjaxResult getParkTree(@PathVariable(value = "opuId", required = true) Long opuId) {
         ParkPojo condition = new ParkPojo();
         condition.setOpuId(opuId);
@@ -146,5 +146,6 @@ public class PmsParkController extends BaseController {
         }
         return tree;
     }
+
 
 }

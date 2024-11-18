@@ -784,7 +784,7 @@ export default {
             if (this.auditing) {
               let tenantMenuList = this.$refs.tenantMenu.getMenuChecked(); // 调用子组件的方法
               submitObj.menuList=tenantMenuList;
-              debugger;
+              
               console.log("auditing...");
               auditTenant(submitObj).then(resp=>{
                 this.$modal.msgSuccess("审核成功");

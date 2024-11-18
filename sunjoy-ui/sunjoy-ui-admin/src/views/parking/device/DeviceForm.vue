@@ -284,7 +284,7 @@ export default {
   watch: {
     data:{
       handler(newVal, oldVal) {
-        debugger;
+        
         if(!this.init){
           this.form=newVal;
           this.form.deviceId=undefined;
@@ -293,7 +293,8 @@ export default {
           this.init=true;
         }
       },
-      deep:true
+      deep:true,
+      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
     },
     opuId: {
       handler(newVal, oldVal) {
@@ -303,6 +304,7 @@ export default {
           this.form.opuId = oldVal;
         }
       },
+      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
     },
     deviceId: {
       handler(newVal, oldVal) {
@@ -322,6 +324,7 @@ export default {
         // 处理 device prop 变化的逻辑
       },
       deep: true, // 如果需要深度监听，特别是对象
+      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
     },
     dialogVisible: {
       handler(newVal, oldVal) {
@@ -329,6 +332,7 @@ export default {
           this.getOpuTree();
         }
       },
+      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
     },
   },
 };

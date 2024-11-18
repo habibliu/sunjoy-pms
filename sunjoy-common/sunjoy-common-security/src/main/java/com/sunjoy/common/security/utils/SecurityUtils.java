@@ -14,6 +14,7 @@ import com.sunjoy.system.api.model.LoginUser;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -134,15 +135,20 @@ public class SecurityUtils {
                 //TODO 应该还要取出userId的授权部署与下面的匹配，即相互存在才返回
                 System.out.println("当前用户是" + userId);
                 // 过滤出 ancestors 以当前部门的ancestors开头的记录，并提取 dept_id
-                return tenantDepts.stream()
-                        .filter(item -> item.getAncestors().startsWith(dept.getAncestors()))
+                List<Long> subDeptIds = tenantDepts.stream()
+                        .filter(item -> item.getAncestors().startsWith(dept.getAncestors() + "," + dept.getDeptId()))
                         .map(SysDept::getDeptId)
                         .collect(Collectors.toList());
+                //要加上自己
+                subDeptIds.add(deptId);
+                return subDeptIds;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        List<Long> noSubList = new ArrayList<>();
+        noSubList.add(deptId);
+        return noSubList;
     }
 }

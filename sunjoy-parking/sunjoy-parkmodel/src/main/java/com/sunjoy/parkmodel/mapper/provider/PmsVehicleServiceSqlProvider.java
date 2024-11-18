@@ -33,6 +33,9 @@ public class PmsVehicleServiceSqlProvider {
             if (vehicleService.getLicensePlate() != null) {
                 SET("license_plate = #{licensePlate}");
             }
+            if (vehicleService.getLotNos() != null) {
+                SET("lot_nos = #{lotNos}");
+            }
             if (vehicleService.getStartDate() != null) {
                 SET("start_date = #{startDate}");
             }
@@ -73,15 +76,16 @@ public class PmsVehicleServiceSqlProvider {
 
     public String selectByVehicleIds(List<Long> vehicleIds) {
         return new SQL() {{
-            SELECT("*");
-            FROM("pms_vehicle_service");
+            SELECT("s.*,p.park_name");
+            FROM("pms_vehicle_service s");
+            LEFT_OUTER_JOIN(" pms_park p on p.park_id = s.park_id and p.opu_id= s.opu_id");
             if (vehicleIds != null && !vehicleIds.isEmpty()) {
-                WHERE("vehicle_id IN (" +
+                WHERE("s.vehicle_id IN (" +
                       String.join(",", vehicleIds.stream()
                               .map(id -> String.valueOf(id))
                               .toArray(String[]::new)) + ")");
             }
-            
+
         }}.toString();
     }
 }

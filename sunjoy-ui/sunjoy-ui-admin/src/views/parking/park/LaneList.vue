@@ -71,7 +71,7 @@
           prop="rap"
           v-if="columns[4].visible"
           :show-overflow-tooltip="true"
-          :formatter="linkOuterFormatter"
+          :formatter="rapFormatter"
         />
         <el-table-column
           label="状态"
@@ -566,7 +566,7 @@ export default {
           "是否确认解绑通道" + row.laneName + "的设备" + row.deviceName + "?"
         )
         .then(function () {
-          debugger;
+          
           const ids = row.id || that.ralationIds;
           unbindDevice(ids).then((resp) => {
             let delIds = [];
@@ -575,7 +575,7 @@ export default {
             } else {
               delIds = ids;
             }
-            debugger;
+            
             let updatedDeviceList = that.deviceList.filter(
               (ralation) => !delIds.includes(ralation.id)
             );
@@ -597,12 +597,16 @@ export default {
     directionFormatter(row, column) {
       return this.selectDictLabel(this.dict.type.pms_direction, row.direction);
     },
+
+    rapFormatter(row,column){
+        return this.selectDictLabel(this.dict.type.sys_yes_no, row.rap);
+    }
   },
 
   watch: {
     parkId: {
       handler(newVal, oldVal) {
-        debugger
+        
         if (Number.isNaN(newVal) || newVal == undefined) {
           this.laneIdList=[];
           this.deviceList=[];

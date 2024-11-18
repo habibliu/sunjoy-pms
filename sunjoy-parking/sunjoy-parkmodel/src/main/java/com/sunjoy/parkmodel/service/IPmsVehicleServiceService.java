@@ -17,4 +17,16 @@ public interface IPmsVehicleServiceService {
     List<PmsVehicleService> getAllVehicleService();
 
     List<PmsVehicleService> getVehicleServiceByVehicleIds(List<Long> vehicelIds);
+
+    /**
+     * 取具体某辆车的服务
+     *
+     * @param vehicleId
+     * @return
+     */
+    List<PmsVehicleService> getVehicleServiceByVehicleId(Long vehicleId);
+
+    void insertVehicleService(PmsVehicleService vehicleService);
+
+    void updateVehicleService(PmsVehicleService vehicleService);
 }

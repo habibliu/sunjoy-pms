@@ -1,6 +1,7 @@
 package com.sunjoy.parkmodel.service;
 
 import com.sunjoy.parking.entity.PmsVehicle;
+import com.sunjoy.parking.entity.PmsVehicleService;
 
 import java.util.List;
 
@@ -19,9 +20,11 @@ public interface IPmsVehicleService {
      */
     List<PmsVehicle> getVehiclesByCondition(PmsVehicle vehicle);
 
-    void createVehicle(PmsVehicle vehicle);
+    void createVehicle(PmsVehicle vehicle, List<PmsVehicleService> vehicleServiceList);
 
-    void updateVehicle(PmsVehicle vehicle);
+    void updateVehicle(PmsVehicle vehicle, List<PmsVehicleService> vehicleServiceList);
 
     int deleteVehicle(PmsVehicle vehicle);
+
+    PmsVehicle getVehicleById(Long vehicleId);
 }

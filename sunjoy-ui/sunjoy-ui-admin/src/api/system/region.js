@@ -1,6 +1,6 @@
 import request from "@/utils/request";
 import { parseStrEmpty } from "@/utils/ruoyi";
-import { mapGetters } from 'vuex';
+
 
 //查询地区列表
 export function listRegions(query) {
@@ -21,10 +21,3 @@ export function listAllRegions() {
     });
   }
 
-  /**
-   * 在列表辊格式化显示region
-   * @param  regionId 
-   */
-export function formatRegion(regionId){
-
-}

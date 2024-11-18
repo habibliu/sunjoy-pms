@@ -11,9 +11,13 @@ export function listParkService(query) {
 }
 
 // 查询车场服务列表
-export function getParkServices(parkId) {
+export function getParkServices(parkId,status) {
+  let requestUrl= "/parkmodel/service/" + parseStrEmpty(parkId);
+  if(status){
+    requestUrl=requestUrl+"/"+parseStrEmpty(status);
+  }
   return request({
-    url: "/parkmodel/service/" + parseStrEmpty(parkId),
+    url: requestUrl,
     method: "get"
   });
 }

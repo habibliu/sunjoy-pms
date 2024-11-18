@@ -28,13 +28,29 @@ public class PmsParkServiceController extends BaseController {
     private IPmsParkServiceService pmsParkServiceService;
 
     /**
-     * 查询字典数据详细
+     * 查询车场服务
+     */
+    @RequiresPermissions("parking:service:query")
+    @GetMapping(value = "/{parkId}/{status}")
+    public AjaxResult getParkServiceWithStatus(@PathVariable Long parkId, @PathVariable String status) {
+        PmsParkService condition = new PmsParkService();
+        condition.setParkId(parkId);
+
+        condition.setStatus(status);
+
+        List<ParkServicePojo> results = pmsParkServiceService.listParkServices(condition);
+        return success(results);
+    }
+
+    /**
+     * 查询车场服务
      */
     @RequiresPermissions("parking:service:query")
     @GetMapping(value = "/{parkId}")
     public AjaxResult getParkService(@PathVariable Long parkId) {
         PmsParkService condition = new PmsParkService();
         condition.setParkId(parkId);
+
         List<ParkServicePojo> results = pmsParkServiceService.listParkServices(condition);
         return success(results);
     }
@@ -57,4 +73,6 @@ public class PmsParkServiceController extends BaseController {
         pmsParkServiceService.enableParkService(serviceId);
         return toAjax(1);
     }
+
+
 }

@@ -14,6 +14,11 @@ import directive from './directive' // directive
 import plugins from './plugins' // plugins
 import { download } from '@/utils/request'
 
+import Vlf from 'vlf'
+import localforage from 'localforage'
+
+
+
 import './assets/icons' // icon
 import './permission' // permission control
 import { getDicts } from "@/api/system/dict/data";
@@ -65,6 +70,7 @@ Vue.component('RegionSelect',RegionSelect)
 Vue.use(directive)
 Vue.use(plugins)
 Vue.use(VueMeta)
+Vue.use(Vlf, localforage)
 DictData.install()
 
 /**

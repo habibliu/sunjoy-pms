@@ -75,3 +75,12 @@ export function getParkTree(opuId){
     method: 'get'
   });
 }
+
+
+// 查询车场收费标准列表
+export function getParkPrices(parkId) {
+  return request({
+    url: '/parkmodel/park/price/' + parseStrEmpty(parkId),
+    method: 'get'
+  })
+}

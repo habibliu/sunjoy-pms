@@ -2,10 +2,7 @@ package com.sunjoy.parkmodel.mapper;
 
 import com.sunjoy.parking.entity.PmsVehicle;
 import com.sunjoy.parkmodel.mapper.provider.PmsVehicleSqlProvider;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.SelectProvider;
-import org.apache.ibatis.annotations.UpdateProvider;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
@@ -24,6 +21,8 @@ public interface PmsVehicleMapper {
             "VALUES (#{tenantId}, #{opuId}, #{licensePlate}, #{brand}, #{model}, #{vehicleType}, " +
             "#{ownerName}, #{ownerPhone}, #{ownerAddr}, #{registDate}, #{status}, #{delFlag}, " +
             "#{createBy}, #{createTime}, #{updateBy}, #{updateTime}, #{remark})")
+    @Options(useGeneratedKeys = true, keyProperty = "vehicleId")
+        // 这里的 "id" 是对象的主键属性
     void insert(PmsVehicle vehicle);
 
     @UpdateProvider(type = PmsVehicleSqlProvider.class, method = "updatePmsVehicle")
@@ -31,4 +30,13 @@ public interface PmsVehicleMapper {
 
     @SelectProvider(type = PmsVehicleSqlProvider.class, method = "selectPmsVehicle")
     List<PmsVehicle> select(PmsVehicle vehicle);
+
+    /**
+     * 根据主键查询车辆档案信息
+     *
+     * @param vehicleId
+     * @return
+     */
+    @Select("SELECT * FROM pms_vehicle WHERE vehicle_id = #{vehicleId}")
+    PmsVehicle selectVehicleById(Long vehicleId);
 }

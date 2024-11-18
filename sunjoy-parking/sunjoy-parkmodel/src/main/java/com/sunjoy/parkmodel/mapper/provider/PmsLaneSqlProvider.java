@@ -1,9 +1,13 @@
 package com.sunjoy.parkmodel.mapper.provider;
 
 
+import com.sunjoy.common.security.utils.SecurityUtils;
 import com.sunjoy.parking.entity.PmsLane;
 import com.sunjoy.parkmodel.pojo.LanePojo;
 import org.apache.ibatis.jdbc.SQL;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 车道sql提供类
@@ -24,7 +28,11 @@ public class PmsLaneSqlProvider {
                 WHERE("l.tenant_id = #{tenantId}");
             }
             if (condition.getOpuId() != null) {
-                WHERE("l.opu_id = #{opuId}");
+                List<Long> opuIds = SecurityUtils.getAuthDeptIds(SecurityUtils.getUserId(), condition.getOpuId());
+                String inClause = opuIds.stream()
+                        .map(String::valueOf) // 将 Long 转换为 String
+                        .collect(Collectors.joining(", ")); // 连接成字符串
+                WHERE("l.opu_id IN (" + inClause + ")");
             }
             if (condition.getLinkOuter() != null) {
                 WHERE("l.link_outer = #{linkOuter}");

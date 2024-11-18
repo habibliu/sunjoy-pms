@@ -1,5 +1,6 @@
 import store from "@/store"; // 导入 store
 import dayjs from "dayjs"; //导入日期时间格式化库
+
 /**
  * 在列表辊格式化显示region
  * @param  regionId
@@ -38,6 +39,20 @@ export function formatRegion(regionId) {
  */
 export function formatDateTime(dateTime, format) {
   return dayjs(dateTime).format(format);
+}
+
+/**
+ * 日期格式化输出yyyy/MM/dd
+ * @param {*} date 
+ * @returns 
+ */
+export function formatDate(date) {
+  if (!date) return '';
+  return new Intl.DateTimeFormat('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(date));
 }
 
 /**

@@ -330,3 +330,155 @@ insert into sys_region (region_id,parent_id,region_name) values('151108','151100
 insert into sys_region (region_id,parent_id,region_name) values('151109','151100','景县');
 insert into sys_region (region_id,parent_id,region_name) values('151110','151100','阜城县');
 insert into sys_region (region_id,parent_id,region_name) values('151111','151100','深州市');
+
+
+-- 山西省 160000
+insert into sys_region (region_id,parent_id,region_name) values('160100','160000','太原市');
+insert into sys_region (region_id,parent_id,region_name) values('160200','160000','大同市');
+insert into sys_region (region_id,parent_id,region_name) values('160300','160000','朔州市');
+insert into sys_region (region_id,parent_id,region_name) values('160400','160000','忻州市');
+insert into sys_region (region_id,parent_id,region_name) values('160500','160000','阳泉市');
+insert into sys_region (region_id,parent_id,region_name) values('160600','160000','吕梁市');
+insert into sys_region (region_id,parent_id,region_name) values('160700','160000','晋中市');
+insert into sys_region (region_id,parent_id,region_name) values('160800','160000','长治市');
+insert into sys_region (region_id,parent_id,region_name) values('160900','160000','晋城市');
+insert into sys_region (region_id,parent_id,region_name) values('161000','160000','临汾市');
+insert into sys_region (region_id,parent_id,region_name) values('161100','160000','运城市');
+
+-- 山西省太原市
+insert into sys_region (region_id,parent_id,region_name) values('160101','160100','小店区');
+insert into sys_region (region_id,parent_id,region_name) values('160102','160100','迎泽区');
+insert into sys_region (region_id,parent_id,region_name) values('160103','160100','杏花岭区');
+insert into sys_region (region_id,parent_id,region_name) values('160104','160100','尖草坪区');
+insert into sys_region (region_id,parent_id,region_name) values('160105','160100','万柏林区');
+insert into sys_region (region_id,parent_id,region_name) values('160106','160100','晋源区');
+insert into sys_region (region_id,parent_id,region_name) values('160107','160100','清徐县');
+insert into sys_region (region_id,parent_id,region_name) values('160108','160100','阳曲县');
+insert into sys_region (region_id,parent_id,region_name) values('160109','160100','娄烦县');
+insert into sys_region (region_id,parent_id,region_name) values('160110','160100','古交市');
+
+-- 山西省大同市
+insert into sys_region (region_id,parent_id,region_name) values('160201','160200','新荣区');
+insert into sys_region (region_id,parent_id,region_name) values('160202','160200','平城区');
+insert into sys_region (region_id,parent_id,region_name) values('160203','160200','云冈区');
+insert into sys_region (region_id,parent_id,region_name) values('160204','160200','云州区');
+insert into sys_region (region_id,parent_id,region_name) values('160205','160200','阳高县');
+insert into sys_region (region_id,parent_id,region_name) values('160206','160200','天镇县');
+insert into sys_region (region_id,parent_id,region_name) values('160207','160200','广灵县');
+insert into sys_region (region_id,parent_id,region_name) values('160208','160200','灵丘县');
+insert into sys_region (region_id,parent_id,region_name) values('160209','160200','浑源县');
+insert into sys_region (region_id,parent_id,region_name) values('160210','160200','左云县');
+
+-- 山西省朔州市
+insert into sys_region (region_id,parent_id,region_name) values('160301','160300','朔城区');
+insert into sys_region (region_id,parent_id,region_name) values('160302','160300','平鲁区');
+insert into sys_region (region_id,parent_id,region_name) values('160303','160300','山阴县');
+insert into sys_region (region_id,parent_id,region_name) values('160304','160300','应县');
+insert into sys_region (region_id,parent_id,region_name) values('160305','160300','右玉县');
+insert into sys_region (region_id,parent_id,region_name) values('160306','160300','怀仁市');
+
+-- 山西省忻州市
+insert into sys_region (region_id,parent_id,region_name) values('160401','160400','忻府区');
+insert into sys_region (region_id,parent_id,region_name) values('160402','160400','定襄县');
+insert into sys_region (region_id,parent_id,region_name) values('160403','160400','五台县');
+insert into sys_region (region_id,parent_id,region_name) values('160404','160400','代县');
+insert into sys_region (region_id,parent_id,region_name) values('160405','160400','繁峙县');
+insert into sys_region (region_id,parent_id,region_name) values('160406','160400','宁武县');
+insert into sys_region (region_id,parent_id,region_name) values('160407','160400','静乐县');
+insert into sys_region (region_id,parent_id,region_name) values('160408','160400','神池县');
+insert into sys_region (region_id,parent_id,region_name) values('160409','160400','五寨县');
+insert into sys_region (region_id,parent_id,region_name) values('160410','160400','岢岚县');
+insert into sys_region (region_id,parent_id,region_name) values('160411','160400','河曲县');
+insert into sys_region (region_id,parent_id,region_name) values('160412','160400','保德县');
+insert into sys_region (region_id,parent_id,region_name) values('160413','160400','偏关县');
+insert into sys_region (region_id,parent_id,region_name) values('160414','160400','原平市');
+
+-- 山西省阳泉市
+insert into sys_region (region_id,parent_id,region_name) values('160501','160500','城区');
+insert into sys_region (region_id,parent_id,region_name) values('160502','160500','矿区');
+insert into sys_region (region_id,parent_id,region_name) values('160503','160500','郊区');
+insert into sys_region (region_id,parent_id,region_name) values('160504','160500','孟县');
+
+-- 山西省吕梁市
+insert into sys_region (region_id,parent_id,region_name) values('160601','160600','离石区');
+insert into sys_region (region_id,parent_id,region_name) values('160602','160600','文水县');
+insert into sys_region (region_id,parent_id,region_name) values('160603','160600','交城县');
+insert into sys_region (region_id,parent_id,region_name) values('160604','160600','兴县');
+insert into sys_region (region_id,parent_id,region_name) values('160605','160600','临县');
+insert into sys_region (region_id,parent_id,region_name) values('160606','160600','柳林县');
+insert into sys_region (region_id,parent_id,region_name) values('160607','160600','石楼县');
+insert into sys_region (region_id,parent_id,region_name) values('160608','160600','岚县');
+insert into sys_region (region_id,parent_id,region_name) values('160609','160600','方山县');
+insert into sys_region (region_id,parent_id,region_name) values('160610','160600','中阳县');
+insert into sys_region (region_id,parent_id,region_name) values('160611','160600','交口县');
+insert into sys_region (region_id,parent_id,region_name) values('160612','160600','孝义市');
+insert into sys_region (region_id,parent_id,region_name) values('160613','160600','汾阳市');
+
+-- 山西省晋中市
+insert into sys_region (region_id,parent_id,region_name) values('160701','160700','榆次区');
+insert into sys_region (region_id,parent_id,region_name) values('160702','160700','太谷区');
+insert into sys_region (region_id,parent_id,region_name) values('160703','160700','榆社县');
+insert into sys_region (region_id,parent_id,region_name) values('160704','160700','左权县');
+insert into sys_region (region_id,parent_id,region_name) values('160705','160700','和顺县');
+insert into sys_region (region_id,parent_id,region_name) values('160706','160700','昔阳县');
+insert into sys_region (region_id,parent_id,region_name) values('160707','160700','寿阳县');
+insert into sys_region (region_id,parent_id,region_name) values('160708','160700','祁县');
+insert into sys_region (region_id,parent_id,region_name) values('160709','160700','平遥县');
+insert into sys_region (region_id,parent_id,region_name) values('160710','160700','灵石县');
+insert into sys_region (region_id,parent_id,region_name) values('160711','160700','介休市');
+
+-- 山西省长治市
+insert into sys_region (region_id,parent_id,region_name) values('160801','160800','潞州区');
+insert into sys_region (region_id,parent_id,region_name) values('160802','160800','上党区');
+insert into sys_region (region_id,parent_id,region_name) values('160803','160800','屯留区');
+insert into sys_region (region_id,parent_id,region_name) values('160804','160800','潞城区');
+insert into sys_region (region_id,parent_id,region_name) values('160805','160800','襄垣县');
+insert into sys_region (region_id,parent_id,region_name) values('160806','160800','平顺县');
+insert into sys_region (region_id,parent_id,region_name) values('160807','160800','黎城县');
+insert into sys_region (region_id,parent_id,region_name) values('160808','160800','壶关县');
+insert into sys_region (region_id,parent_id,region_name) values('160809','160800','长子县');
+insert into sys_region (region_id,parent_id,region_name) values('160810','160800','武乡县');
+insert into sys_region (region_id,parent_id,region_name) values('160811','160800','沁县');
+insert into sys_region (region_id,parent_id,region_name) values('160812','160800','沁源县');
+
+-- 山西省晋城市
+insert into sys_region (region_id,parent_id,region_name) values('160901','160900','城区');
+insert into sys_region (region_id,parent_id,region_name) values('160902','160900','沁水县');
+insert into sys_region (region_id,parent_id,region_name) values('160903','160900','阳城县');
+insert into sys_region (region_id,parent_id,region_name) values('160904','160900','陵川县');
+insert into sys_region (region_id,parent_id,region_name) values('160905','160900','右玉县');
+insert into sys_region (region_id,parent_id,region_name) values('160906','160900','泽州县');
+insert into sys_region (region_id,parent_id,region_name) values('160907','160900','高平市');
+
+-- 山西省临汾市
+insert into sys_region (region_id,parent_id,region_name) values('161001','161000','尧都区');
+insert into sys_region (region_id,parent_id,region_name) values('161002','161000','曲沃县');
+insert into sys_region (region_id,parent_id,region_name) values('161003','161000','翼城县');
+insert into sys_region (region_id,parent_id,region_name) values('161004','161000','襄汾县');
+insert into sys_region (region_id,parent_id,region_name) values('161005','161000','洪洞县');
+insert into sys_region (region_id,parent_id,region_name) values('161006','161000','古县');
+insert into sys_region (region_id,parent_id,region_name) values('161007','161000','安泽县');
+insert into sys_region (region_id,parent_id,region_name) values('161008','161000','浮山县');
+insert into sys_region (region_id,parent_id,region_name) values('161009','161000','吉县');
+insert into sys_region (region_id,parent_id,region_name) values('161010','161000','大宁县');
+insert into sys_region (region_id,parent_id,region_name) values('161011','161000','隰县县');
+insert into sys_region (region_id,parent_id,region_name) values('161012','161000','永和县');
+insert into sys_region (region_id,parent_id,region_name) values('161013','161000','蒲县');
+insert into sys_region (region_id,parent_id,region_name) values('161014','161000','汾西县');
+insert into sys_region (region_id,parent_id,region_name) values('161015','161000','侯马市');
+insert into sys_region (region_id,parent_id,region_name) values('161016','161000','霍州市');
+
+-- 山西省运城市
+insert into sys_region (region_id,parent_id,region_name) values('161101','161100','盐湖区');
+insert into sys_region (region_id,parent_id,region_name) values('161102','161100','临猗县');
+insert into sys_region (region_id,parent_id,region_name) values('161103','161100','万荣县');
+insert into sys_region (region_id,parent_id,region_name) values('161104','161100','闻喜县');
+insert into sys_region (region_id,parent_id,region_name) values('161105','161100','稷山县');
+insert into sys_region (region_id,parent_id,region_name) values('161106','161100','新绛县');
+insert into sys_region (region_id,parent_id,region_name) values('161107','161100','绛县');
+insert into sys_region (region_id,parent_id,region_name) values('161108','161100','垣曲县');
+insert into sys_region (region_id,parent_id,region_name) values('161109','161100','夏县');
+insert into sys_region (region_id,parent_id,region_name) values('161110','161100','平陆县');
+insert into sys_region (region_id,parent_id,region_name) values('161111','161100','芮城县');
+insert into sys_region (region_id,parent_id,region_name) values('161112','161100','永济市');
+insert into sys_region (region_id,parent_id,region_name) values('161113','161100','河津市');
