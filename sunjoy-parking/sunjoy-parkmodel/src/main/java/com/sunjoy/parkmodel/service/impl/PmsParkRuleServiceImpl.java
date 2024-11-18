@@ -41,14 +41,14 @@ public class PmsParkRuleServiceImpl implements IPmsParkRuleService {
             Map<Long, List<PmsParkRule>> groupedByParkId = allRules.stream()
                     .collect(Collectors.groupingBy(PmsParkRule::getParkId));
             groupedByParkId.forEach((parkId, rules) -> {
-                redisService.deleteObject(RedisKeyConstants.PARK_RULE + ":" + parkId);
-                redisService.setCacheList(RedisKeyConstants.PARK_RULE + ":" + parkId, rules);
+                redisService.deleteObject(RedisKeyConstants.PARK_RULE + parkId);
+                redisService.setCacheList(RedisKeyConstants.PARK_RULE + parkId, rules);
             });
         }
     }
 
     private void refreshParkRuleToCache(PmsParkRule pmsParkRule) {
-        List<PmsParkRule> cachePmsParkRule = redisService.getCacheList(RedisKeyConstants.PARK_RULE + ":" + pmsParkRule.getParkId());
+        List<PmsParkRule> cachePmsParkRule = redisService.getCacheList(RedisKeyConstants.PARK_RULE + pmsParkRule.getParkId());
         //先从缓存中删除匹配的规则
         cachePmsParkRule = cachePmsParkRule.stream()
                 .filter(rule -> rule.getRuleId() != pmsParkRule.getRuleId())
@@ -59,8 +59,8 @@ public class PmsParkRuleServiceImpl implements IPmsParkRuleService {
 
         }
         Long parkId = pmsParkRule.getParkId();
-        redisService.deleteObject(RedisKeyConstants.PARK_RULE + ":" + parkId);
-        redisService.setCacheList(RedisKeyConstants.PARK_RULE + ":" + parkId, cachePmsParkRule);
+        redisService.deleteObject(RedisKeyConstants.PARK_RULE + parkId);
+        redisService.setCacheList(RedisKeyConstants.PARK_RULE + parkId, cachePmsParkRule);
     }
 
     @Override

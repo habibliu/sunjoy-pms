@@ -1,5 +1,6 @@
 package com.sunjoy.parkctrl.rule;
 
+import com.sunjoy.parking.entity.PmsParkRule;
 import com.sunjoy.parking.enums.DirectionEnum;
 import com.sunjoy.parking.enums.NotificationMethod;
 import com.sunjoy.parking.vo.VehiclePassage;
@@ -11,6 +12,7 @@ import com.sunjoy.parking.vo.VehiclePassage;
  * @date 2024/11/4
  */
 public interface IAccessRule {
+
     /**
      * 获取规则名称
      *
@@ -18,12 +20,7 @@ public interface IAccessRule {
      */
     String getRuleName();
 
-    /**
-     * 获取规则编号，编号为系统唯一，开发人员在开发时请注意,长度不能超过20个字符
-     *
-     * @return
-     */
-    String getRuleCode();
+    PmsParkRule getRule();
 
     /**
      * 入场规则判断
@@ -38,7 +35,7 @@ public interface IAccessRule {
      *
      * @return
      */
-    DirectionEnum getAction();
+    DirectionEnum getDirection();
 
     /**
      * 返回不允许通行后的规则说明

@@ -41,7 +41,7 @@ public class PmsVehicle extends BaseEntity {
     /**
      * 车辆品牌
      */
-    private Long brand;
+    private String brand;
 
     /**
      * 车辆型号

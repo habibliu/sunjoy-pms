@@ -23,9 +23,14 @@ public class PmsVehicleService extends BaseEntity {
     private Long id;
 
     /**
-     * 车辆id
+     * 车辆服务id
      */
     private Long serviceId;
+
+    /**
+     * 服务名称
+     */
+    private String serviceName;
 
     /**
      * 租户id
@@ -47,10 +52,16 @@ public class PmsVehicleService extends BaseEntity {
      */
     private Long vehicleId;
 
+
     /**
      * 车牌号码
      */
     private String licensePlate;
+
+    /**
+     * 车位号码,多个车位用,分隔
+     */
+    private String lotNos;
 
     /**
      * 开始日期
@@ -75,10 +86,17 @@ public class PmsVehicleService extends BaseEntity {
     /**
      * 状态（０--未生效 1--已生效,2--停用）
      */
-    private String status = "0";
+    private String status;
 
     /**
      * 删除标志（0代表存在 2代表删除）
      */
-    private String delFlag = "0";
+    private String delFlag;
+
+    /**
+     * 车场名称
+     */
+    private String parkName;
+
+
 }

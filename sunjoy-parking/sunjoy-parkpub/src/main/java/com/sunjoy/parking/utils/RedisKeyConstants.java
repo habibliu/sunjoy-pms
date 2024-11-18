@@ -10,7 +10,7 @@ public class RedisKeyConstants {
     /**
      * 车场规则缓存键
      */
-    public static final String PARK_RULE = "parking:rule:list";
+    public static final String PARK_RULE = "parking:rule:list:";
     /**
      * 通道设备关系
      */
@@ -31,7 +31,7 @@ public class RedisKeyConstants {
     /**
      * 车辆服务
      */
-    public static final String PARK_VEHICLE_SERVICE = "parking:vehicle-service:list";
+    public static final String PARK_VEHICLE_SERVICE = "parking:vehicle-service:list:";
 
     public static final String PARK_INFO = "parking:park:";
     /**

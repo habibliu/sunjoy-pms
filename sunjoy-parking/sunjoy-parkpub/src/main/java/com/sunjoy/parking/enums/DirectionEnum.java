@@ -11,8 +11,10 @@ import lombok.Getter;
 @Getter
 public enum DirectionEnum {
 
-    ENTRY("1", "汽车"),
-    EXIT("0", "卡车");
+
+    EXIT("0", "出场"),
+    ENTRY("1", "入场"),
+    BOTH("2", "入场");
 
     // 获取值
     private final String value;

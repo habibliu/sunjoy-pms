@@ -1,13 +1,15 @@
 package com.sunjoy.parkctrl.rule;
 
+import com.sunjoy.common.redis.service.RedisService;
+import com.sunjoy.parkctrl.rule.impl.BaseAccessRuleImpl;
+import com.sunjoy.parking.entity.PmsParkRule;
 import com.sunjoy.parking.enums.DirectionEnum;
+import com.sunjoy.parking.utils.RedisKeyConstants;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 车场规则工厂类
@@ -20,33 +22,29 @@ import java.util.stream.Collectors;
  */
 @Service
 public class AccessRuleFactory {
-    /**
-     * 车场通行规则
-     */
-    private static Map<Long, List<IAccessRule>> parkRules = new HashMap<Long, List<IAccessRule>>();
 
-    private void register(Long parkId, IAccessRule rule) {
-        if (parkRules.containsKey(parkId)) {
-            parkRules.get(parkId).add(rule);
-        } else {
-            List<IAccessRule> parkRuleList = new ArrayList<IAccessRule>();
-            parkRuleList.add(rule);
-            parkRules.put(parkId, parkRuleList);
-        }
+    @Autowired
+    private RedisService redisService;
 
-    }
 
     /**
      * 根据车场获取相关管制规则
      *
      * @param parkId
-     * @param veheicleAction
+     * @param passDirection 出入场方向
      * @return
      */
-    public List<IAccessRule> getRules(Long parkId, DirectionEnum veheicleAction) {
-        List<IAccessRule> ruleList = parkRules.get(parkId);
+    public List<IAccessRule> getRules(Long parkId, DirectionEnum passDirection) {
+        List<PmsParkRule> parkRuleList = redisService.getCacheList(RedisKeyConstants.PARK_RULE + parkId);
+        List<PmsParkRule> matchRuleList = parkRuleList.stream().filter(rule -> rule.getDirection().equals(passDirection.getValue()) || rule.getDirection().equals(DirectionEnum.BOTH.getValue())).toList();
 
-        return ruleList.stream().filter(rule -> rule.getAction() == veheicleAction).collect(Collectors.toList());
+        List<IAccessRule> accessRules = new ArrayList<>();
+        matchRuleList.forEach(item -> {
+            IAccessRule rule = new BaseAccessRuleImpl(item);
+            accessRules.add(rule);
+        });
+        //返回
+        return accessRules;
     }
 
 }

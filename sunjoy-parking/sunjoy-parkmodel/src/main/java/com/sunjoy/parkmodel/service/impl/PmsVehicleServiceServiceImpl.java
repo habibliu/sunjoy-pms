@@ -14,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 车辆服务实现类
@@ -33,10 +35,14 @@ public class PmsVehicleServiceServiceImpl implements IPmsVehicleServiceService {
     @PostConstruct
     private void initCache() {
         List<PmsVehicleService> allVehicleServices = getAllVehicleService();
-        if (!allVehicleServices.isEmpty()) {
-            this.redisService.deleteObject(RedisKeyConstants.PARK_VEHICLE_SERVICE);
-            this.redisService.setCacheList(RedisKeyConstants.PARK_VEHICLE_SERVICE, allVehicleServices);
-        }
+        Map<Long, List<PmsVehicleService>> groupedByParkId = allVehicleServices.stream()
+                .collect(Collectors.groupingBy(PmsVehicleService::getParkId));
+
+        // 根据车场ID分组缓存
+        groupedByParkId.forEach((parkId, services) -> {
+            this.redisService.deleteObject(RedisKeyConstants.PARK_VEHICLE_SERVICE + parkId);
+            this.redisService.setCacheList(RedisKeyConstants.PARK_VEHICLE_SERVICE + parkId, allVehicleServices);
+        });
     }
 
     @Override

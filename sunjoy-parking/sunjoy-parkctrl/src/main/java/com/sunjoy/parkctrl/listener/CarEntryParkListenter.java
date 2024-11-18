@@ -102,6 +102,7 @@ public class CarEntryParkListenter implements BaseMqttMessageListener {
 
     /**
      * 计费
+     * 调用计费服务计算应收费用
      *
      * @param vehiclePassage
      * @return
@@ -151,11 +152,20 @@ public class CarEntryParkListenter implements BaseMqttMessageListener {
     private boolean isAccessAllowed(VehiclePassage vehiclePassage, List<IAccessRule> accessRules) {
         for (IAccessRule rule : accessRules) {
             //校验不通过，并且是禁止通行的，就不允许通行
+            StringBuilder logString = new StringBuilder();
+            logString.append("车辆").append(vehiclePassage.getLicensePlate());
+            logString.append("在车场").append(vehiclePassage.getPark().getParkName());
+            logString.append("校验规则:").append(rule.getRuleName());
+
             if (!rule.isAllowed(vehiclePassage) && rule.isForbidden()) {
                 vehiclePassage.setNotifyMessage(rule.getNotifyMessage());
                 vehiclePassage.setNotifyMethods(rule.getNotifyMethods());
+                logString.append(",结果：校验不通过");
+                log.warn(logString.toString());
                 return false; // 一旦有规则不允许，返回 false
             }
+            logString.append(",结果：校验通过!");
+
         }
         return true; // 所有规则均允许
     }
