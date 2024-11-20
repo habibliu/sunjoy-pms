@@ -49,10 +49,10 @@ public class BaseAccessRuleImpl implements IAccessRule {
         boolean dayRangeValid = this.getRule().getDayRange().equals(YesNoEnum.No.getCode()) || new DayRangeMatcher().match(vehiclePassage, this);
         //校验是否时段管控
         boolean timeRangeVaid = this.getRule().getTimeRange().equals(YesNoEnum.No.getCode()) || new TimeRangeMatcher().match(vehiclePassage, this);
-        //todo 校验是否车场满位管控
-        boolean parkFullValid = this.getRule().getParkFull().equals(YesNoEnum.No.getCode());
-        //todo 校验是否身份过期管控
-        boolean serviceExpiredValid = this.getRule().getTargetExpire().equals(YesNoEnum.No.getCode());
+        //校验是否车场满位管控
+        boolean parkFullValid = this.getRule().getParkFull().equals(YesNoEnum.No.getCode()) || new ParkFullMatcher().match(vehiclePassage, this);
+        //校验是否身份过期管控
+        boolean serviceExpiredValid = this.getRule().getTargetExpire().equals(YesNoEnum.No.getCode()) || new ServiceExpiredMatcher().match(vehiclePassage, this);
 
         return (levelValid && serviceValid && dayRangeValid && timeRangeVaid && parkFullValid && serviceExpiredValid) && rule.getAllowPass().equals(YesNoEnum.Yes.getCode());
     }

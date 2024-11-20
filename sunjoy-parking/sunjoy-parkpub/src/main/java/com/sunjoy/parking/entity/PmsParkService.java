@@ -80,4 +80,8 @@ public class PmsParkService extends BaseEntity {
      */
     private String delFlag;
 
+    public Integer getExpiredDuration() {
+        return expiredDuration == null ? 0 : expiredDuration;
+    }
+
 }

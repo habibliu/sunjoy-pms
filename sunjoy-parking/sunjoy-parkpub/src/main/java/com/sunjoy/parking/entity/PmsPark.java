@@ -91,4 +91,8 @@ public class PmsPark extends BaseEntity {
     private String delFlag;
 
     private List<PmsPark> children;
+
+    public Integer getTotalLots() {
+        return null == totalLots ? 0 : totalLots;
+    }
 }

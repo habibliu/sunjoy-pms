@@ -38,4 +38,6 @@ public class RedisKeyConstants {
      * 车场服务
      */
     public static final String PARK_SERVICE = "parking:park-service:";
+
+    public static final String PARK_VEHICLE_INSIDE = "parking:vehicle-inside:";
 }
