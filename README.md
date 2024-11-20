@@ -32,9 +32,9 @@ com.sunjoy
 │       └── sunjoy-common-datascope                    // 权限范围
 │       └── sunjoy-common-datasource                   // 多数据源
 │       └── sunjoy-common-log                          // 日志记录
+│       └── sunjoy-common-mqtt                         // 异步通讯服务
 │       └── sunjoy-common-redis                        // 缓存服务
 │       └── sunjoy-common-seata                        // 分布式事务
-|       └── sunjoy-common-rabbitmq                     // 异步通讯服务
 │       └── sunjoy-common-security                     // 安全模块
 │       └── sunjoy-common-swagger                      // 系统接口
 ├── sunjoy-psv         // 公共服务模块
@@ -45,8 +45,10 @@ com.sunjoy
 ├── sunjoy-parking                                     // 车场业务模块
 │       └── sunjoy-park-model                          // 车场模型 [8301]
 │       └── sunjoy-park-control                        // 车场进出管控 [8302]
-│       └── sunjoy-park-charging                       // 车场收费 [8303]
-│       └── sunjoy-park-device                         // 车场设备 [8304]
+│       └── sunjoy-park-charging                       // 车场计费 [8303]
+│       └── sunjoy-park-order                          // 车场订单 [8304]
+│       └── sunjoy-park-payment                        // 支付服务 [8305]
+│       └── sunjoy-park-device                         // 车场设备 [8306]
 ├── sunjoy-visual          // 图形化管理模块
 │       └── sunjoy-visual-monitor                      // 监控中心 [8400]
 ├── pom.xml                 // 公共依赖
