@@ -15,6 +15,7 @@
         <module>sunjoy-parkmodel</module>
         <module>sunjoy-parkctrl</module>
         <module>sunjoy-parkpub</module>
+        <module>sunjoy-parkclient</module>
     </modules>
 
     <properties>

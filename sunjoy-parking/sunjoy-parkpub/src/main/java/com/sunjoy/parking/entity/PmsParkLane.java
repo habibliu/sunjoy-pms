@@ -1,7 +1,11 @@
 package com.sunjoy.parking.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sunjoy.common.core.web.domain.BaseEntity;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
  * 车场通道关系类
@@ -11,9 +15,9 @@ import lombok.*;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PmsParkLane extends BaseEntity {
     // 自增主键
     private Long id;

@@ -1,15 +1,13 @@
 package com.sunjoy.parkctrl.config;
 
-import com.sunjoy.mqtt.service.MqttService;
+import com.sunjoy.mqtt.config.SunjoyMqttClient;
 import com.sunjoy.parkctrl.listener.CarCapturedDevcieListener;
-import com.sunjoy.parkctrl.listener.CarEntryParkListenter;
-import com.sunjoy.parkctrl.listener.CarExitParkListener;
-import com.sunjoy.parking.utils.MqttTopics;
-import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
 
 /**
  * 消息消费者统一在此处注册
@@ -22,25 +20,23 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 public class ParkControlConfig {
 
-    @Autowired
-    private MqttService mqttService;
 
     @Autowired
     private CarCapturedDevcieListener carCapturedDevcieListener;
-    @Autowired
-    private CarEntryParkListenter carEntryParkListenter;
-    @Autowired
-    private CarExitParkListener carExitParkListener;
 
+    @Autowired
+    private SunjoyMqttClient parkClientMqttClient;
+    
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
     protected void initSubscribe() {
         try {
-            mqttService.subscribe(MqttTopics.TOPIC_CAR_CAPTURED, carCapturedDevcieListener);
+            /**
+             * 订阅车场设备消息
+             */
+            parkClientMqttClient.addSubscriber(carCapturedDevcieListener);
 
-            mqttService.subscribe(MqttTopics.TOPIC_CAR_ARRIVED, carEntryParkListenter);
 
-            mqttService.subscribe(MqttTopics.TOPIC_CAR_DEPARTED, carExitParkListener);
         } catch (Exception e) {
 
             log.error("订阅主题失败!", e.getMessage());

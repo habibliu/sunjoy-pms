@@ -1,0 +1,37 @@
+# Tomcat
+server:
+  port: 8309
+
+# Spring
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  application:
+    # 应用名称
+    name: sunjoy-parkclient
+
+  profiles:
+    # 环境配置
+    active: dev
+  cloud:
+    nacos:
+      username: nacos
+      password: nacos
+      discovery:
+        # 服务注册地址
+        server-addr: 192.168.2.11:8848
+        namespace: dev
+        group: sunjoy-pms
+      config:
+        # 配置中心地址
+        server-addr: 192.168.2.11:8848
+        namespace: dev
+        group: sunjoy-pms
+        # 配置文件格式
+        file-extension: yaml
+        # 共享配置,以下两个可以不配置，是springboot默认的规则配置
+        shared-configs:
+          - data-id: application.${spring.cloud.nacos.config.file-extension}
+            refresh: true
+            group: sunjoy-pms

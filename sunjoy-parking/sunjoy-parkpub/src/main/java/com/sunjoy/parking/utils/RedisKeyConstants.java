@@ -14,10 +14,10 @@ public class RedisKeyConstants {
     /**
      * 通道设备关系
      */
-    public static final String PARK_LANE_DEVICE = "parking:lane-device:list";
+    public static final String PARK_LANE_DEVICE = "parking:lane-device:list:";
 
     //入场防重复处理的缓存，30秒后失效
-    public static final String PARK_CAR_ENTRY = "parking:car:entry:";
+    public static final String PARK_VEHICLE_ARRIVED = "parking:vehicle:arrived:";
 
     //出场防重复处理的缓存，30秒后失效
     public static final String PARK_CAR_EXIT = "parking:car:exit:";

@@ -65,6 +65,6 @@ public interface PmsParkLaneMapper {
      *
      * @return
      */
-    @Select("SELECT id,park_id,lane_id,direction FROM pms_park_lane where status='0' and del_flag='0'")
+    @Select("SELECT id,park_id,lane_id,direction FROM pms_park_lane where  del_flag='0'")
     List<PmsParkLane> selectAll();
 }

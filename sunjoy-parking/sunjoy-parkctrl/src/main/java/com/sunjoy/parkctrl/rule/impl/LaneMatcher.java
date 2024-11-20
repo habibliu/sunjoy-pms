@@ -43,8 +43,8 @@ public class LaneMatcher implements IRuleMatcher {
             // 2. 将解码后的字符串转换为 JSON 对象
             ObjectMapper objectMapper = new ObjectMapper();
             DetailParams params = objectMapper.readValue(decodedJson, DetailParams.class);
-            List<Long> laneIds = params.getLaneList().stream().map(PmsParkLane::getLaneId).toList();
-            return laneIds;
+            return params.getLaneList().stream().map(PmsParkLane::getLaneId).toList();
+            
         } catch (Exception e) {
             log.error(e.getMessage());
         }

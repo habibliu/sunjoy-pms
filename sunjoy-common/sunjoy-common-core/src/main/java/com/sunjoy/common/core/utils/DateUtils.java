@@ -186,7 +186,12 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime(); // 转换为 LocalDateTime
 
-        LocalDateTime endOfToday = LocalDateTime.of(tempDay.toLocalDate(), LocalTime.MAX);
-        return compayDay.isAfter(endOfToday);
+        return isExpired(compayDay, tempDay);
+    }
+
+    public static boolean isExpired(LocalDateTime compareDate, LocalDateTime endDate) {
+
+        LocalDateTime endOfToday = LocalDateTime.of(endDate.toLocalDate(), LocalTime.MAX);
+        return compareDate.isAfter(endOfToday);
     }
 }

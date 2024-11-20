@@ -337,3 +337,165 @@ create table pms_vehicle_service
   auto_increment = 1 comment = '车辆服务表';
   
   
+-- ----------------------------
+-- 12、车辆出入场流水表
+-- ----------------------------
+create table pms_park_transaction
+(
+	trans_id     		bigint(20) 	not null	auto_increment 	comment '流水表id',
+	tenant_id   		bigint(20)	not null 			   		comment '租户id',
+	opu_id    			bigint(20)	not null 			   		comment '经营单位id',
+	park_id     		bigint(20)	not null 			   		comment '车场id',
+	vehicle_id     		bigint(20)	not null 			   		comment '车辆id',
+	license_plate   	varchar(10) not null 					comment '车牌号码',
+	entry_service_id    bigint(20)	 							comment '服务id',
+	entry_lane_id		bigint(20)	 			   				comment '入场通道id',
+	entry_device_id		bigint(20)	 			   				comment '入场设备id',
+	entry_time			datetime								comment '入场时间',
+	entry_rel_time		datetime								comment '入场开闸放行时间',
+	entry_rel_mode		char(1)									comment '入场开闸方式:0-自动放行，1-软件放行，2-遥控放行',
+	lot_no				varchar(20)								comment '车位号码',
+	exit_lane_id		bigint(20)	 			   				comment '出场通道id',
+	exit_device_id		bigint(20)	 			   				comment '出场设备id',
+	exit_time			datetime								comment '出场时间',
+	exit_rel_time		datetime								comment '出场开闸放行时间',
+	exit_rel_mode		char(1)									comment '出场开闸方式:0-自动放行，1-软件放行，2-遥控放行',
+	parking_duration	bigint(10)								comment '停车时长',
+	status      		char(1)     			default '0' 	comment '状态（０--未出场 1--已出场）',
+    del_flag    		char(1)     			default '0' 	comment '删除标志（0代表存在 2代表删除）',
+    create_by   		varchar(64)  							comment '创建者',
+    create_time 		datetime 								comment '创建时间',
+    update_by   		varchar(64)  							comment '更新者',
+    update_time 		datetime 								comment '更新时间',
+	remark          	varchar(500)                			comment '备注',
+    primary key (trans_id)
+) engine = innodb
+  auto_increment = 1 comment = '车辆出入场流水表';
+  
+-- ----------------------------
+-- 13、车辆服务订单表
+-- ----------------------------
+create table pms_order
+(
+	order_id     	bigint(20) 	not null	auto_increment 	comment '订单id',
+	order_type		char(2)		not null 					comment '订单类型:0-临停车收费，1--月租车收费，2--其他',
+	trans_id     	bigint(20) 	not null	 				comment '流水表id',
+	tenant_id   	bigint(20)	not null 			   		comment '租户id',
+	opu_id    		bigint(20)	not null 			   		comment '经营单位id',
+	park_id     	bigint(20)	not null 			   		comment '车场id',
+	vehicle_id     	bigint(20)	not null 			   		comment '车辆id',
+	license_plate   varchar(10) not null 					comment '车牌号码',
+	service_id      bigint(20)	 							comment '服务id',
+	start_time 		datetime  								comment '开始时间',
+	end_time 		datetime  								comment '结束时间',
+	charge_quantity	int(10)									comment '计费量', 
+	charge_unit		varchar(10)								comment '计费单位',
+	amount			decimal(10,2) 							comment '金额',
+	payment_status	char(1)		not null 	default '0'		comment '支付状态:0-待支付 ,1--已支付 ',
+	status      	char(1)     			default '0' 	comment '状态（０--未生效  1--已生效 ,2--失效）',
+    del_flag    	char(1)     			default '0' 	comment '删除标志（0代表存在 2代表删除）',
+    create_by   	varchar(64)  							comment '创建者',
+    create_time 	datetime 								comment '创建时间',
+    update_by   	varchar(64)  							comment '更新者',
+    update_time 	datetime 								comment '更新时间',
+	remark          varchar(500)                			comment '备注',
+    primary key (order_id)
+) engine = innodb
+  auto_increment = 1 comment = '车辆服务订单表';
+  
+
+-- ----------------------------
+-- 14、车辆服务订单明细表
+-- ----------------------------
+create table pms_order_detail
+(
+	id				bigint(20) 	not null	auto_increment 	comment '主键id',
+	order_id     	bigint(20) 	not null	 				comment '订单id',
+	park_id     	bigint(20)	not null 			   		comment '车场id',
+	vehicle_id     	bigint(20)	not null 			   		comment '车辆id',
+	license_plate   varchar(10) not null 					comment '车牌号码',
+	service_id      bigint(20)	 							comment '服务id',
+	start_time 		datetime  								comment '开始时间',
+	end_time 		datetime  								comment '结束时间',
+	charge_price	decimal(10,2)							comment '计费单价',
+	charge_quantity	int(10)									comment '计费量', 
+	charge_unit		varchar(10)								comment '计费单位',
+	amount			decimal(10,2) 							comment '金额',
+	status      	char(1)     			default '0' 	comment '状态（０--未支付  1--已支付 ,2--失效）',
+    del_flag    	char(1)     			default '0' 	comment '删除标志（0代表存在 2代表删除）',
+    create_by   	varchar(64)  							comment '创建者',
+    create_time 	datetime 								comment '创建时间',
+    update_by   	varchar(64)  							comment '更新者',
+    update_time 	datetime 								comment '更新时间',
+	remark          varchar(500)                			comment '备注',
+    primary key (order_id)
+) engine = innodb
+  auto_increment = 1 comment = '车辆服务订单明细表';
+  
+  
+-- ----------------------------
+-- 15 、车辆服务订单支付表
+-- ----------------------------
+create table pms_payment
+(
+	payment_id		bigint(20) 	not null	auto_increment 	comment '支付订单id',
+	order_id     	bigint(20) 	not null	 				comment '订单id',
+	trans_id     	bigint(20) 	not null	 				comment '流水表id',
+	tenant_id   	bigint(20)	not null 			   		comment '租户id',
+	opu_id    		bigint(20)	not null 			   		comment '经营单位id',
+	park_id     	bigint(20)	not null 			   		comment '车场id',
+	vehicle_id     	bigint(20)	not null 			   		comment '车辆id',
+	license_plate   varchar(10) not null 					comment '车牌号码',
+	service_id      bigint(20)	 							comment '服务id',
+	order_amount	decimal(10,2) 							comment '订单金额',
+	payment_amount 	decimal(10,2) 							comment '支付金额',
+	discount_amount	decimal(10,2) 							comment '优惠金额',
+	payment_methods varchar(10) not null 					comment '支付方式:CASH-现金, WECHAT, ALIPAY',
+	payment_channel varchar(10) not null 					comment '支付渠道',
+	payment_status  varchar(10)								comment 'PENDING, COMPLETED, FAILED, REFUNDED',
+	payment_time	datetime								comment '支付时间',
+	transaction_id 	varchar(60)								comment '第三方支付平台交易id',
+	status      	char(1)     			default '0' 	comment '状态（０--未生效 1--已生效）',
+    del_flag    	char(1)     			default '0' 	comment '删除标志（0代表存在 1代表删除）',
+    create_by   	varchar(64)  							comment '创建者',
+    create_time 	datetime 								comment '创建时间',
+    update_by   	varchar(64)  							comment '更新者',
+    update_time 	datetime 								comment '更新时间',
+	remark          varchar(500)                			comment '备注',
+    primary key (payment_id)
+) engine = innodb
+  auto_increment = 1 comment = '车辆服务订单支付表';
+  
+
+-- ----------------------------
+-- 16 、折扣方案表
+-- ----------------------------
+
+-- ----------------------------
+-- 17 、折扣表
+-- ----------------------------
+create table pms_discount
+(  
+	discount_id 	bigint(20) 		not null	auto_increment 	comment '折扣id',
+	payment_id		bigint(20) 	 								comment '支付订单id',
+	tenant_id   	bigint(20)		not null 			   		comment '租户id',
+	opu_id    		bigint(20)		not null 			   		comment '经营单位id',
+    discount_code 	VARCHAR(50) 	not null					comment '折扣码（可选）'
+    discount_type 	varchar(10) 	NOT NULL 					comment '折扣类型（百分比或固定金额）PERCENTAGE, AMOUNT',
+    discount_value 	DECIMAL(10, 2) 	NOT NULL         			comment '折扣值（例如 10% 或 $10）'
+    min_fee 		DECIMAL(10, 2) 				DEFAULT 0   	comment '最低消费金额（可选）',
+    start_date 		DATETIME 		NOT NULL,                   comment '开始时间',
+    end_date 		DATETIME 		NOT NULL,                   comment '结束时间'
+    usage_limit 	INT 						DEFAULT 1	    comment '使用限制（每个用户可使用次数）',
+	use_time		datetime									comment '使用时间',
+	status      	char(1)     				default '0' 	comment '状态（０--未使用 1--已使用）',
+    del_flag    	char(1)     				default '0' 	comment '删除标志（0代表存在 1代表删除）',
+    create_by   	varchar(64)  								comment '创建者',
+    create_time 	datetime 									comment '创建时间',
+    update_by   	varchar(64)  								comment '更新者',
+    update_time 	datetime 									comment '更新时间',
+	remark          varchar(500)                				comment '备注',
+    primary key (discount_id)
+) engine = innodb
+  auto_increment = 1 comment = '折扣表';
+  

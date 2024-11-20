@@ -12,9 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.DayOfWeek;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -35,11 +32,8 @@ public class DayRangeMatcher implements IRuleMatcher {
                 Iterator<DayOfWeek> dayIterator = Arrays.stream(days).iterator();
                 while (dayIterator.hasNext()) {
                     DayOfWeek day = dayIterator.next();
-                    Instant instant = vehiclePassage.getTimestamp().getTimestamp().toInstant();
 
-                    // 转换为 LocalDateTime
-                    LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-                    if (DateUtils.isSameDay(localDateTime, day)) {
+                    if (DateUtils.isSameDay(vehiclePassage.getEventTime(), day)) {
                         return true;
                     }
                 }

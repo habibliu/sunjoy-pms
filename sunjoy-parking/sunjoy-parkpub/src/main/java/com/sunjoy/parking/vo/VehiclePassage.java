@@ -1,12 +1,15 @@
 package com.sunjoy.parking.vo;
 
-import com.sunjoy.parking.entity.*;
+import com.sunjoy.parking.entity.PmsDevice;
+import com.sunjoy.parking.entity.PmsPark;
+import com.sunjoy.parking.entity.PmsParkLane;
+import com.sunjoy.parking.entity.PmsVehicleService;
 import com.sunjoy.parking.enums.NotificationMethod;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.security.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -31,7 +34,7 @@ public class VehiclePassage implements Serializable {
     /**
      * 车辆被识别到的时间,到时转化为出、入场时间
      */
-    private Timestamp timestamp;
+    private LocalDateTime eventTime;
     /**
      * 车牌号码
      */
@@ -43,7 +46,7 @@ public class VehiclePassage implements Serializable {
     /**
      * 车辆信息
      */
-    private PmsVehicle vehicle;
+    //private PmsVehicle vehicle;
     /**
      * 车场信号
      */
@@ -61,7 +64,7 @@ public class VehiclePassage implements Serializable {
      * 通道安装的设备
      */
     private List<PmsDevice> laneDevices;
-    
+
 
     /**
      * 出入场校验结信息,默认成功的消息
@@ -74,12 +77,12 @@ public class VehiclePassage implements Serializable {
     /**
      * 入场时间
      */
-    private Timestamp timeEntry;
+    private LocalDateTime timeEntry;
 
     /**
      * 出场时间
      */
-    private Timestamp timeExit;
+    private LocalDateTime timeExit;
 
     /**
      * 场内停留时长
@@ -99,6 +102,6 @@ public class VehiclePassage implements Serializable {
     /**
      * 开闸放行时间
      */
-    private Timestamp releaseTime;
+    private LocalDateTime releaseTime;
 
 }

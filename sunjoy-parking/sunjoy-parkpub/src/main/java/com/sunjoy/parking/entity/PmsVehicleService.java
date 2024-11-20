@@ -1,10 +1,11 @@
 package com.sunjoy.parking.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sunjoy.common.core.web.domain.BaseEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * 车辆服务表
@@ -16,6 +17,7 @@ import java.util.Date;
 
 @Data
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PmsVehicleService extends BaseEntity {
     /**
      * 主键id
@@ -66,12 +68,12 @@ public class PmsVehicleService extends BaseEntity {
     /**
      * 开始日期
      */
-    private Date startDate;
+    private LocalDateTime startDate;
 
     /**
      * 结束日期
      */
-    private Date endDate;
+    private LocalDateTime endDate;
 
     /**
      * 车主姓名,从车辆档案带过来

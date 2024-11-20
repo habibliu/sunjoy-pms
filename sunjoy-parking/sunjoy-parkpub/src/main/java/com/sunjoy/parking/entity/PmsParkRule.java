@@ -1,5 +1,6 @@
 package com.sunjoy.parking.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sunjoy.common.core.web.domain.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PmsParkRule extends BaseEntity {
     /**
      * 规则id

@@ -51,7 +51,7 @@ public class IndentifyMatcher implements IRuleMatcher {
                 //否则，判断开通的服务是否与规则匹配
                 if (isMatchService(service, rule.getRule().getDetailParams())) {
                     //判断服务是否已经过期
-                    return !DateUtils.isExpired(vehiclePassage.getTimestamp().getTimestamp(), service.getEndDate());
+                    return !DateUtils.isExpired(vehiclePassage.getEventTime(), service.getEndDate());
 
                     //todo 后面再加上如果有过期时限，即判断有没有宽限时间，有的话只要没有过宽限期，即仍是有效的
                 } else {

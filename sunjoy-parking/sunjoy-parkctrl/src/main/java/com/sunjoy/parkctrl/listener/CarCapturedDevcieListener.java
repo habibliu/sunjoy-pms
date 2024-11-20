@@ -2,13 +2,15 @@ package com.sunjoy.parkctrl.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sunjoy.common.redis.service.RedisService;
-import com.sunjoy.mqtt.domain.Playload;
-import com.sunjoy.mqtt.service.BaseMqttMessageListener;
-import com.sunjoy.mqtt.service.MqttService;
+import com.sunjoy.mqtt.domain.VehicleArrivedPayload;
+import com.sunjoy.mqtt.service.MqttSubscriber;
 import com.sunjoy.parking.entity.PmsLaneDevice;
+import com.sunjoy.parking.enums.DirectionEnum;
 import com.sunjoy.parking.utils.MqttTopics;
 import com.sunjoy.parking.utils.RedisKeyConstants;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -26,14 +30,16 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class CarCapturedDevcieListener implements BaseMqttMessageListener {
+public class CarCapturedDevcieListener implements MqttSubscriber {
     /**
      * 本地缓存，加速处理速度
      */
-    private static List<PmsLaneDevice> localDeviceLanceCache = new ArrayList<PmsLaneDevice>();
-    private MqttService mqttService;
+    private static final List<PmsLaneDevice> localDeviceLanceCache = new ArrayList<PmsLaneDevice>();
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
@@ -41,15 +47,35 @@ public class CarCapturedDevcieListener implements BaseMqttMessageListener {
         // 处理接收到的消息
         log.info("Received topic:　{}　message:{}} ", topic, message);
         //转为车辆出入场对象，并安排对应的服务类处理
-        ObjectMapper objectMapper = new ObjectMapper();
-        Playload playload = objectMapper.readValue(message, Playload.class);
+
+        VehicleArrivedPayload playload = convertMqttMessageToPayload(mqttMessage);
         //根据设备ID,将收到的消息放到消息队列，由对应的服务处理
         String handlerTopic = matchHandlerTopic(playload);
         if (handlerTopic == null) {
             log.error("没有对应的处理类接收！");
+            return;
         }
-        mqttService.publish(handlerTopic, message);
-        log.info("dispatch to {} topic consummer handle!", handlerTopic);
+        if (MqttTopics.TOPIC_CAR_ARRIVED.equals(handlerTopic)) {
+            playload.setDirection(DirectionEnum.ENTRY.getValue());
+            executorService.submit(new VehicleEntryParkHandler(playload));
+        } else {
+            playload.setDirection(DirectionEnum.EXIT.getValue());
+            executorService.submit(new VehicleExitParkHandler(playload));
+        }
+
+    }
+
+    public VehicleArrivedPayload convertMqttMessageToPayload(MqttMessage mqttMessage) {
+        try {
+
+            // 获取消息负载并转换为字符串
+            String payload = new String(mqttMessage.getPayload(), "UTF-8");
+            // 使用 ObjectMapper 将 JSON 字符串转换为 Playload 对象
+            return objectMapper.readValue(payload, VehicleArrivedPayload.class);
+        } catch (Exception e) {
+            e.printStackTrace(); // 处理异常
+            return null; // 或者抛出自定义异常
+        }
     }
 
     /**
@@ -58,7 +84,7 @@ public class CarCapturedDevcieListener implements BaseMqttMessageListener {
      * @param playload
      * @return
      */
-    private String matchHandlerTopic(Playload playload) {
+    private String matchHandlerTopic(VehicleArrivedPayload playload) {
         List<PmsLaneDevice> deviceLaneList = localDeviceLanceCache.stream().filter(item -> Objects.equals(item.getDeviceId(), playload.getDeviceId())).collect(Collectors.toList());
         if (deviceLaneList.isEmpty()) {
             deviceLaneList = this.redisService.getCacheList(RedisKeyConstants.PARK_LANE_DEVICE);
@@ -79,5 +105,25 @@ public class CarCapturedDevcieListener implements BaseMqttMessageListener {
         }
 
         return null;
+    }
+
+    /**
+     * 订阅主题
+     *
+     * @param client
+     */
+    @Override
+    public void onSubscribe(MqttClient client) {
+        try {
+            client.subscribe(getTopic(), 2, this);
+            log.info("Subscribed to topic: " + MqttTopics.TOPIC_CAR_CAPTURED);
+        } catch (MqttException e) {
+            log.error("Subscribe failed", e);
+        }
+    }
+
+    @Override
+    public String getTopic() {
+        return MqttTopics.TOPIC_CAR_CAPTURED;
     }
 }

@@ -31,6 +31,10 @@ public class PmsLaneDeviceServiceImpl implements IPmsLaneDeviceService {
 
     @PostConstruct
     private void initCache() {
+        refreshCache();
+    }
+
+    private void refreshCache() {
         List<PmsLaneDevice> allList = this.laneDeviceMapper.selectAll();
         if (!allList.isEmpty()) {
             this.redisService.deleteObject(RedisKeyConstants.PARK_LANE_DEVICE);
@@ -44,7 +48,9 @@ public class PmsLaneDeviceServiceImpl implements IPmsLaneDeviceService {
         laneDevice.setCreateTime(new Date());
         laneDevice.setUpdateBy(null);
         laneDevice.setUpdateTime(null);
-        return laneDeviceMapper.insert(laneDevice);
+        laneDeviceMapper.insert(laneDevice);
+        refreshCache();
+        return 1;
     }
 
     @Override
@@ -56,12 +62,16 @@ public class PmsLaneDeviceServiceImpl implements IPmsLaneDeviceService {
     public int updateLaneDevice(PmsLaneDevice laneDevice) {
         laneDevice.setUpdateBy(SecurityUtils.getUsername());
         laneDevice.setUpdateTime(new Date());
-        return laneDeviceMapper.update(laneDevice);
+        laneDeviceMapper.update(laneDevice);
+        refreshCache();
+        return 1;
     }
 
     @Override
     public int deleteLaneDevice(Long id) {
-        return laneDeviceMapper.delete(id);
+        laneDeviceMapper.delete(id);
+        refreshCache();
+        return 1;
     }
 
     @Override
@@ -71,7 +81,9 @@ public class PmsLaneDeviceServiceImpl implements IPmsLaneDeviceService {
 
     @Override
     public int deleteLaneDeviceByParkIdAndLaneId(Long parkId, Long laneId) {
-        return laneDeviceMapper.deleteByParkIdAndLaneId(parkId, laneId);
+        laneDeviceMapper.deleteByParkIdAndLaneId(parkId, laneId);
+        refreshCache();
+        return 1;
     }
 
     @Override
@@ -81,6 +93,8 @@ public class PmsLaneDeviceServiceImpl implements IPmsLaneDeviceService {
 
     @Override
     public int deleteLaneDevices(List<Long> ids) {
-        return laneDeviceMapper.deleteBatch(ids);
+        laneDeviceMapper.deleteBatch(ids);
+        refreshCache();
+        return ids.size();
     }
 }

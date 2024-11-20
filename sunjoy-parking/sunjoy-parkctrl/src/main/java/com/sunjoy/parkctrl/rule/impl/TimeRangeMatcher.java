@@ -5,9 +5,7 @@ import com.sunjoy.parkctrl.rule.IAccessRule;
 import com.sunjoy.parkctrl.rule.IRuleMatcher;
 import com.sunjoy.parking.vo.VehiclePassage;
 
-import java.time.Instant;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,13 +19,11 @@ public class TimeRangeMatcher implements IRuleMatcher {
     @Override
     public boolean match(VehiclePassage vehiclePassage, IAccessRule rule) {
         if (rule.getRule().getTimeRange().equals(YesNoEnum.No.getCode())) {
-            Instant instant = vehiclePassage.getTimestamp().getTimestamp().toInstant();
-            LocalTime checkTime = LocalTime.ofInstant(instant, ZoneId.systemDefault());
-            //LocalTime checkTime=vehiclePassage.getTimestamp().getTimestamp().getTime();
+
             //todo 取出所有时段逐一匹配，有匹配的返回true
             List<TimeRangeCheck> timeRanges = getTimeRanges(rule.getRule().getDetailParams());
             for (TimeRangeCheck timeRangeCheck : timeRanges) {
-                if (timeRangeCheck.isTimeInRange(checkTime)) {
+                if (timeRangeCheck.isTimeInRange(vehiclePassage.getEventTime().toLocalTime())) {
                     return true;
                 }
             }

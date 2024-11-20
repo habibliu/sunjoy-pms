@@ -29,6 +29,7 @@ public class PmsVehicleServiceImpl implements IPmsVehicleService {
     @Autowired
     private IPmsVehicleServiceService pmsVehicleServiceService;
 
+
     @Override
     public List<PmsVehicle> getVehiclesByCondition(PmsVehicle vehicle) {
         if (null == SecurityUtils.getTenantId()) {

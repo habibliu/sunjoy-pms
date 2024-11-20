@@ -1,5 +1,6 @@
 package com.sunjoy.parking.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sunjoy.common.core.web.domain.BaseEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +17,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PmsLaneDevice extends BaseEntity {
     // 车场id
     private Long id;

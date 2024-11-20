@@ -16,7 +16,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 @Slf4j
 @EnableCustomConfig
 @EnableRyFeignClients
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.sunjoy")
 public class SunjoyParkCtrlApplication {
     public static void main(String[] args) {
         ConfigurableApplicationContext contex = SpringApplication.run(SunjoyParkCtrlApplication.class);
