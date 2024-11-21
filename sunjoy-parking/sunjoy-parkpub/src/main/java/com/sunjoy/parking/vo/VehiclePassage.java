@@ -103,5 +103,9 @@ public class VehiclePassage implements Serializable {
      * 开闸放行时间
      */
     private LocalDateTime releaseTime;
+    /**
+     * 放行方式：0--系统正常自动开闸,1--人工异常开闸
+     */
+    private String releaseMode;
 
 }

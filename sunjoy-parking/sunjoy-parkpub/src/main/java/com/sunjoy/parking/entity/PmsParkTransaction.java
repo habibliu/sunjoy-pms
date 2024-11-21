@@ -18,6 +18,7 @@ public class PmsParkTransaction extends BaseEntity {
      */
     private Long transId;
 
+
     /**
      * 租户id
      */
@@ -49,7 +50,12 @@ public class PmsParkTransaction extends BaseEntity {
     private String licensePlate;
 
     /**
-     * 服务id
+     * 参照ID,来源于前端车场系统或者设备
+     */
+    private String entryRefId;
+
+    /**
+     * 入场服务id
      */
     private Long entryServiceId;
 
@@ -87,6 +93,16 @@ public class PmsParkTransaction extends BaseEntity {
      * 车位号码
      */
     private String lotNo;
+
+    /**
+     * 出场参照ID,来源于前端车场系统或者设备
+     */
+    private String exitRefId;
+
+    /**
+     * 出场服务id，有可能是场内过期，场内变更等引起的
+     */
+    private Long exitServiceId;
 
     /**
      * 出场通道id

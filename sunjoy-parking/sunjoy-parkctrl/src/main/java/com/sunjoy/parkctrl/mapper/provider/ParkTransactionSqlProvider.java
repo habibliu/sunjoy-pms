@@ -27,6 +27,7 @@ public class ParkTransactionSqlProvider {
             if (transaction.getEntryRelTime() != null) SET("entry_rel_time = #{entryRelTime}");
             if (transaction.getEntryRelMode() != null) SET("entry_rel_mode = #{entryRelMode}");
             if (transaction.getLotNo() != null) SET("lot_no = #{lotNo}");
+            if (transaction.getExitServiceId() != null) SET("exit_service_id = #{exitServiceId}");
             if (transaction.getExitLaneId() != null) SET("exit_lane_id = #{exitLaneId}");
             if (transaction.getExitLaneName() != null) SET("exit_lane_name = #{exitLaneName}");
             if (transaction.getExitDeviceId() != null) SET("exit_device_id = #{exitDeviceId}");
@@ -50,6 +51,10 @@ public class ParkTransactionSqlProvider {
             if (condition.getTenantId() != null) WHERE("tenant_id = #{tenantId}");
             if (condition.getOpuId() != null) WHERE("opu_id = #{opuId}");
             if (condition.getParkId() != null) WHERE("park_id = #{parkId}");
+            if (condition.getEntryRefId() != null) WHERE("entry_ref_id = #{entryRefId}");
+            if (condition.getEntryServiceId() != null) WHERE("entry_service_id = #{entryServiceId}");
+            if (condition.getExitRefId() != null) WHERE("exit_ref_id = #{exitRefId}");
+            if (condition.getExitServiceId() != null) WHERE("exit_service_id = #{exitServiceId}");
             if (condition.getLicensePlate() != null) WHERE("license_plate LIKE CONCAT('%', #{licensePlate}, '%')");
             if (condition.getStatus() != null) WHERE("status = #{status}");
             // 可以根据需要添加更多条件

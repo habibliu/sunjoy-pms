@@ -65,6 +65,14 @@ public interface PmsParkLaneMapper {
      *
      * @return
      */
-    @Select("SELECT id,park_id,lane_id,direction FROM pms_park_lane where  del_flag='0'")
+    @Select("""
+                  <script>
+                  SELECT pl.id,pl.park_id,pl.lane_id,pl.direction,l.lane_name, l.rap,p.park_name
+                      FROM pms_park_lane pl 
+                        left outer join pms_lane l on l.lane_id=pl.lane_id
+                        LEFT OUTER JOIN pms_park p on p.park_id=pl.park_id
+                      where  pl.del_flag='0'
+                  </script>
+            """)
     List<PmsParkLane> selectAll();
 }

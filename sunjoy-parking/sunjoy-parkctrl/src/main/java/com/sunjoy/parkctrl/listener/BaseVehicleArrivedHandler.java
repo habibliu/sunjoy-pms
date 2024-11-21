@@ -1,5 +1,6 @@
 package com.sunjoy.parkctrl.listener;
 
+import com.sunjoy.common.core.enums.YesNoEnum;
 import com.sunjoy.common.core.exception.CheckedException;
 import com.sunjoy.common.core.utils.DateUtils;
 import com.sunjoy.common.core.utils.bean.BeanUtils;
@@ -10,10 +11,13 @@ import com.sunjoy.parkctrl.rule.AccessRuleFactory;
 import com.sunjoy.parkctrl.rule.IAccessRule;
 import com.sunjoy.parking.entity.*;
 import com.sunjoy.parking.enums.DirectionEnum;
+import com.sunjoy.parking.enums.ReleaseModeEnum;
 import com.sunjoy.parking.utils.RedisKeyConstants;
 import com.sunjoy.parking.vo.VehiclePassage;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -29,18 +33,23 @@ import java.util.stream.Collectors;
 @Slf4j
 abstract public class BaseVehicleArrivedHandler implements Runnable {
 
-    protected final RedisService redisService;
+    //protected final RedisService redisService;
 
-    protected final AccessRuleFactory accessRuleFactory;
+    //protected final AccessRuleFactory accessRuleFactory;
 
-    protected final VehicleArrivedPayload payload;
+    protected VehicleArrivedPayload payload;
+
+    abstract RedisService getRedisService();
+
+    abstract AccessRuleFactory getAccessRuleFactory();
 
 
-    public BaseVehicleArrivedHandler(RedisService redisService, AccessRuleFactory accessRuleFactory, VehicleArrivedPayload payload) {
+
+    /*public BaseVehicleArrivedHandler(RedisService redisService, AccessRuleFactory accessRuleFactory, VehicleArrivedPayload payload) {
         this.redisService = redisService;
         this.accessRuleFactory = accessRuleFactory;
         this.payload = payload;
-    }
+    }*/
 
     /**
      * 保存出入场流水记录
@@ -50,18 +59,21 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
      */
     abstract void saveVehicleTransctionRecord(VehiclePassage vehiclePassage);
 
+    protected void setPayLoad(VehicleArrivedPayload payload) {
+        this.payload = payload;
+    }
+
+    @Transactional
     @Override
     public void run() {
-        try {
-            handle();
-        } catch (Exception e) {
-            log.error("车辆出入场处理失败", e.getStackTrace());
-        }
+
+        handle();
+
     }
 
 
     protected void handle() {
-        long now = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
 
         if (processingMessageIds(this.payload.getUuid())) {
             log.warn("其他服务正在处理{}，退出处理!", payload.toString());
@@ -72,19 +84,19 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
         //身份确认
         VehiclePassage vehiclePassage = identify(payload);
 
-        log.info("完成车辆{}身份确认:{}", payload.getLicensePlate(), vehiclePassage.getVehicleService() != null ? vehiclePassage.getVehicleService().getServiceName() : "临停车");
+        log.info("完成车辆{}身份确认:{} 耗时:{}毫秒", payload.getLicensePlate(), vehiclePassage.getVehicleService() != null ? vehiclePassage.getVehicleService().getServiceName() : "临停车", System.currentTimeMillis() - start);
         //通行规则
 
         if (!isAccessAllowed(vehiclePassage)) {
-            log.warn("通行规则校验完毕，不通过!");
+            log.warn("通行规则校验完毕，不通过! 耗时:{}毫秒", System.currentTimeMillis() - start);
             //告知司机不能通行的原因
             notifyDriver(vehiclePassage);
             //处理完成
             return;
         }
-        log.warn("通行规则校验完毕，通过!");
-        //收费处理
-        if (billing(vehiclePassage)) {
+        log.warn("通行规则校验完毕，通过! 耗时:{}毫秒", System.currentTimeMillis() - start);
+        //收费处理,要通道设置要收费放行才计费
+        if (vehiclePassage.getParkLane().getRap().equals(YesNoEnum.Yes.getCode()) && billing(vehiclePassage)) {
             log.info("计费完毕，本次停车费用：{}", vehiclePassage.getParkingFee());
             //如果产生费用，需要通知司机支付，并等待司机支付完才开闸
             notifyDriverToPay(vehiclePassage);
@@ -92,13 +104,14 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
             //处理完成
             return;
         }
+        log.warn("{}无需缴费! 耗时:{}毫秒", vehiclePassage.getParkLane().getRap().equals(YesNoEnum.Yes.getCode()) ? "计费完毕，" : "", System.currentTimeMillis() - start);
         //放行
         releaseVehicle(vehiclePassage);
-        log.info("车辆{}放行{}，车场：{}", vehiclePassage.getLicensePlate(), direction, vehiclePassage.getPark().getParkName());
+        log.info("车辆{}放行{}，车场：{}，耗时:{}毫秒", vehiclePassage.getLicensePlate(), direction, vehiclePassage.getPark().getParkName(), System.currentTimeMillis() - start);
         //记录出场信息,异步处理
         saveVehicleTransctionRecord(vehiclePassage);
         long end = System.currentTimeMillis();
-        log.info("数据记录保存完成，车辆{}{}处理完毕,总耗时:{}毫秒！", vehiclePassage.getLicensePlate(), direction, end - now);
+        log.info("数据记录保存完成，车辆{}{}处理完毕,总耗时:{}毫秒！", vehiclePassage.getLicensePlate(), direction, System.currentTimeMillis() - start);
     }
 
     /**
@@ -112,7 +125,6 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
 
         BeanUtils.copyBeanProp(vehiclePassage, payload);
         //明确出入场方向
-
         vehiclePassage.setEventTime(payload.getEventTime());
         //完善通道、车场
         fillRelationData(vehiclePassage);
@@ -129,7 +141,7 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
      */
     private void setVehicleIdentify(VehiclePassage vehiclePassage) {
         //确认是否登记车辆
-        List<PmsVehicleService> vehicleServices = this.redisService.getCacheList(RedisKeyConstants.PARK_VEHICLE_SERVICE + vehiclePassage.getPark().getParkId());
+        List<PmsVehicleService> vehicleServices = this.getRedisService().getCacheList(RedisKeyConstants.PARK_VEHICLE_SERVICE + vehiclePassage.getPark().getParkId());
         if (!vehicleServices.isEmpty()) {
             vehicleServices.stream().filter(item -> Objects.equals(item.getLicensePlate(), vehiclePassage.getLicensePlate())
                                                     && Objects.equals(item.getParkId(), vehiclePassage.getPark().getParkId()))
@@ -144,14 +156,14 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
      * @param vehiclePassage
      */
     private void fillRelationData(VehiclePassage vehiclePassage) {
-        List<PmsLaneDevice> allDeviceLaneList = this.redisService.getCacheList(RedisKeyConstants.PARK_LANE_DEVICE);
+        List<PmsLaneDevice> allDeviceLaneList = this.getRedisService().getCacheList(RedisKeyConstants.PARK_LANE_DEVICE);
         PmsLaneDevice laneDevice = allDeviceLaneList.stream().filter(item -> Objects.equals(item.getDeviceId(), vehiclePassage.getDeviceId())).findFirst().orElse(null);
         if (null != laneDevice) {
             //默认取出第一个通道设备关系
 
             vehiclePassage.setLaneId(laneDevice.getLaneId());
             //取出车场通道关系,可能有2条记录，因为通道可以绑定2个车场, 当前是入场，找入场方向的记录
-            List<PmsParkLane> parkLaneList = this.redisService.getCacheList(RedisKeyConstants.PARK_LANE_REL);
+            List<PmsParkLane> parkLaneList = this.getRedisService().getCacheList(RedisKeyConstants.PARK_LANE_REL);
             PmsParkLane matchPmsParkLane = parkLaneList.stream().filter(item -> Objects.equals(item.getLaneId(), laneDevice.getLaneId())
                                                                                 && Objects.equals(item.getParkId(), laneDevice.getParkId())).findFirst().orElse(null);
             if (matchPmsParkLane == null) {
@@ -159,7 +171,7 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
             }
             vehiclePassage.setParkLane(matchPmsParkLane);
             //设置车场
-            PmsPark matchPark = this.redisService.getCacheObject(RedisKeyConstants.PARK_INFO + matchPmsParkLane.getParkId());
+            PmsPark matchPark = this.getRedisService().getCacheObject(RedisKeyConstants.PARK_INFO + matchPmsParkLane.getParkId());
             if (matchPark == null) {
                 throw new CheckedException("通道[" + laneDevice.getLaneId() + "],车场[" + laneDevice.getParkId() + "]没有匹配的车场通道关系!");
             }
@@ -170,7 +182,7 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
                     .map(PmsLaneDevice::getDeviceId)
                     .toList();
             //根据ID找出所有设备
-            List<PmsDevice> allDevices = redisService.getCacheList(RedisKeyConstants.PARK_DEVICE);
+            List<PmsDevice> allDevices = getRedisService().getCacheList(RedisKeyConstants.PARK_DEVICE);
             List<PmsDevice> matchingDevices = allDevices.stream()
                     .filter(device -> deviceIds.contains(device.getDeviceId()))
                     .collect(Collectors.toList());
@@ -184,6 +196,8 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
      * @param vehiclePassage
      */
     protected void releaseVehicle(VehiclePassage vehiclePassage) {
+        vehiclePassage.setReleaseMode(ReleaseModeEnum.NORMAL.getCode());
+        vehiclePassage.setReleaseTime(LocalDateTime.now());
         log.info("{},车辆放行成功！", DateUtils.getDate(), vehiclePassage.getLicensePlate());
         //todo 实现逻辑
     }
@@ -232,10 +246,10 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
      */
     protected boolean processingMessageIds(String messageId) {
         String key = RedisKeyConstants.PARK_VEHICLE_ARRIVED + messageId;
-        boolean processed = null != redisService.getCacheObject(key);
+        boolean processed = null != getRedisService().getCacheObject(key);
         if (!processed) {
             //缓存30秒
-            redisService.setCacheObject(key, messageId, 20L, TimeUnit.SECONDS);
+            getRedisService().setCacheObject(key, messageId, 20L, TimeUnit.SECONDS);
         }
         return processed;
     }
@@ -247,7 +261,7 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
      * @return
      */
     protected boolean isAccessAllowed(VehiclePassage vehiclePassage) {
-        List<IAccessRule> accessRules = accessRuleFactory.getRules(vehiclePassage.getPark().getParkId(), DirectionEnum.fromValue(vehiclePassage.getDirection()));
+        List<IAccessRule> accessRules = getAccessRuleFactory().getRules(vehiclePassage.getPark().getParkId(), DirectionEnum.fromValue(vehiclePassage.getDirection()));
         log.info("获取到车场{}的{}规则有{}条！", vehiclePassage.getPark().getParkName(), vehiclePassage.getDirection().equals(DirectionEnum.ENTRY.getValue()) ? "入场" : "出场", accessRules.size());
         for (IAccessRule rule : accessRules) {
             //校验不通过，并且是禁止通行的，就不允许通行

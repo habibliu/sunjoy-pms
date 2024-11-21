@@ -139,18 +139,18 @@ create table pms_device_params
 -- ----------------------------
 create table pms_lane_device
 (
-	id			 bigint(20) not null auto_increment comment '车场id',
-	device_id     bigint(20) not null comment '设备id',
-	lane_id     bigint(20) not null comment '通道id',
-	park_id     bigint(20) not null comment '车场id',
-	direction   char(1) default '' comment '通行方向:0－出，1－入，2－双向',
-    status      char(1)     default '0' comment '状态（0正常 1停用）',
-    del_flag    char(1)     default '0' comment '删除标志（0代表存在 2代表删除）',
-    create_by   varchar(64) default '' comment '创建者',
-    create_time datetime comment '创建时间',
-    update_by   varchar(64) default '' comment '更新者',
-    update_time datetime comment '更新时间',
-	remark            varchar(500)    default null               comment '备注',
+	id				bigint(20) 	not null 	auto_increment 	comment '车场id',
+	device_id     	bigint(20) 	not null 					comment '设备id',
+	lane_id     	bigint(20) 	not null 					comment '通道id',
+	park_id     	bigint(20) 	not null 					comment '车场id',
+	direction   	char(1) 		 						comment '通行方向:0－出，1－入，2－双向',
+    status      	char(1)     							default '0' comment '状态（0正常 1停用）',
+    del_flag    	char(1)     			default '0' 	comment '删除标志（0代表存在 2代表删除）',
+    create_by   	varchar(64) 			 				comment '创建者',
+    create_time 	datetime 								comment '创建时间',
+    update_by   	varchar(64) 			 				comment '更新者',
+    update_time 	datetime 								comment '更新时间',
+	remark            varchar(500)    		default null    comment '备注',
     primary key (id)
 ) engine = innodb
   auto_increment = 1 comment = '通道设备关系表';
@@ -178,7 +178,7 @@ create table pms_vehicle
     create_time 	datetime 										comment '创建时间',
     update_by   	varchar(64) 	default null 					comment '更新者',
     update_time 	datetime 										comment '更新时间',
-	remark          varchar(500)    default null               	comment '备注',
+	remark          varchar(500)    default null               		comment '备注',
     primary key (vehicle_id)
 ) engine = innodb
   auto_increment = 1 comment = '车辆注册表';
@@ -347,9 +347,10 @@ create table pms_park_transaction
 	opu_id    			bigint(20)	not null 			   		comment '经营单位id',
 	park_id     		bigint(20)	not null 			   		comment '车场id',
 	park_name     		varchar(60)	not null 			   		comment '车场id',
-	vehicle_id     		bigint(20)	not null 			   		comment '车辆id',
+	vehicle_id     		bigint(20)	 			   				comment '车辆id,只有登记车辆才有临停车没有',
 	license_plate   	varchar(10) not null 					comment '车牌号码',
-	entry_service_id    bigint(20)	 							comment '服务id',
+	entry_ref_id	    varchar(32)								comment '入场参照ID，来源于前端系统或者设备',
+	entry_service_id    bigint(20)	 							comment '入场服务id',
 	entry_lane_id		bigint(20)	 			   				comment '入场通道id',
 	entry_lane_name		varchar(60)	 			   				comment '入场通道名称',
 	entry_device_id		bigint(20)	 			   				comment '入场设备id',
@@ -357,6 +358,8 @@ create table pms_park_transaction
 	entry_rel_time		datetime								comment '入场开闸放行时间',
 	entry_rel_mode		char(1)									comment '入场开闸方式:0-自动放行，1-软件放行，2-遥控放行',
 	lot_no				varchar(20)								comment '车位号码',
+	exit_ref_id	    	varchar(32)								comment '入场参照ID，来源于前端系统或者设备',
+	entry_service_id    bigint(20)	 							comment '出场服务id',
 	exit_lane_id		bigint(20)	 			   				comment '出场通道id',
 	exit_lane_name		varchar(60)	 			   				comment '出场通道名称',
 	exit_device_id		bigint(20)	 			   				comment '出场设备id',

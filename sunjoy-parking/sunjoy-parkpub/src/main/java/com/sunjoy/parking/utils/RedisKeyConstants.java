@@ -38,6 +38,12 @@ public class RedisKeyConstants {
      * 车场服务
      */
     public static final String PARK_SERVICE = "parking:park-service:";
-
-    public static final String PARK_VEHICLE_INSIDE = "parking:vehicle-inside:";
+    /**
+     * 场内
+     */
+    public static final String PARK_VEHICLE_COUNT_INSIDE = "parking:vehicle-inside:";
+    /**
+     * 场内车
+     */
+    public static final String PARK_VEHICLE_INSIDE_MAP = "parking:vehicle-inside-map:";
 }

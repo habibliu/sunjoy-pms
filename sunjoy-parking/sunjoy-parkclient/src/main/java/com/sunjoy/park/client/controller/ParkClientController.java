@@ -33,7 +33,7 @@ public class ParkClientController extends BaseController {
 
     @PostMapping(value = "/catch", consumes = "application/json")
     public AjaxResult add(@Validated @RequestBody VehicleArrivedPayload payload) throws MqttException, JsonProcessingException {
-        payload.setUuid(UUID.fastUUID().toString());
+        payload.setUuid(UUID.fastUUID().toString().replace("-", ""));
         String jsonPayload = objectMapper.writeValueAsString(payload);
         mqttConnectionPool.publish(MqttTopics.TOPIC_CAR_CAPTURED, jsonPayload);
         // 创建消息

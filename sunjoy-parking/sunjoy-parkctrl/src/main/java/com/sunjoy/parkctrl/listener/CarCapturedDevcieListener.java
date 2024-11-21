@@ -1,6 +1,7 @@
 package com.sunjoy.parkctrl.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sunjoy.common.core.utils.SpringUtils;
 import com.sunjoy.common.redis.service.RedisService;
 import com.sunjoy.mqtt.domain.VehicleArrivedPayload;
 import com.sunjoy.mqtt.service.MqttSubscriber;
@@ -13,13 +14,14 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -29,13 +31,16 @@ import java.util.stream.Collectors;
  * @date 2024/11/4
  */
 @Slf4j
+@EnableAsync
 @Service
 public class CarCapturedDevcieListener implements MqttSubscriber {
     /**
      * 本地缓存，加速处理速度
      */
     private static final List<PmsLaneDevice> localDeviceLanceCache = new ArrayList<PmsLaneDevice>();
-    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+    @Autowired
+    private ThreadPoolTaskExecutor pmsTaskExecutor;
+
     @Autowired
     private RedisService redisService;
     @Autowired
@@ -48,33 +53,40 @@ public class CarCapturedDevcieListener implements MqttSubscriber {
         log.info("Received topic:　{}　message:{}} ", topic, message);
         //转为车辆出入场对象，并安排对应的服务类处理
 
-        VehicleArrivedPayload playload = convertMqttMessageToPayload(mqttMessage);
+        VehicleArrivedPayload payload = convertMqttMessageToPayload(mqttMessage);
         //根据设备ID,将收到的消息放到消息队列，由对应的服务处理
-        String handlerTopic = matchHandlerTopic(playload);
+        String handlerTopic = matchHandlerTopic(payload);
         if (handlerTopic == null) {
             log.error("没有对应的处理类接收！");
             return;
         }
+        BaseVehicleArrivedHandler handler = null;
         if (MqttTopics.TOPIC_CAR_ARRIVED.equals(handlerTopic)) {
-            playload.setDirection(DirectionEnum.ENTRY.getValue());
-            executorService.submit(new VehicleEntryParkHandler(playload));
-        } else {
-            playload.setDirection(DirectionEnum.EXIT.getValue());
-            executorService.submit(new VehicleExitParkHandler(playload));
-        }
+            payload.setDirection(DirectionEnum.ENTRY.getValue());
+            handler = SpringUtils.getBean(VehicleEntryParkHandler.class);
+            handler.setPayLoad(payload);
 
+        } else {
+            payload.setDirection(DirectionEnum.EXIT.getValue());
+            handler = SpringUtils.getBean(VehicleExitParkHandler.class);
+
+
+        }
+        handler.setPayLoad(payload);
+        pmsTaskExecutor.execute(handler);
     }
 
     public VehicleArrivedPayload convertMqttMessageToPayload(MqttMessage mqttMessage) {
         try {
 
             // 获取消息负载并转换为字符串
-            String payload = new String(mqttMessage.getPayload(), "UTF-8");
+            String payload = new String(mqttMessage.getPayload(), StandardCharsets.UTF_8);
             // 使用 ObjectMapper 将 JSON 字符串转换为 Playload 对象
             return objectMapper.readValue(payload, VehicleArrivedPayload.class);
         } catch (Exception e) {
-            e.printStackTrace(); // 处理异常
-            return null; // 或者抛出自定义异常
+            log.error("转换对象:{},失败:{}", mqttMessage, (Object) e.getStackTrace());
+
+            return null;
         }
     }
 
@@ -98,9 +110,9 @@ public class CarCapturedDevcieListener implements MqttSubscriber {
             if (deviceLaneList.size() == 1) {
                 direction = deviceLaneList.get(0).getDirection();
             } else {
-                direction = "0";
+                direction = DirectionEnum.EXIT.getValue();
             }
-            return "0".equals(direction) ? MqttTopics.TOPIC_CAR_DEPARTED : MqttTopics.TOPIC_CAR_ARRIVED;
+            return DirectionEnum.EXIT.getValue().equals(direction) ? MqttTopics.TOPIC_CAR_DEPARTED : MqttTopics.TOPIC_CAR_ARRIVED;
 
         }
 
