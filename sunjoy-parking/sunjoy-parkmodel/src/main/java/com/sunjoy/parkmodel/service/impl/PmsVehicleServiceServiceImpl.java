@@ -9,6 +9,7 @@ import com.sunjoy.parkmodel.mapper.PmsVehicleServiceMapper;
 import com.sunjoy.parkmodel.service.IPmsVehicleServiceService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,18 +32,25 @@ public class PmsVehicleServiceServiceImpl implements IPmsVehicleServiceService {
 
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private ThreadPoolTaskExecutor parkingModelTaskExecutor;
 
     @PostConstruct
     private void initCache() {
-        List<PmsVehicleService> allVehicleServices = getAllVehicleService();
-        Map<Long, List<PmsVehicleService>> groupedByParkId = allVehicleServices.stream()
-                .collect(Collectors.groupingBy(PmsVehicleService::getParkId));
+        // 创建一个任务
+        Runnable task = () -> {
+            List<PmsVehicleService> allVehicleServices = getAllVehicleService();
+            Map<Long, List<PmsVehicleService>> groupedByParkId = allVehicleServices.stream()
+                    .collect(Collectors.groupingBy(PmsVehicleService::getParkId));
 
-        // 根据车场ID分组缓存
-        groupedByParkId.forEach((parkId, services) -> {
-            this.redisService.deleteObject(RedisKeyConstants.PARK_VEHICLE_SERVICE + parkId);
-            this.redisService.setCacheList(RedisKeyConstants.PARK_VEHICLE_SERVICE + parkId, allVehicleServices);
-        });
+            // 根据车场ID分组缓存
+            groupedByParkId.forEach((parkId, services) -> {
+                this.redisService.deleteObject(RedisKeyConstants.PARK_VEHICLE_SERVICE + parkId);
+                this.redisService.setCacheList(RedisKeyConstants.PARK_VEHICLE_SERVICE + parkId, allVehicleServices);
+            });
+        };
+
+        parkingModelTaskExecutor.execute(task);
     }
 
     @Override

@@ -1,11 +1,13 @@
 package com.sunjoy.parking.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sunjoy.common.core.web.domain.BaseEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 车场收费价目表对象
@@ -15,6 +17,7 @@ import java.math.BigDecimal;
  */
 @Data
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PmsParkPrice extends BaseEntity {
     /**
      * 车辆id
@@ -80,6 +83,7 @@ public class PmsParkPrice extends BaseEntity {
      * 最高收费计费量
      */
     private Integer maxQuantity;
+    
 
     /**
      * 状态（０--未生效 1--已生效,2--停用）
@@ -90,4 +94,8 @@ public class PmsParkPrice extends BaseEntity {
      * 删除标志（0代表存在 1代表删除）
      */
     private String delFlag;
+    /**
+     * 分段计费明细
+     */
+    private List<PmsParkPriceDetail> detailList;
 }

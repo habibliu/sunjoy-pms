@@ -1,9 +1,6 @@
 package com.sunjoy.parking.vo;
 
-import com.sunjoy.parking.entity.PmsDevice;
-import com.sunjoy.parking.entity.PmsPark;
-import com.sunjoy.parking.entity.PmsParkLane;
-import com.sunjoy.parking.entity.PmsVehicleService;
+import com.sunjoy.parking.entity.*;
 import com.sunjoy.parking.enums.NotificationMethod;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -61,6 +58,11 @@ public class VehiclePassage implements Serializable {
     private PmsVehicleService vehicleService;
 
     /**
+     * 车场临停车收费标准
+     */
+    private PmsParkService parkService;
+
+    /**
      * 通道安装的设备
      */
     private List<PmsDevice> laneDevices;
@@ -107,5 +109,8 @@ public class VehiclePassage implements Serializable {
      * 放行方式：0--系统正常自动开闸,1--人工异常开闸
      */
     private String releaseMode;
-
+    /**
+     * 计费结果
+     */
+    private BillingResult billingResult;
 }

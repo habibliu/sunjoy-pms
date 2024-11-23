@@ -8,6 +8,7 @@ import com.sunjoy.parkmodel.mapper.PmsDeviceMapper;
 import com.sunjoy.parkmodel.service.IPmsDeviceService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -27,16 +28,23 @@ public class PmsDeviceServiceImpl implements IPmsDeviceService {
 
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private ThreadPoolTaskExecutor parkingModelTaskExecutor;
 
     @PostConstruct
     private void initCache() {
-        PmsDevice pmsDevice = new PmsDevice();
-        List<PmsDevice> allDevcies = pmsDeviceMapper.selectPmsDevicesByCondition(pmsDevice);
-        if (!allDevcies.isEmpty()) {
-            //先删除
-            redisService.deleteObject(RedisKeyConstants.PARK_DEVICE);
-            redisService.setCacheList(RedisKeyConstants.PARK_DEVICE, allDevcies);
-        }
+        Runnable task = () -> {
+            PmsDevice pmsDevice = new PmsDevice();
+            List<PmsDevice> allDevcies = pmsDeviceMapper.selectPmsDevicesByCondition(pmsDevice);
+            if (!allDevcies.isEmpty()) {
+                //先删除
+                redisService.deleteObject(RedisKeyConstants.PARK_DEVICE);
+                redisService.setCacheList(RedisKeyConstants.PARK_DEVICE, allDevcies);
+            }
+        };
+        // 提交任务
+        parkingModelTaskExecutor.execute(task);
+
     }
 
     @Override

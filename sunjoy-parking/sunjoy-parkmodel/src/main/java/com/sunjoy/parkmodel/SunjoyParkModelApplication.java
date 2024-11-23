@@ -19,7 +19,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 @SpringBootApplication
 public class SunjoyParkModelApplication {
     public static void main(String[] args) {
+        long start = System.currentTimeMillis();
         ConfigurableApplicationContext contex = SpringApplication.run(SunjoyParkModelApplication.class);
-        log.info("车场模型及基本资料服务启动成功");
+        log.info("车场模型及基本资料服务启动成功，耗時:{}", (System.currentTimeMillis() - start));
     }
 }

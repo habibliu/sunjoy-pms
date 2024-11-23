@@ -6,7 +6,10 @@ import java.lang.management.ManagementFactory;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.*;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 时间工具类
@@ -193,5 +196,70 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 
         LocalDateTime endOfToday = LocalDateTime.of(endDate.toLocalDate(), LocalTime.MAX);
         return compareDate.isAfter(endOfToday);
+    }
+
+    /**
+     * 获取两个时间的日期跨度
+     *
+     * @param startDateTime
+     * @param endDateTime
+     * @return Long 返回天数跨度
+     */
+    public static Long daysBetween(LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        // 获取日期部分
+        LocalDate startDate = startDateTime.toLocalDate();
+        LocalDate endDate = endDateTime.toLocalDate();
+        return ChronoUnit.DAYS.between(startDate, endDate);
+
+        // 如果结束时间的日期部分和开始时间的日期部分相同，则不计入
+        /*if (endDateTime.toLocalTime().isBefore(startDateTime.toLocalTime())) {
+            daysBetween--;
+        }*/
+        
+    }
+
+    public static Long minutesBetween(LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        // 计算两个 LocalDateTime 之间的持续时间
+        Duration duration = Duration.between(startDateTime, endDateTime);
+
+        // 获取相差的分钟数
+        return duration.toMinutes();
+    }
+
+    /**
+     * 从日期时间段B（开始时间startB，结否时间endB）中统计出分段A(开始时间startA，结束时间endA)的每段时长
+     *
+     * @param startB
+     * @param endB
+     * @param startA
+     * @param endA
+     * @return
+     */
+    public static List<Duration> getMatchingTimeSlots(LocalDateTime startB, LocalDateTime endB, LocalTime startA, LocalTime endA) {
+        List<Duration> matchingDurations = new ArrayList<>();
+
+        // 遍历时间段 B 的每一天
+        LocalDateTime currentDay = startB.toLocalDate().atStartOfDay();
+
+        while (currentDay.isBefore(endB.toLocalDate().atStartOfDay().plusDays(1))) {
+            // 获取当前日期的时间段 A
+            LocalDateTime startAWithDate = currentDay.with(startA);
+            LocalDateTime endAWithDate = currentDay.with(endA);
+
+            // 计算 A 和 B 的交集
+            LocalDateTime overlapStart = startB.isAfter(startAWithDate) ? startB : startAWithDate;
+            LocalDateTime overlapEnd = endB.isBefore(endAWithDate) ? endB : endAWithDate;
+
+            // 检查是否存在交集
+            if (overlapStart.isBefore(overlapEnd)) {
+                Duration duration = Duration.between(overlapStart, overlapEnd);
+                matchingDurations.add(duration);
+            }
+
+            // 移动到下一天
+            currentDay = currentDay.plusDays(1);
+        }
+
+        return matchingDurations;
     }
 }

@@ -46,4 +46,6 @@ public class RedisKeyConstants {
      * 场内车
      */
     public static final String PARK_VEHICLE_INSIDE_MAP = "parking:vehicle-inside-map:";
+
+    public static final String PARK_PRICE = "parking:price:";
 }

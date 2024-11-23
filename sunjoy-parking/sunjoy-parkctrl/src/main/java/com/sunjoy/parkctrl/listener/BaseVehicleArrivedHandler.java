@@ -3,16 +3,20 @@ package com.sunjoy.parkctrl.listener;
 import com.sunjoy.common.core.enums.YesNoEnum;
 import com.sunjoy.common.core.exception.CheckedException;
 import com.sunjoy.common.core.utils.DateUtils;
+import com.sunjoy.common.core.utils.SpringUtils;
 import com.sunjoy.common.core.utils.bean.BeanUtils;
 import com.sunjoy.common.redis.service.RedisService;
 import com.sunjoy.mqtt.domain.Payload;
 import com.sunjoy.mqtt.domain.VehicleArrivedPayload;
 import com.sunjoy.parkctrl.rule.AccessRuleFactory;
 import com.sunjoy.parkctrl.rule.IAccessRule;
+import com.sunjoy.parkctrl.service.IBillingService;
 import com.sunjoy.parking.entity.*;
 import com.sunjoy.parking.enums.DirectionEnum;
 import com.sunjoy.parking.enums.ReleaseModeEnum;
 import com.sunjoy.parking.utils.RedisKeyConstants;
+import com.sunjoy.parking.vo.BillingDependency;
+import com.sunjoy.parking.vo.BillingResult;
 import com.sunjoy.parking.vo.VehiclePassage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,9 +37,6 @@ import java.util.stream.Collectors;
 @Slf4j
 abstract public class BaseVehicleArrivedHandler implements Runnable {
 
-    //protected final RedisService redisService;
-
-    //protected final AccessRuleFactory accessRuleFactory;
 
     protected VehicleArrivedPayload payload;
 
@@ -44,13 +45,6 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
     abstract AccessRuleFactory getAccessRuleFactory();
 
 
-
-    /*public BaseVehicleArrivedHandler(RedisService redisService, AccessRuleFactory accessRuleFactory, VehicleArrivedPayload payload) {
-        this.redisService = redisService;
-        this.accessRuleFactory = accessRuleFactory;
-        this.payload = payload;
-    }*/
-
     /**
      * 保存出入场流水记录
      * 由子类实现
@@ -58,6 +52,8 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
      * @param vehiclePassage
      */
     abstract void saveVehicleTransctionRecord(VehiclePassage vehiclePassage);
+
+    abstract protected PmsParkTransaction getEntryRecord(Long parkId, String licensePlate);
 
     protected void setPayLoad(VehicleArrivedPayload payload) {
         this.payload = payload;
@@ -96,13 +92,22 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
         }
         log.warn("通行规则校验完毕，通过! 耗时:{}毫秒", System.currentTimeMillis() - start);
         //收费处理,要通道设置要收费放行才计费
-        if (vehiclePassage.getParkLane().getRap().equals(YesNoEnum.Yes.getCode()) && billing(vehiclePassage)) {
-            log.info("计费完毕，本次停车费用：{}", vehiclePassage.getParkingFee());
-            //如果产生费用，需要通知司机支付，并等待司机支付完才开闸
-            notifyDriverToPay(vehiclePassage);
-            log.info("已通知车主缴费！");
-            //处理完成
-            return;
+        if (vehiclePassage.getParkLane().getRap().equals(YesNoEnum.Yes.getCode())) {
+            if (billing(vehiclePassage)) {
+                log.info("计费完毕，本次停车时长：{}小时{}分钟, 总费用：{},耗时:{}毫秒", vehiclePassage.getStayDuration() / 60, vehiclePassage.getStayDuration() % 60, vehiclePassage.getParkingFee(), System.currentTimeMillis() - start);
+                BillingResult billingResult = vehiclePassage.getBillingResult();
+                log.info(billingResult.getBillingResultDescription());
+                //如果产生费用，需要通知司机支付，并等待司机支付完才开闸
+                notifyDriverToPay(vehiclePassage);
+                log.info("已通知车主缴费！,耗时:{}毫秒", System.currentTimeMillis() - start);
+                //处理完成
+                return;
+            } else {
+                log.warn("车辆{}计费失败，原因:{}", vehiclePassage.getLicensePlate(), vehiclePassage.getNotifyMessage());
+                //todo 计费失败，比如没有入场记录等，要通知相关人事处理，或者根据系统规则是否自动放行，如是要这样做，建议放到规则上处理,针对无入场记录的规则处理
+                return;
+            }
+
         }
         log.warn("{}无需缴费! 耗时:{}毫秒", vehiclePassage.getParkLane().getRap().equals(YesNoEnum.Yes.getCode()) ? "计费完毕，" : "", System.currentTimeMillis() - start);
         //放行
@@ -135,7 +140,7 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
     }
 
     /**
-     * 设置车辆身份
+     * 设置车辆身份,即收费标准
      *
      * @param vehiclePassage 车辆通行信息载体类
      */
@@ -147,6 +152,14 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
                                                     && Objects.equals(item.getParkId(), vehiclePassage.getPark().getParkId()))
                     .max(Comparator.comparing(PmsVehicleService::getEndDate))
                     .ifPresent(vehiclePassage::setVehicleService);
+        } else {//临停车，取车场的默认的临停车收费标准
+            List<PmsParkService> parkServiceList = getRedisService().getCacheObject(RedisKeyConstants.PARK_SERVICE + vehiclePassage.getPark().getParkId());
+            if (!parkServiceList.isEmpty()) {
+                PmsParkService parkService = parkServiceList.stream().filter(item -> YesNoEnum.Yes.getCode().equals(item.getDefaultUnregisted())).findFirst().orElse(null);
+                if (null != parkService) {
+                    vehiclePassage.setParkService(parkService);
+                }
+            }
         }
     }
 
@@ -204,14 +217,41 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
 
     /**
      * 计费
-     * 调用计费服务计算应收费用
+     * 调用计费服务计算应收费用，暂时只考虑出场计费，入场计费在入场类中override实现
      *
      * @param vehiclePassage
      * @return
      */
     protected boolean billing(VehiclePassage vehiclePassage) {
         log.info("车辆{}计费中....", vehiclePassage.getLicensePlate());
-        //todo 实现逻辑
+        //如果是出场，取出入场记录
+        if (vehiclePassage.getDirection().equals(DirectionEnum.EXIT.getValue())) {
+            PmsParkTransaction entryRecord = this.getEntryRecord(vehiclePassage.getPark().getParkId(), vehiclePassage.getLicensePlate());
+            if (null == entryRecord) {
+                //todo 应该通知岗亭或者
+                vehiclePassage.setNotifyMessage("无入场记录！");
+                return false;
+            }
+            //构建计费对象
+            BillingDependency dependency = new BillingDependency();
+            if (null != vehiclePassage.getVehicleService()) {
+                dependency.setServiceId(vehiclePassage.getVehicleService().getServiceId());
+            } else {
+                dependency.setServiceId(vehiclePassage.getParkService().getServiceId());
+            }
+            dependency.setParkId(vehiclePassage.getPark().getParkId());
+            dependency.setLicensePlate(vehiclePassage.getLicensePlate());
+            dependency.setStartTime(entryRecord.getEntryTime());
+            dependency.setEndTime(vehiclePassage.getEventTime());
+            //调用计费服务
+            IBillingService billingService = SpringUtils.getBean(IBillingService.class);
+            BillingResult billingResult = billingService.calculate(dependency);
+            //设置计费结果
+            vehiclePassage.setStayDuration(billingResult.getBillingDuration());
+            vehiclePassage.setBillingResult(billingResult);
+            vehiclePassage.setParkingFee(billingResult.getRealAmount().floatValue());
+            return true;
+        }
         return false;
     }
 
@@ -285,4 +325,5 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
         // 所有规则均允许
         return true;
     }
+
 }

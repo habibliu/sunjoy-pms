@@ -1,7 +1,6 @@
 package com.sunjoy.parkmodel.service;
 
 import com.sunjoy.parking.entity.PmsParkService;
-import com.sunjoy.parkmodel.pojo.ParkServicePojo;
 
 import java.util.List;
 
@@ -18,7 +17,7 @@ public interface IPmsParkServiceService {
      * @param parkService
      * @return
      */
-    List<ParkServicePojo> listParkServices(PmsParkService parkService);
+    List<PmsParkService> listParkServices(PmsParkService parkService);
 
     /**
      * 新增车场服务

@@ -20,6 +20,7 @@ import com.sunjoy.parkmodel.service.IPmsParkService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,17 +51,23 @@ public class PmsParkServiceImpl implements IPmsParkService {
 
     @Autowired
     private RedisService redisService;
+    @Autowired
+    private ThreadPoolTaskExecutor parkingModelTaskExecutor;
 
     @PostConstruct
     private void initCache() {
-        ParkPojo condition = new ParkPojo();
+        Runnable task = () -> {
+            ParkPojo condition = new ParkPojo();
 
-        List<PmsPark> results = this.pmsParkMapper.selectParkList(condition);
-        //非0状态下的信息才会被缓存
-        for (PmsPark pmsPark : results.stream().filter(item -> !item.getStatus().equals("0")).toList()) {
-            //redisService.setCacheObject(RedisKeyConstants.PARK_INFO + pmsPark.getParkId(), pmsPark);
-            setCache(pmsPark);
-        }
+            List<PmsPark> results = this.pmsParkMapper.selectParkList(condition);
+            //非0状态下的信息才会被缓存
+            for (PmsPark pmsPark : results.stream().filter(item -> !item.getStatus().equals("0")).toList()) {
+
+                setCache(pmsPark);
+            }
+        };
+        parkingModelTaskExecutor.execute(task);
+
     }
 
     private void setCache(PmsPark pmsPark) {

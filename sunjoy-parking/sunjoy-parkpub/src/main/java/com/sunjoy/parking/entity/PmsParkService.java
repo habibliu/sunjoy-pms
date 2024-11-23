@@ -1,9 +1,11 @@
 package com.sunjoy.parking.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sunjoy.common.core.web.domain.BaseEntity;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -14,6 +16,7 @@ import java.util.Date;
  */
 @Data
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PmsParkService extends BaseEntity {
     /**
      * 车辆id
@@ -71,6 +74,11 @@ public class PmsParkService extends BaseEntity {
     private String exitMessage;
 
     /**
+     * 是否临停车的默认收费标准
+     */
+    private String defaultUnregisted;
+    
+    /**
      * 状态（０--未生效 1--已生效,2--停用）
      */
     private String status;
@@ -79,6 +87,16 @@ public class PmsParkService extends BaseEntity {
      * 删除标志（0代表存在 1代表删除）
      */
     private String delFlag;
+    private String priceName;
+    private String free;
+    private Integer freeDuration;
+    private String uniformPrice;
+    private BigDecimal price;
+    private String priceUnit;
+    private Integer priceQuantity;
+    private BigDecimal maxFee;
+    private String maxUnit;
+    private Integer maxQuantity;
 
     public Integer getExpiredDuration() {
         return expiredDuration == null ? 0 : expiredDuration;

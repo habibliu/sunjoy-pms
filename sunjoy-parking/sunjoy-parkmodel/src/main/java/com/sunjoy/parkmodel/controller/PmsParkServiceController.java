@@ -6,7 +6,6 @@ import com.sunjoy.common.log.annotation.Log;
 import com.sunjoy.common.log.enums.BusinessType;
 import com.sunjoy.common.security.annotation.RequiresPermissions;
 import com.sunjoy.parking.entity.PmsParkService;
-import com.sunjoy.parkmodel.pojo.ParkServicePojo;
 import com.sunjoy.parkmodel.service.IPmsParkServiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -38,7 +37,7 @@ public class PmsParkServiceController extends BaseController {
 
         condition.setStatus(status);
 
-        List<ParkServicePojo> results = pmsParkServiceService.listParkServices(condition);
+        List<PmsParkService> results = pmsParkServiceService.listParkServices(condition);
         return success(results);
     }
 
@@ -51,7 +50,7 @@ public class PmsParkServiceController extends BaseController {
         PmsParkService condition = new PmsParkService();
         condition.setParkId(parkId);
 
-        List<ParkServicePojo> results = pmsParkServiceService.listParkServices(condition);
+        List<PmsParkService> results = pmsParkServiceService.listParkServices(condition);
         return success(results);
     }
 

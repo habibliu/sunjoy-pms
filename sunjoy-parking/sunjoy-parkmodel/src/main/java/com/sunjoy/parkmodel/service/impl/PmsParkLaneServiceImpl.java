@@ -8,6 +8,7 @@ import com.sunjoy.parkmodel.mapper.PmsParkLaneMapper;
 import com.sunjoy.parkmodel.service.IPmsParkLaneService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -26,16 +27,24 @@ public class PmsParkLaneServiceImpl implements IPmsParkLaneService {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private ThreadPoolTaskExecutor parkingModelTaskExecutor;
+
     /**
      * 初始化所有车场通道到缓存中
      */
     @PostConstruct
     private void initCache() {
-        List<PmsParkLane> parkLaneList = this.pmsParkLaneMapper.selectAll();
-        if (!parkLaneList.isEmpty()) {
-            this.redisService.deleteObject(RedisKeyConstants.PARK_LANE_REL);
-            this.redisService.setCacheList(RedisKeyConstants.PARK_LANE_REL, parkLaneList);
-        }
+        Runnable task = () -> {
+            List<PmsParkLane> parkLaneList = this.pmsParkLaneMapper.selectAll();
+            if (!parkLaneList.isEmpty()) {
+                this.redisService.deleteObject(RedisKeyConstants.PARK_LANE_REL);
+                this.redisService.setCacheList(RedisKeyConstants.PARK_LANE_REL, parkLaneList);
+            }
+        };
+        // 提交任务
+        parkingModelTaskExecutor.execute(task);
+
     }
 
     @Override

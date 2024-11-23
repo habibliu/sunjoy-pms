@@ -6,17 +6,15 @@ import com.sunjoy.common.security.utils.SecurityUtils;
 import com.sunjoy.parking.entity.PmsParkService;
 import com.sunjoy.parking.utils.RedisKeyConstants;
 import com.sunjoy.parkmodel.mapper.PmsParkServiceMapper;
-import com.sunjoy.parkmodel.pojo.ParkServicePojo;
 import com.sunjoy.parkmodel.service.IPmsParkServiceService;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 车场服务的服务实现类
@@ -34,24 +32,40 @@ public class PmsParkServiceServiceImpl implements IPmsParkServiceService {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private ThreadPoolTaskExecutor parkingModelTaskExecutor;
+
     @PostConstruct
     private void initCache() {
-        PmsParkService condition = new PmsParkService();
-        condition.setDelFlag("0");
-        List<ParkServicePojo> results = pmsParkServiceMapper.selectByConditions(condition);
-        results.forEach(item -> {
-            this.redisService.setCacheObject(RedisKeyConstants.PARK_SERVICE + item.getServiceId(), item);
-        });
+
+        // 创建一个任务
+        Runnable task = () -> {
+            PmsParkService condition = new PmsParkService();
+            condition.setDelFlag("0");
+            List<PmsParkService> results = pmsParkServiceMapper.selectByConditions(condition);
+            //按車場存放
+            if (!results.isEmpty()) {
+                Map<Long, List<PmsParkService>> groupedByParkId = results.stream()
+                        .collect(Collectors.groupingBy(PmsParkService::getParkId));
+                groupedByParkId.forEach((parkId, parkServices) -> {
+                    this.redisService.setCacheObject(RedisKeyConstants.PARK_SERVICE + parkId, parkServices);
+                });
+            }
+
+        };
+        // 提交任务
+        parkingModelTaskExecutor.execute(task);
+
     }
 
     @Override
-    public List<ParkServicePojo> listParkServices(PmsParkService parkService) {
+    public List<PmsParkService> listParkServices(PmsParkService parkService) {
         //必须指定车场ID
         if (parkService.getParkId() != null) {
             parkService.setTenantId(SecurityUtils.getTenantId());
             return pmsParkServiceMapper.selectByConditions(parkService);
         } else {
-            return new ArrayList<ParkServicePojo>();
+            return new ArrayList<PmsParkService>();
         }
     }
 

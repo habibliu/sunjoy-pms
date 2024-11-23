@@ -8,6 +8,7 @@ import com.sunjoy.parkmodel.mapper.PmsLaneDeviceMapper;
 import com.sunjoy.parkmodel.service.IPmsLaneDeviceService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -29,9 +30,13 @@ public class PmsLaneDeviceServiceImpl implements IPmsLaneDeviceService {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private ThreadPoolTaskExecutor parkingModelTaskExecutor;
+
     @PostConstruct
     private void initCache() {
-        refreshCache();
+        Runnable task = this::refreshCache;
+        parkingModelTaskExecutor.execute(task);
     }
 
     private void refreshCache() {

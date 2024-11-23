@@ -81,4 +81,9 @@ public class VehicleEntryParkHandler extends BaseVehicleArrivedHandler {
         entryRecords.put(pmsParkTransaction.getLicensePlate(), pmsParkTransaction);
         redisService.setCacheObject(cacheKey, entryRecords);
     }
+
+    @Override
+    protected PmsParkTransaction getEntryRecord(Long parkId, String licensePlate) {
+        return null;
+    }
 }

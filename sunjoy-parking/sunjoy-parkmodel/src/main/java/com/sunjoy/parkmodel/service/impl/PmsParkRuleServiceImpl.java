@@ -9,6 +9,7 @@ import com.sunjoy.parkmodel.mapper.PmsParkRuleMapper;
 import com.sunjoy.parkmodel.service.IPmsParkRuleService;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -29,22 +30,29 @@ public class PmsParkRuleServiceImpl implements IPmsParkRuleService {
     @Autowired
     private RedisService redisService;
 
+    @Autowired
+    private ThreadPoolTaskExecutor parkingModelTaskExecutor;
+
     /**
      * 将规则缓存到redis中
      */
     @PostConstruct
     private void initCache() {
-        PmsParkRule pmsParkRule = new PmsParkRule();
-        pmsParkRule.setStatus("1");
-        List<PmsParkRule> allRules = pmsParkRuleMapper.selectParkRulesByCriteria(pmsParkRule);
-        if (!allRules.isEmpty()) {
-            Map<Long, List<PmsParkRule>> groupedByParkId = allRules.stream()
-                    .collect(Collectors.groupingBy(PmsParkRule::getParkId));
-            groupedByParkId.forEach((parkId, rules) -> {
-                redisService.deleteObject(RedisKeyConstants.PARK_RULE + parkId);
-                redisService.setCacheList(RedisKeyConstants.PARK_RULE + parkId, rules);
-            });
-        }
+        Runnable task = () -> {
+            PmsParkRule pmsParkRule = new PmsParkRule();
+            pmsParkRule.setStatus("1");
+            List<PmsParkRule> allRules = pmsParkRuleMapper.selectParkRulesByCriteria(pmsParkRule);
+            if (!allRules.isEmpty()) {
+                Map<Long, List<PmsParkRule>> groupedByParkId = allRules.stream()
+                        .collect(Collectors.groupingBy(PmsParkRule::getParkId));
+                groupedByParkId.forEach((parkId, rules) -> {
+                    redisService.deleteObject(RedisKeyConstants.PARK_RULE + parkId);
+                    redisService.setCacheList(RedisKeyConstants.PARK_RULE + parkId, rules);
+                });
+            }
+        };
+        // 提交任务
+        parkingModelTaskExecutor.execute(task);
     }
 
     private void refreshParkRuleToCache(PmsParkRule pmsParkRule) {

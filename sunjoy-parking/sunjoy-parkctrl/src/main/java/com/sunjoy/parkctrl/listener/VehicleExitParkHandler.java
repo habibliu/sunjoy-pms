@@ -107,7 +107,8 @@ public class VehicleExitParkHandler extends BaseVehicleArrivedHandler {
         }
     }
 
-    private PmsParkTransaction getEntryRecord(Long parkId, String licensePlate) {
+    @Override
+    protected PmsParkTransaction getEntryRecord(Long parkId, String licensePlate) {
         PmsParkTransaction entryRecord = null;
         Map<String, PmsParkTransaction> entryRecords = redisService.getCacheObject(RedisKeyConstants.PARK_VEHICLE_INSIDE_MAP + parkId);
         if (entryRecords != null && entryRecords.containsKey(licensePlate)) {

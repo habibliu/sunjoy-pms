@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class PmsParkServiceSqlProvider {
     public String buildSelectQuery(PmsParkService conditions) {
         return new SQL() {{
-            SELECT("s.service_id,s.tenant_id,s.opu_id,s.price_id,s.park_id,s.expired_allowed,s.expired_duration,s.entry_message,s.exit_message,s.status,s.remark" +
+            SELECT("s.service_id,s.tenant_id,s.opu_id,s.price_id,s.park_id,s.expired_allowed,s.expired_duration,s.entry_message,s.exit_message,s.status,s.default_unregisted,s.remark" +
                    ",p.price_name,p.free,p.free_duration,p.uniform_price,p.price,p.price_unit,p.price_quantity,p.max_fee,p.max_unit,p.max_quantity");
             FROM("pms_park_service s");
             INNER_JOIN("pms_park_price p on p.price_id=s.price_id and p.tenant_id=s.tenant_id");
@@ -73,6 +73,9 @@ public class PmsParkServiceSqlProvider {
             }
             if (parkService.getEntryMessage() != null) {
                 SET("entry_message = #{entryMessage}");
+            }
+            if (parkService.getDefaultUnregisted() != null) {
+                SET("default_unregisted = #{defaultUnregisted}");
             }
             if (parkService.getExitMessage() != null) {
                 SET("exit_message = #{exitMessage}");
