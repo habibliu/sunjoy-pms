@@ -48,4 +48,8 @@ public class RedisKeyConstants {
     public static final String PARK_VEHICLE_INSIDE_MAP = "parking:vehicle-inside-map:";
 
     public static final String PARK_PRICE = "parking:price:";
+    /**
+     * 当前车道上被识别到的车
+     */
+    public static final String PARK_VEHICLE_IN_LANE = "parking:vehicle-in-lane:";
 }

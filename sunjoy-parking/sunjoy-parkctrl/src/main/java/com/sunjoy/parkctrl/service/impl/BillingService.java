@@ -9,6 +9,7 @@ import com.sunjoy.parking.entity.PmsParkService;
 import com.sunjoy.parking.enums.ParkingUintEnum;
 import com.sunjoy.parking.utils.RedisKeyConstants;
 import com.sunjoy.parking.vo.BillingDependency;
+import com.sunjoy.parking.vo.BillingPerdayResult;
 import com.sunjoy.parking.vo.BillingResult;
 import com.sunjoy.parking.vo.BillingSegment;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ public class BillingService implements IBillingService {
         PmsParkService parkService = parkServices.stream().filter(item -> Objects.equals(item.getServiceId(), dependency.getServiceId())).findFirst().orElse(null);
         BillingResult billingResult = new BillingResult();
         BeanUtils.copyBeanProp(billingResult, dependency);
+        //总时长，单位：分钟
         Long minutesDuration = DateUtils.minutesBetween(dependency.getStartTime(), dependency.getEndTime());
         billingResult.setBillingDuration(minutesDuration);
         if (null != parkService) {
@@ -61,40 +63,106 @@ public class BillingService implements IBillingService {
                 billingResult.setRemark("免费时段停车");
             } else {
 
-                //如果有分段，就先分段计费，并逐步扣减时长
-                if (pmsParkPrice.getDetailList() != null && !pmsParkPrice.getDetailList().isEmpty()) {
-                    // 计算跨越的自然天数
-                    List<BillingSegment> resultList = calculateDetail(dependency.getStartTime(), dependency.getEndTime(), pmsParkPrice);
-                    billingResult.setDetails(resultList);
-                    //如果还有剩余时间，用收费标准主表的收费规则计算
-                    Long totalDuration = resultList.stream()
-                            .map(BillingSegment::getTimeDuration)
-                            .reduce(0L, Long::sum);
+                //跨天数
+                //long daysBetween = ChronoUnit.DAYS.between(dependency.getStartTime(), dependency.getEndTime());
+                long daysBetween = DateUtils.daysBetween(dependency.getStartTime(), dependency.getEndTime());
+                //按天计算
+                for (int i = 0; i < daysBetween; i++) {
+                    LocalDateTime perDayStartTime = null;
+                    LocalDateTime perDayEndTime = null;
+                    if (i == 0) {
+                        //第一天
+                        perDayStartTime = dependency.getStartTime();
+                        perDayEndTime = perDayStartTime.toLocalDate().atTime(LocalTime.MAX).plusNanos(1);
+                    } else if (i + 1 == daysBetween) {
+                        //最后一天
+                        perDayStartTime = dependency.getStartTime().plusDays(i).toLocalDate().atTime(LocalTime.MIN);
+                        perDayEndTime = dependency.getEndTime();
+                    } else {
+                        //中间的任何一天
+                        perDayStartTime = dependency.getStartTime().plusDays(i).toLocalDate().atTime(LocalTime.MIN);
+                        perDayEndTime = dependency.getStartTime().plusDays(i).toLocalDate().atTime(LocalTime.MAX).plusNanos(1);
+                    }
+                    //计算每日的费用
+                    BillingPerdayResult perdayResult = calculatePerdayFree(perDayStartTime, perDayEndTime, pmsParkPrice);
+                    //todo 如果是第一天，还要扣减当天其他停车费用,如果涉及跨天，还要算出属于当天的那部分费用
+                    //设置第N天
+                    perdayResult.setOrder(i + 1);
+                    billingResult.getPerdayResultList().add(perdayResult);
 
-                    Long leftTime = minutesDuration - totalDuration;
-                    BigDecimal amount = compute(pmsParkPrice.getPrice(), pmsParkPrice.getPriceUnit(), pmsParkPrice.getPriceQuantity(), leftTime);
-                    BigDecimal detailTotalFee = resultList.stream()
-                            .map(BillingSegment::getAmount)
-                            .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                    BigDecimal totalAmount = detailTotalFee.add(amount);
-
-                    billingResult.setBillingAmount(totalAmount);
-                    billingResult.setRealAmount(totalAmount);
-                    billingResult.setFreeAmount(BigDecimal.valueOf(0));
-                    billingResult.setRemark("分段计费");
-                } else {//按收费标准主数据计算
-
-                    BigDecimal amount = compute(pmsParkPrice.getPrice(), pmsParkPrice.getPriceUnit(), pmsParkPrice.getPriceQuantity(), minutesDuration);
-                    billingResult.setRealAmount(amount);
-                    billingResult.setBillingAmount(amount);
-                    billingResult.setFreeAmount(BigDecimal.valueOf(0));
                 }
+                //计算完毕，设计总费用//汇总所有费用
+                BigDecimal totalBillingAmount = billingResult.getPerdayResultList().stream()
+                        .map(BillingPerdayResult::getBillingAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal totalRealAmount = billingResult.getPerdayResultList().stream()
+                        .map(BillingPerdayResult::getRealAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal totalFreeAmount = billingResult.getPerdayResultList().stream()
+                        .map(BillingPerdayResult::getFreeAmount)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                billingResult.setBillingAmount(totalBillingAmount);
+                billingResult.setRealAmount(totalRealAmount);
+                billingResult.setFreeAmount(totalFreeAmount);
             }
 
-            //汇总所有费用
         }
         return billingResult;
+    }
+
+    /**
+     * 计算每日的费用
+     */
+    private BillingPerdayResult calculatePerdayFree(LocalDateTime startTime, LocalDateTime endTime, PmsParkPrice pmsParkPrice) {
+        BillingPerdayResult perdayResult = new BillingPerdayResult();
+        perdayResult.setStartTime(startTime);
+        perdayResult.setEndTime(endTime);
+        Long minutesDuration = DateUtils.minutesBetween(startTime, endTime);
+        perdayResult.setTimeDuration(minutesDuration);
+
+        //如果有分段，就先分段计费，并逐步扣减时长
+        StringBuilder remark = new StringBuilder();
+        if (pmsParkPrice.getDetailList() != null && !pmsParkPrice.getDetailList().isEmpty()) {
+            remark.append("分段收费\n");
+            // 计算跨越的自然天数
+            List<BillingSegment> resultList = calculateDetail(startTime, endTime, pmsParkPrice);
+            perdayResult.setDetails(resultList);
+            //如果还有剩余时间，用收费标准主表的收费规则计算
+            Long totalDuration = resultList.stream()
+                    .map(BillingSegment::getTimeDuration)
+                    .reduce(0L, Long::sum);
+
+            Long leftTime = minutesDuration - totalDuration;
+            BigDecimal amount = compute(pmsParkPrice.getPrice(), pmsParkPrice.getPriceUnit(), pmsParkPrice.getPriceQuantity(), leftTime);
+            BigDecimal detailTotalFee = resultList.stream()
+                    .map(BillingSegment::getBillingAmount)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal totalAmount = detailTotalFee.add(amount);
+
+            perdayResult.setBillingAmount(totalAmount);
+            if (totalAmount.compareTo(pmsParkPrice.getMaxFee()) > 0) {
+                perdayResult.setRealAmount(pmsParkPrice.getMaxFee());
+                perdayResult.setFreeAmount(totalAmount.subtract(pmsParkPrice.getMaxFee()));
+                remark.append("超过当天最高收费");
+            } else {
+                perdayResult.setRealAmount(totalAmount);
+                perdayResult.setFreeAmount(BigDecimal.valueOf(0));
+            }
+            perdayResult.setRemark(remark.toString());
+        } else {//按收费标准主数据计算
+            BigDecimal amount = compute(pmsParkPrice.getPrice(), pmsParkPrice.getPriceUnit(), pmsParkPrice.getPriceQuantity(), minutesDuration);
+            perdayResult.setBillingAmount(amount);
+            if (amount.compareTo(pmsParkPrice.getMaxFee()) > 0) {
+                perdayResult.setRealAmount(pmsParkPrice.getMaxFee());
+                perdayResult.setFreeAmount(amount.subtract(pmsParkPrice.getMaxFee()));
+                remark.append("超过当天最高收费");
+            } else {
+                perdayResult.setRealAmount(amount);
+                perdayResult.setFreeAmount(BigDecimal.valueOf(0));
+            }
+        }
+        return perdayResult;
     }
 
     private List<BillingSegment> calculateDetail(LocalDateTime startTime, LocalDateTime endTime, PmsParkPrice pmsParkPrice) {
@@ -119,7 +187,7 @@ public class BillingService implements IBillingService {
                 billingSegment.setUnitPrice(item.getPrice() + "元/" + item.getPriceQuantity() + ParkingUintEnum.valueOf(item.getPriceUnit()).getDesc());
                 BigDecimal amount = compute(item.getPrice(), item.getPriceUnit(), item.getPriceQuantity(), slots.get(i).toMinutes());
                 billingSegment.setTimeDuration(slots.get(i).toMinutes());
-                billingSegment.setAmount(amount);
+                billingSegment.setBillingAmount(amount);
                 detailedSegments.add(billingSegment);
             }
         });
@@ -158,22 +226,32 @@ public class BillingService implements IBillingService {
                 unitQuantity = BigDecimal.valueOf(1L);
                 break;
             case HOUR:
-                unitQuantity = BigDecimal.valueOf(minutesDuration / 60);
+                unitQuantity = BigDecimal.valueOf(minutesDuration).divide(BigDecimal.valueOf(60), 2, BigDecimal.ROUND_UP);
                 break;
             case DAY:
-                unitQuantity = BigDecimal.valueOf(minutesDuration / (60 * 24));
+                unitQuantity = BigDecimal.valueOf(minutesDuration).divide(BigDecimal.valueOf(60 * 24), 2, BigDecimal.ROUND_UP);
+                ;
                 break;
             case WEEK:
-                unitQuantity = BigDecimal.valueOf(minutesDuration / (60 * 24 * 7));
+                unitQuantity = BigDecimal.valueOf(minutesDuration).divide(BigDecimal.valueOf(60 * 24 * 7), 2, BigDecimal.ROUND_UP);
+                ;
                 break;
             case MONTH:
-                unitQuantity = BigDecimal.valueOf(minutesDuration / (60 * 24 * 30));
-                unitQuantity = unitQuantity.setScale(0, BigDecimal.ROUND_HALF_UP);
+                unitQuantity = BigDecimal.valueOf(minutesDuration).divide(BigDecimal.valueOf(60 * 24 * 30), 1, BigDecimal.ROUND_HALF_UP);
                 break;
             default:
                 unitQuantity = BigDecimal.valueOf(minutesDuration);
         }
+        BigDecimal fractionalPart = unitQuantity.remainder(BigDecimal.ONE);
+        if (fractionalPart.compareTo(new BigDecimal("0.98")) > 0) {
+            //向上取整
+            return unitQuantity.setScale(0, BigDecimal.ROUND_UP);
+        } else if (fractionalPart.compareTo(new BigDecimal("0.02")) < 0) {
+            //向下取整
+            return unitQuantity.setScale(0, BigDecimal.ROUND_DOWN);
+        } else {
+            return unitQuantity;
+        }
 
-        return unitQuantity;
     }
 }

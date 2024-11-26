@@ -47,4 +47,9 @@ public class PmsParkTransactionServiceImpl implements IPmsParkTransactionService
     public void updateTransactionRecord(PmsParkTransaction parkTransaction) {
         pmsParkTransactionMapper.update(parkTransaction);
     }
+
+    @Override
+    public PmsParkTransaction pickupParkTransactionRecord(Long transId) {
+        return pmsParkTransactionMapper.findById(transId);
+    }
 }

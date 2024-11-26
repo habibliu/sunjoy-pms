@@ -84,7 +84,7 @@
             <groupId>com.sunjoy</groupId>
             <artifactId>sunjoy-common-mqtt</artifactId>
         </dependency>
-       
+
     </dependencies>
     <build>
         <plugins>

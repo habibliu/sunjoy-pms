@@ -10,12 +10,12 @@ import com.sunjoy.mqtt.domain.Payload;
 import com.sunjoy.mqtt.domain.VehicleArrivedPayload;
 import com.sunjoy.parkctrl.rule.AccessRuleFactory;
 import com.sunjoy.parkctrl.rule.IAccessRule;
-import com.sunjoy.parkctrl.service.IBillingService;
+import com.sunjoy.parkctrl.service.IPmsParkOrderService;
 import com.sunjoy.parking.entity.*;
 import com.sunjoy.parking.enums.DirectionEnum;
+import com.sunjoy.parking.enums.ParkingOrderTypeEnum;
 import com.sunjoy.parking.enums.ReleaseModeEnum;
 import com.sunjoy.parking.utils.RedisKeyConstants;
-import com.sunjoy.parking.vo.BillingDependency;
 import com.sunjoy.parking.vo.BillingResult;
 import com.sunjoy.parking.vo.VehiclePassage;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -87,6 +88,8 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
             log.warn("通行规则校验完毕，不通过! 耗时:{}毫秒", System.currentTimeMillis() - start);
             //告知司机不能通行的原因
             notifyDriver(vehiclePassage);
+            //将通道的车辆的信息缓存起来
+            this.getRedisService().setCacheObject(RedisKeyConstants.PARK_VEHICLE_IN_LANE + vehiclePassage.getLaneId(), vehiclePassage);
             //处理完成
             return;
         }
@@ -97,16 +100,22 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
                 log.info("计费完毕，本次停车时长：{}小时{}分钟, 总费用：{},耗时:{}毫秒", vehiclePassage.getStayDuration() / 60, vehiclePassage.getStayDuration() % 60, vehiclePassage.getParkingFee(), System.currentTimeMillis() - start);
                 BillingResult billingResult = vehiclePassage.getBillingResult();
                 log.info(billingResult.getBillingResultDescription());
+                //todo 生成订单
+                createParkOrder(billingResult);
+                log.info("临停车订单生成完毕，耗时:{}毫秒", System.currentTimeMillis() - start);
                 //如果产生费用，需要通知司机支付，并等待司机支付完才开闸
                 notifyDriverToPay(vehiclePassage);
                 log.info("已通知车主缴费！,耗时:{}毫秒", System.currentTimeMillis() - start);
                 //处理完成
-                return;
+
             } else {
                 log.warn("车辆{}计费失败，原因:{}", vehiclePassage.getLicensePlate(), vehiclePassage.getNotifyMessage());
                 //todo 计费失败，比如没有入场记录等，要通知相关人事处理，或者根据系统规则是否自动放行，如是要这样做，建议放到规则上处理,针对无入场记录的规则处理
-                return;
+
             }
+            //将通道的车辆的信息缓存起来,当
+            this.getRedisService().setCacheObject(RedisKeyConstants.PARK_VEHICLE_IN_LANE + vehiclePassage.getLaneId(), vehiclePassage);
+            return;
 
         }
         log.warn("{}无需缴费! 耗时:{}毫秒", vehiclePassage.getParkLane().getRap().equals(YesNoEnum.Yes.getCode()) ? "计费完毕，" : "", System.currentTimeMillis() - start);
@@ -137,6 +146,26 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
         setVehicleIdentify(vehiclePassage);
         vehiclePassage.setDirection(vehiclePassage.getParkLane().getDirection());
         return vehiclePassage;
+    }
+
+    /**
+     * 生成订单
+     *
+     * @param billingResult
+     */
+    private void createParkOrder(BillingResult billingResult) {
+        PmsParkOrder parkOrder = new PmsParkOrder();
+        BeanUtils.copyBeanProp(parkOrder, billingResult);
+        parkOrder.setOrderDetail(billingResult.toString());
+        parkOrder.setOrderType(ParkingOrderTypeEnum.UnregistedVechicle.getCode());
+        parkOrder.setDelFlag("0");
+        parkOrder.setRemark(billingResult.getBillingResultDescription());
+        parkOrder.setServiceName(billingResult.getParkPrice().getPriceName());
+        parkOrder.setCreateBy("SYSTEM");
+        parkOrder.setCreateTime(new Date());
+        //调用订单接口完成订单创建
+        IPmsParkOrderService orderService = SpringUtils.getBean(IPmsParkOrderService.class);
+        orderService.createParkOrder(parkOrder);
     }
 
     /**
@@ -222,38 +251,7 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
      * @param vehiclePassage
      * @return
      */
-    protected boolean billing(VehiclePassage vehiclePassage) {
-        log.info("车辆{}计费中....", vehiclePassage.getLicensePlate());
-        //如果是出场，取出入场记录
-        if (vehiclePassage.getDirection().equals(DirectionEnum.EXIT.getValue())) {
-            PmsParkTransaction entryRecord = this.getEntryRecord(vehiclePassage.getPark().getParkId(), vehiclePassage.getLicensePlate());
-            if (null == entryRecord) {
-                //todo 应该通知岗亭或者
-                vehiclePassage.setNotifyMessage("无入场记录！");
-                return false;
-            }
-            //构建计费对象
-            BillingDependency dependency = new BillingDependency();
-            if (null != vehiclePassage.getVehicleService()) {
-                dependency.setServiceId(vehiclePassage.getVehicleService().getServiceId());
-            } else {
-                dependency.setServiceId(vehiclePassage.getParkService().getServiceId());
-            }
-            dependency.setParkId(vehiclePassage.getPark().getParkId());
-            dependency.setLicensePlate(vehiclePassage.getLicensePlate());
-            dependency.setStartTime(entryRecord.getEntryTime());
-            dependency.setEndTime(vehiclePassage.getEventTime());
-            //调用计费服务
-            IBillingService billingService = SpringUtils.getBean(IBillingService.class);
-            BillingResult billingResult = billingService.calculate(dependency);
-            //设置计费结果
-            vehiclePassage.setStayDuration(billingResult.getBillingDuration());
-            vehiclePassage.setBillingResult(billingResult);
-            vehiclePassage.setParkingFee(billingResult.getRealAmount().floatValue());
-            return true;
-        }
-        return false;
-    }
+    abstract protected boolean billing(VehiclePassage vehiclePassage);
 
     /**
      * 通知司机支付

@@ -38,6 +38,7 @@
         <jakarta.servlet-api.version>6.0.0</jakarta.servlet-api.version>
         <com.baomidou.version>3.5.0</com.baomidou.version>
         <mybatis-plus.version>3.5.3.1</mybatis-plus.version>
+        <jackson-dataformat-xml.version>2.18.1</jackson-dataformat-xml.version>
     </properties>
 
     <!-- 依赖声明 -->
@@ -272,7 +273,31 @@
                 <scope>provided</scope>
             </dependency>
 
+            <!-- Jackson XML Dependency -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-xml</artifactId>
+                <version>2.15.0</version> <!-- 确保版本与其他 Jackson 依赖一致 -->
+            </dependency>
 
+            <!-- Jackson Core -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.15.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>2.15.0</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>2.15.0</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -288,9 +313,6 @@
         <module>sunjoy-psv</module>
         <module>sunjoy-visual</module>
         <module>sunjoy-parking</module>
-        <module>sunjoy-parking/sunjoy-parkbill</module>
-        <module>sunjoy-parking/sunjoy-parkorder</module>
-        <module>sunjoy-parking/sunjoy-parkpay</module>
 
     </modules>
     <packaging>pom</packaging>

@@ -7,14 +7,13 @@ import com.sunjoy.common.core.web.controller.BaseController;
 import com.sunjoy.common.core.web.domain.AjaxResult;
 import com.sunjoy.mqtt.config.SunjoyMqttClient;
 import com.sunjoy.mqtt.domain.VehicleArrivedPayload;
+import com.sunjoy.park.client.service.TextToSpeechService;
 import com.sunjoy.parking.utils.MqttTopics;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Class description
@@ -30,6 +29,8 @@ public class ParkClientController extends BaseController {
     private ObjectMapper objectMapper;
     @Autowired
     private SunjoyMqttClient mqttConnectionPool;
+    @Autowired
+    private TextToSpeechService textToSpeechService;
 
     @PostMapping(value = "/catch", consumes = "application/json")
     public AjaxResult add(@Validated @RequestBody VehicleArrivedPayload payload) throws MqttException, JsonProcessingException {
@@ -39,5 +40,15 @@ public class ParkClientController extends BaseController {
         // 创建消息
 
         return toAjax(1);
+    }
+
+    @GetMapping("/tts")
+    public ResponseEntity<byte[]> synthesize(@RequestParam String text) {
+        textToSpeechService.localSpeech(text);
+        byte[] audio = textToSpeechService.synthesizeSpeech(text);
+        // 根据需要设置音频类型
+        return ResponseEntity.ok()
+                .header("Content-Type", "audio/wav")
+                .body(audio);
     }
 }

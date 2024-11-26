@@ -4,10 +4,13 @@ import com.alibaba.fastjson2.JSON;
 import com.sunjoy.common.core.utils.SpringUtils;
 import com.sunjoy.common.redis.service.RedisService;
 import com.sunjoy.parkctrl.rule.AccessRuleFactory;
+import com.sunjoy.parkctrl.service.IBillingService;
 import com.sunjoy.parkctrl.service.IPmsParkTransactionService;
 import com.sunjoy.parking.entity.PmsParkTransaction;
 import com.sunjoy.parking.enums.ReleaseModeEnum;
 import com.sunjoy.parking.utils.RedisKeyConstants;
+import com.sunjoy.parking.vo.BillingDependency;
+import com.sunjoy.parking.vo.BillingResult;
 import com.sunjoy.parking.vo.VehiclePassage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,6 +129,42 @@ public class VehicleExitParkHandler extends BaseVehicleArrivedHandler {
         }
 
         return entryRecord;
+    }
+
+    @Override
+    protected boolean billing(VehiclePassage vehiclePassage) {
+        log.info("车辆{}计费中....", vehiclePassage.getLicensePlate());
+
+        PmsParkTransaction entryRecord = this.getEntryRecord(vehiclePassage.getPark().getParkId(), vehiclePassage.getLicensePlate());
+        if (null == entryRecord) {
+            //todo 应该通知岗亭或者
+            vehiclePassage.setNotifyMessage("无入场记录！");
+            return false;
+        }
+        //构建计费对象
+        BillingDependency dependency = new BillingDependency();
+        dependency.setTenantId(entryRecord.getTenantId());
+        dependency.setTransId(entryRecord.getTransId());
+        dependency.setOpuId(entryRecord.getOpuId());
+        if (null != vehiclePassage.getVehicleService()) {
+            dependency.setServiceId(vehiclePassage.getVehicleService().getServiceId());
+        } else {
+            dependency.setServiceId(vehiclePassage.getParkService().getServiceId());
+        }
+        dependency.setParkId(vehiclePassage.getPark().getParkId());
+        dependency.setParkName(vehiclePassage.getPark().getParkName());
+        dependency.setLicensePlate(vehiclePassage.getLicensePlate());
+        dependency.setStartTime(entryRecord.getEntryTime());
+        dependency.setEndTime(vehiclePassage.getEventTime());
+        //调用计费服务
+        IBillingService billingService = SpringUtils.getBean(IBillingService.class);
+        BillingResult billingResult = billingService.calculate(dependency);
+        //设置计费结果
+        vehiclePassage.setStayDuration(billingResult.getBillingDuration());
+        vehiclePassage.setBillingResult(billingResult);
+        vehiclePassage.setParkingFee(billingResult.getRealAmount().floatValue());
+        return true;
+
     }
 
 }

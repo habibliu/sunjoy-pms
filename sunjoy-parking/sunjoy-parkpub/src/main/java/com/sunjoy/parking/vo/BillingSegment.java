@@ -13,12 +13,30 @@ import java.time.LocalDateTime;
  */
 @Data
 public class BillingSegment {
-    private int id;
-    private int order;//序号，第X天
+    //序号，第X段
+    private int order;
+    /**
+     * 时间范围,例如:12:00-18:00
+     */
     private String timeRange;
+    /**
+     * 计价
+     */
     private String unitPrice;
+    /**
+     * 计费开始时间
+     */
     private LocalDateTime startTime;
+    /**
+     * 计费结束时间
+     */
     private LocalDateTime endTime;
+    /**
+     * 时费时长
+     */
     private Long timeDuration;
-    private BigDecimal amount;
+    /**
+     * 计费金额
+     */
+    private BigDecimal billingAmount;
 }

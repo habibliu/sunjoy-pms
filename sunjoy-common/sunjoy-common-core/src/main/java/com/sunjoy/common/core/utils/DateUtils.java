@@ -194,7 +194,7 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
 
     public static boolean isExpired(LocalDateTime compareDate, LocalDateTime endDate) {
 
-        LocalDateTime endOfToday = LocalDateTime.of(endDate.toLocalDate(), LocalTime.MAX);
+        LocalDateTime endOfToday = LocalDateTime.of(endDate.toLocalDate(), LocalTime.MAX).plusNanos(1);
         return compareDate.isAfter(endOfToday);
     }
 
@@ -209,13 +209,14 @@ public class DateUtils extends org.apache.commons.lang3.time.DateUtils {
         // 获取日期部分
         LocalDate startDate = startDateTime.toLocalDate();
         LocalDate endDate = endDateTime.toLocalDate();
-        return ChronoUnit.DAYS.between(startDate, endDate);
+        long daysBetween = ChronoUnit.DAYS.between(startDate, endDate);
 
         // 如果结束时间的日期部分和开始时间的日期部分相同，则不计入
         /*if (endDateTime.toLocalTime().isBefore(startDateTime.toLocalTime())) {
             daysBetween--;
         }*/
-        
+        daysBetween++;
+        return daysBetween;
     }
 
     public static Long minutesBetween(LocalDateTime startDateTime, LocalDateTime endDateTime) {

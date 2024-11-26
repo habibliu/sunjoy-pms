@@ -86,4 +86,15 @@ public class VehicleEntryParkHandler extends BaseVehicleArrivedHandler {
     protected PmsParkTransaction getEntryRecord(Long parkId, String licensePlate) {
         return null;
     }
+
+    /**
+     * 入场计费，通常是月租车或者某些特殊旅游景点的停车场，通常情况下很少是入场收费的
+     *
+     * @param vehiclePassage
+     * @return
+     */
+    @Override
+    protected boolean billing(VehiclePassage vehiclePassage) {
+        return false;
+    }
 }

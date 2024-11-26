@@ -22,8 +22,30 @@ public class BillingDependency implements Serializable {
      */
     private String billingId;
 
+    /**
+     * 停车事务ID
+     */
+    private Long transId;
+    /**
+     * 租户ID
+     */
+    private Long tenantId;
+    /**
+     * 经营单位ID
+     */
+    private Long opuId;
+
+    /**
+     * 停车场ID
+     */
     private Long parkId;
-    
+    /**
+     * 车场名称
+     */
+    private String parkName;
+    /**
+     * 车牌号码
+     */
     private String licensePlate;
     /**
      * 服务ID，也是收费标准ID

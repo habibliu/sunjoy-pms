@@ -26,4 +26,6 @@ public interface IPmsParkTransactionService {
      * @param parkTransaction
      */
     void updateTransactionRecord(PmsParkTransaction parkTransaction);
+
+    PmsParkTransaction pickupParkTransactionRecord(Long transId);
 }
