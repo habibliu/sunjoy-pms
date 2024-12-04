@@ -38,6 +38,15 @@ public interface PmsVehicleServiceMapper {
     @SelectProvider(type = PmsVehicleServiceSqlProvider.class, method = "selectByVehicleIds")
     List<PmsVehicleService> selectByVehicleIds(List<Long> vehicleIds);
 
-    @Select("SELECT * FROM pms_vehicle_service where vehicle_id=#{vehicleId} and del_flag='0'")
+    @Select("SELECT vs.*,p.park_name FROM pms_vehicle_service vs inner join pms_park p on p.park_id=vs.park_id where vs.vehicle_id=#{vehicleId} and vs.del_flag='0'")
     List<PmsVehicleService> selectByVehicleId(Long vehicleId);
+
+    /**
+     * 删除车辆服务
+     *
+     * @param vehicleId
+     * @param serviceId
+     */
+    @Delete("DELETE FROM pms_vehicle_service WHERE vehicle_id=#{vehicleId} and service_id=#{serviceId} and status='0'")
+    void deleteVehicleService(Long vehicleId, Long serviceId);
 }

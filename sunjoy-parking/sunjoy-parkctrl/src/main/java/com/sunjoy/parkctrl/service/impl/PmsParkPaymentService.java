@@ -1,6 +1,7 @@
 package com.sunjoy.parkctrl.service.impl;
 
 import com.sunjoy.parkctrl.mapper.PmsParkPaymentMapper;
+import com.sunjoy.parkctrl.service.IPmsParkOrderService;
 import com.sunjoy.parkctrl.service.IPmsParkPaymentService;
 import com.sunjoy.parking.entity.PmsParkPayment;
 import com.sunjoy.parking.enums.ParkPaymentStatusEnum;
@@ -22,6 +23,9 @@ public class PmsParkPaymentService implements IPmsParkPaymentService {
     @Autowired
     private PmsParkPaymentMapper parkPaymentMapper;
 
+    @Autowired
+    private IPmsParkOrderService pmsParkOrderService;
+
     @Override
     public void createPayment(PmsParkPayment parkPayment) {
         if (null == parkPayment.getStatus()) {
@@ -34,6 +38,8 @@ public class PmsParkPaymentService implements IPmsParkPaymentService {
             parkPayment.setCreateTime(new Date());
         }
         parkPaymentMapper.insertPayment(parkPayment);
+
+
     }
 
     @Override

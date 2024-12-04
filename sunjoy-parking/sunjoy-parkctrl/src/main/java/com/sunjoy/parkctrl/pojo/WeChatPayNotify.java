@@ -21,6 +21,9 @@ public class WeChatPayNotify {
     private String totalFee;
     private String timeEnd;
     private String sign;
+    private String mchId;
+    private String signType;
+    private String openid;
 
     @XmlElement(name = "return_code")
     public String getReturnCode() {
@@ -58,4 +61,18 @@ public class WeChatPayNotify {
         return sign;
     }
 
+    @XmlElement(name = "mch_id")
+    public String getMchId() {
+        return mchId;
+    }
+
+    @XmlElement(name = "sign_type")
+    public String getSignType() {
+        return this.signType;
+    }
+
+    @XmlElement(name = "openid")
+    public String getOpenid() {
+        return this.openid;
+    }
 }

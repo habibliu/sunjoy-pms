@@ -482,3 +482,6 @@ insert into sys_region (region_id,parent_id,region_name) values('161110','161100
 insert into sys_region (region_id,parent_id,region_name) values('161111','161100','芮城县');
 insert into sys_region (region_id,parent_id,region_name) values('161112','161100','永济市');
 insert into sys_region (region_id,parent_id,region_name) values('161113','161100','河津市');
+
+-- 内蒙古
+insert into sys_region (region_id,parent_id,region_name) values('170000','170000','榆次区');

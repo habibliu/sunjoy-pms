@@ -7,10 +7,13 @@ import com.sunjoy.common.core.web.controller.BaseController;
 import com.sunjoy.common.core.web.domain.AjaxResult;
 import com.sunjoy.mqtt.config.SunjoyMqttClient;
 import com.sunjoy.mqtt.domain.VehicleArrivedPayload;
+import com.sunjoy.park.client.entity.PlatformInfo;
+import com.sunjoy.park.client.service.SystemSettingService;
 import com.sunjoy.park.client.service.TextToSpeechService;
 import com.sunjoy.parking.utils.MqttTopics;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +34,17 @@ public class ParkClientController extends BaseController {
     private SunjoyMqttClient mqttConnectionPool;
     @Autowired
     private TextToSpeechService textToSpeechService;
+    @Autowired
+    private SystemSettingService systemSettingService;
 
+    /**
+     * 模拟车辆被识别
+     *
+     * @param payload
+     * @return
+     * @throws MqttException
+     * @throws JsonProcessingException
+     */
     @PostMapping(value = "/catch", consumes = "application/json")
     public AjaxResult add(@Validated @RequestBody VehicleArrivedPayload payload) throws MqttException, JsonProcessingException {
         payload.setUuid(UUID.fastUUID().toString().replace("-", ""));
@@ -43,12 +56,35 @@ public class ParkClientController extends BaseController {
     }
 
     @GetMapping("/tts")
-    public ResponseEntity<byte[]> synthesize(@RequestParam String text) {
+    public ResponseEntity<String> synthesize(@RequestParam String text) {
         textToSpeechService.localSpeech(text);
-        byte[] audio = textToSpeechService.synthesizeSpeech(text);
+        //byte[] audio = textToSpeechService.synthesizeSpeech(text);
         // 根据需要设置音频类型
         return ResponseEntity.ok()
                 .header("Content-Type", "audio/wav")
-                .body(audio);
+                .body("OK");
     }
+
+    @PostMapping(value = "/setting/save", consumes = "application/json")
+    public AjaxResult saveSystemSetting(@Validated @RequestBody PlatformInfo platformInfo) {
+        systemSettingService.saveSystemSetting(platformInfo);
+        return toAjax(1);
+    }
+
+    @GetMapping(value = "/setting/get")
+    public ResponseEntity<PlatformInfo> getSystemSetting() {
+        PlatformInfo platformInfo = systemSettingService.getSystemSetting();
+        PlatformInfo newPlatformInfo = null;
+        if (platformInfo != null) {
+            newPlatformInfo = new PlatformInfo();
+            newPlatformInfo.setId(platformInfo.getId());
+            newPlatformInfo.setPlatformUrl(platformInfo.getPlatformUrl());
+            newPlatformInfo.setUserName(platformInfo.getUserName());
+            newPlatformInfo.setPassword(platformInfo.getPassword());
+            return ResponseEntity.ok().body(newPlatformInfo);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(null); // 404 Not Found
+    }
+
 }

@@ -40,7 +40,7 @@ public interface PmsParkOrderMapper {
     @SelectProvider(type = ParkOrderProvider.class, method = "selectParkOrder")
     List<PmsParkOrder> selectParkOrder(PmsParkOrder parkOrder);
 
-    @Select("SELECT order_type, trans_id, tenant_id, opu_id, park_id, park_name," +
+    @Select("SELECT order_id,order_type, trans_id, tenant_id, opu_id, park_id, park_name," +
             "vehicle_id, license_plate, service_id, service_name, start_time, end_time, billing_amount, " +
             "real_amount, free_amount,  status, del_flag, create_by, create_time," +
             "update_by, update_time FROM pms_park_order where order_id=#{orderId}")

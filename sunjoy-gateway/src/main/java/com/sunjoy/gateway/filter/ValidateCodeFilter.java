@@ -55,7 +55,11 @@ public class ValidateCodeFilter extends AbstractGatewayFilterFactory<Object> {
             try {
                 String rspStr = resolveBodyFromRequest(request);
                 JSONObject obj = JSON.parseObject(rspStr);
-                validateCodeService.checkCaptcha(obj.getString(CODE), obj.getString(UUID));
+                if (request.getHeaders().getETag() != null && request.getHeaders().getETag().equals("ADAPTER")) {
+                    log.info("适配器登录，不用验证！");
+                } else {
+                    validateCodeService.checkCaptcha(obj.getString(CODE), obj.getString(UUID));
+                }
             } catch (Exception e) {
                 return ServletUtils.webFluxResponseWriter(exchange.getResponse(), e.getMessage());
             }

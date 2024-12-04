@@ -209,6 +209,7 @@
           <el-table-column
             label="车牌号码"
             align="left"
+            width="140"
             key="licensePlate"
             prop="licensePlate"
             v-if="columns[1].visible"
@@ -260,17 +261,18 @@
           />
           <el-table-column
             label="车位号码"
-            align="center"
+            align="left"
             key="lots"
             prop="lots"
             v-if="columns[8].visible"
             width="220"
+            :formatter="lotsFormatter"
           />
           <el-table-column
             label="服务套餐"
-            align="center"
-            key="services"
-            prop="services"
+            align="left"
+            key="serviceName"
+            prop="serviceName"
             v-if="columns[9].visible"
             width="220"
           />
@@ -578,11 +580,11 @@ export default {
       // 表单参数
       form: {},
 
-      //弹出框标题
+      // 弹出框标题
       title: "",
-      //弹出框是否显示
+      // 弹出框是否显示
       open: false,
-      //车辆维护form打开
+      // 车辆维护form打开
       openVehicleForm: false,
 
       defaultProps: {
@@ -592,15 +594,15 @@ export default {
 
       // 经营单位树选项
       opuOptions: [],
-      //经营单位名称，用于过滤
+      // 经营单位名称，用于过滤
       opuName: undefined,
 
-      //车场下拉框选项
+      // 车场下拉框选项
       parkOptions: [],
 
       // 日期范围
       dateRange: [],
-      //通道列表
+      // 通道列表
       serviceList: [],
 
       // 查询参数
@@ -786,8 +788,8 @@ export default {
       this.queryParams.ancestors = data.ancestors;
       this.selectOpuNode = data;
       this.handleQuery();
-      //初始化车场树
-      //this.getParkTreeList(data.id);
+      // 初始化车场树
+      // this.getParkTreeList(data.id);
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -850,16 +852,16 @@ export default {
         });
       }
     },
-    //启用车场，启用后，不能物理删除，只能逻辑删除
+    // 启用车辆，启用后，不能物理删除，只能逻辑删除
     handleEnable(row) {
       this.$modal
-        .confirm('是否确认启用编号为"' + row.vehicleId + '"的车场？')
+        .confirm('是否确认编号为:' + row.vehicleId + '，车牌号码为:' + row.licensePlate + '的车辆信息无误？')
         .then(function () {
           return changeVehicleStatus(row.vehicleId, "1");
         })
         .then(() => {
           this.getList();
-          this.$modal.msgSuccess("启用成功");
+          this.$modal.msgSuccess("审批成功");
         })
         .catch(() => {});
     },
@@ -986,7 +988,7 @@ export default {
         this.$refs.form.validateField("licensePlate");
       }
     },
-    //---------- formatters
+    // ---------- formatters
 
     vehicleTypeFormatter(row) {
       return this.selectDictLabel(
@@ -1002,6 +1004,11 @@ export default {
         return this.findTreeLabelById(this.opuOptions, row.opuId);
       }
     },
+    lotsFormatter(row, column) {
+      if (row.serviceId) {
+        return row.parkName + (row.lotNos ? '/' + row.lotNos : '')
+      }
+    }
   },
 };
 </script>

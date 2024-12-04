@@ -57,7 +57,7 @@ public class CarCapturedDevcieListener implements MqttSubscriber {
         //根据设备ID,将收到的消息放到消息队列，由对应的服务处理
         String handlerTopic = matchHandlerTopic(payload);
         if (handlerTopic == null) {
-            log.error("没有对应的处理类接收！");
+            log.warn("设备{}没有在平台注册，不处理！", payload.getDeviceId());
             return;
         }
         BaseVehicleArrivedHandler handler = null;

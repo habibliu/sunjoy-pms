@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import { parseStrEmpty } from "@/utils/ruoyi";
+import { parseStrEmpty } from '@/utils/ruoyi'
 
 // 查询车辆
 export function listVehicle(query) {
@@ -18,7 +18,7 @@ export function addVehicle(data) {
     data: data
   })
 }
-//修改车辆档案
+// 修改车辆档案
 export function updateVehicle(data) {
   return request({
     url: '/parkmodel/vehicle',
@@ -29,9 +29,9 @@ export function updateVehicle(data) {
 // 获取车辆档案
 export function getVehicle(vehicleId) {
   return request({
-    url: '/parkmodel/vehicle/'+parseStrEmpty(vehicleId),
+    url: '/parkmodel/vehicle/' + parseStrEmpty(vehicleId),
     method: 'get'
-    
+
   })
 }
 
@@ -55,17 +55,17 @@ export function updateService(data) {
 }
 
 // 删除收费标准
-export function delService(vehicleId,serviceIds) {
+export function deleteVehicleService(vehicleId, serviceIds) {
   return request({
-    url: '/parkmodel/service/'+vehicleId+'/' + serviceIds,
+    url: '/parkmodel/vehicle/service/' + vehicleId + '/' + serviceIds,
     method: 'delete'
   })
 }
 /**
  * 获取车辆的收费标准
- * @param {*} vehicleId 
+ * @param {*} vehicleId
  */
-export function getVehicleService(vehicleId){
+export function getVehicleService(vehicleId) {
   return request({
     url: '/parkmodel/vehicle/service/' + parseStrEmpty(vehicleId),
     method: 'get'
@@ -74,13 +74,13 @@ export function getVehicleService(vehicleId){
 
 /**
  * 变更车辆服务状态
- * @param {} id 
- * @returns 
+ * @param {} id
+ * @returns
  */
-export function  changeVehicleServiceStatus(data){
+export function changeVehicleServiceStatus(data) {
   return request({
     url: '/parkmodel/vehicle/service',
     method: 'put',
-    data:data
+    data: data
   })
 }

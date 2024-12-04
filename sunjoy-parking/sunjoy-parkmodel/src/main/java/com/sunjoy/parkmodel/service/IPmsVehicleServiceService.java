@@ -29,4 +29,12 @@ public interface IPmsVehicleServiceService {
     void insertVehicleService(PmsVehicleService vehicleService);
 
     void updateVehicleService(PmsVehicleService vehicleService);
+
+    /**
+     * 删除车辆服务
+     *
+     * @param vehicleId
+     * @param serviceId
+     */
+    void deleteVehicleService(Long vehicleId, Long serviceId);
 }

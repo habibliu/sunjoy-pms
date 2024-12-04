@@ -36,6 +36,7 @@ public class TokenController {
         // 获取登录token
         return R.ok(tokenService.createToken(userInfo));
     }
+    
 
     @DeleteMapping("/logout")
     public R<?> logout(HttpServletRequest request) {

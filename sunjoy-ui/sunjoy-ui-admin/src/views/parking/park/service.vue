@@ -74,7 +74,7 @@
           align="center"
           key="serviceId"
           prop="serviceId"
-      
+
           width="80"
         />
         <el-table-column
@@ -82,7 +82,7 @@
           align="left"
           key="priceName"
           prop="priceName"
-      
+
           :show-overflow-tooltip="true"
           width="300"
         />
@@ -90,7 +90,7 @@
           <el-table-column
             label="免费"
             align="center"
-        
+
             :show-overflow-tooltip="true"
             :formatter="freeFormatter"
             width="80"
@@ -100,7 +100,7 @@
             align="center"
             key="uniformPrice"
             prop="uniformPrice"
-           
+
             :show-overflow-tooltip="true"
             :formatter="uniformPriceFormatter"
             width="80"
@@ -113,13 +113,13 @@
             prop="freeDuration"
             v-if="columns[4].visible"
             width="120"
-          
+
           />
         <el-table-column
           label="单价"
           align="center"
           key="price"
-        
+
           :show-overflow-tooltip="true"
           :formatter="priceFormatter"
         />
@@ -127,7 +127,7 @@
           label="最高收费"
           align="center"
           key="maxFee"
-         
+
           width="160"
           :formatter="maxFeeFormatter"
         />
@@ -136,7 +136,7 @@
             label="允许通行"
             align="center"
             key="expiredAllowed"
-        
+
             width="100"
             :formatter="allowedFormatter"
           />
@@ -144,7 +144,7 @@
             label="保留身份时限"
             align="center"
             key="expiredDuration"
-          
+
             width="100"
             :formatter="durationFormatter"
           />
@@ -169,7 +169,7 @@
           label="状态"
           align="center"
           key="status"
-         
+
           width="100"
           :formatter="statusFormatter"
         />
@@ -177,7 +177,7 @@
         <el-table-column
           label="操作"
           align="center"
-          width="200"
+          width="250"
           fixed="right"
           class-name="small-padding fixed-width"
         >
@@ -202,7 +202,7 @@
                 type="text"
                 icon="el-icon-video-play"
                 @click="handleEnable(scope.row)"
-                
+
                 :disabled="scope.row.status!=0"
                 >启用</el-button
               >
@@ -494,10 +494,10 @@ export default {
   methods: {
     getList(parkId) {
       this.loading = true;
-      
+
       getParkServices(parkId).then((resp) => {
         this.serviceList = resp.data;
-       
+
       });
       this.loading = false;
     },
@@ -545,7 +545,7 @@ export default {
     submitPrice() {
       //将selectedPriceList与已经保存的serviceList比较，不存在的才提效到后台
       // 使用 filter 和 some 来过滤 selectedPriceList
-      
+
       const filteredPriceList = this.selectedPriceList.filter(
         (selectedPrice) =>
           !this.serviceList.some(
@@ -613,19 +613,19 @@ export default {
     },
     //启用收费服务
     handleEnable(row){
-      
+
         this.$modal
         .confirm('是否确认启用编号为"' + row.serviceId + '"的车场收费服务？')
         .then(function () {
           return changeParkServiceStatus(row.serviceId);
         })
         .then(() => {
-          
+
           this.getList(this.parkId);
           this.$modal.msgSuccess("启用成功");
         })
         .catch(() => {});
-        
+
     },
     //停用收费服务
     handleDisable(row){
@@ -638,7 +638,7 @@ export default {
         parkId: NaN,
         expiredDuration: "0",
       };
-    
+
       this.serviceList = [];
 
       //服务ID列表，多选

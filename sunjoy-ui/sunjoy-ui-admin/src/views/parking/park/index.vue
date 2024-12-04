@@ -192,7 +192,7 @@
             :show-overflow-tooltip="true"
              width="200"
           />
-          
+
           <el-table-column
             label="经营单位"
             align="left"
@@ -267,7 +267,7 @@
           <el-table-column
             label="操作"
             align="center"
-            width="300"
+            width="330"
             fixed="right"
             class-name="small-padding fixed-width"
           >
@@ -444,7 +444,7 @@
               </el-col>
             </el-row>
 
-           
+
             <el-row class="parkRow">
               <el-col :span="24">
                 <el-form-item label="备注">
@@ -742,7 +742,7 @@ export default {
       this.$refs["form"].validate((valid) => {
         if (valid) {
           let submitObj = this.form;
-          
+
           //回填form中的region，提交到后台
           submitObj.region = this.regionId;
           if (this.form.parkId != undefined && !isNaN(this.form.parkId)) {
@@ -753,7 +753,7 @@ export default {
               this.getList();
             });
           } else {
-            
+
             if (this.laneList.length > 0) {
               submitObj.laneList = this.laneList;
             }

@@ -82,6 +82,10 @@ public class PmsVehicleServiceServiceImpl implements IPmsVehicleServiceService {
         if (vehicleService.getCreateTime() == null) {
             vehicleService.setCreateTime(new Date());
         }
+        if (vehicleService.getTenantId() == null) {
+            vehicleService.setTenantId(SecurityUtils.getTenantId());
+        }
+        
 
         this.pmsVehicleServiceMapper.insert(vehicleService);
     }
@@ -110,5 +114,10 @@ public class PmsVehicleServiceServiceImpl implements IPmsVehicleServiceService {
 
         }
         this.pmsVehicleServiceMapper.update(vehicleService);
+    }
+
+    @Override
+    public void deleteVehicleService(Long vehicleId, Long serviceId) {
+        this.pmsVehicleServiceMapper.deleteVehicleService(vehicleId, serviceId);
     }
 }

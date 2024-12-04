@@ -74,6 +74,7 @@ public class TextToSpeechService {
                 // 转换流为Clip对象
                 AudioFormat format = audioInputStream.getFormat();
                 DataLine.Info info = new DataLine.Info(Clip.class, format);
+
                 Clip clip = (Clip) AudioSystem.getLine(info);
                 clip.open(audioInputStream);
                 clip.start();

@@ -110,8 +110,12 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
 
             } else {
                 log.warn("车辆{}计费失败，原因:{}", vehiclePassage.getLicensePlate(), vehiclePassage.getNotifyMessage());
-                //todo 计费失败，比如没有入场记录等，要通知相关人事处理，或者根据系统规则是否自动放行，如是要这样做，建议放到规则上处理,针对无入场记录的规则处理
-
+                //todo 计费失败，比如没有入场记录等，如果有挂岗亭，就要通知岗亭人处理，或者根据系统规则是否自动放行，如是要这样做，建议放到规则上处理,针对无入场记录的规则处理
+                if (isOnPosition(vehiclePassage)) {
+                    notifyToPosition(vehiclePassage);
+                } else {
+                    //todo 根据规则判断是否直接开闸放行
+                }
             }
             //将通道的车辆的信息缓存起来,当
             this.getRedisService().setCacheObject(RedisKeyConstants.PARK_VEHICLE_IN_LANE + vehiclePassage.getLaneId(), vehiclePassage);
@@ -126,6 +130,26 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
         saveVehicleTransctionRecord(vehiclePassage);
         long end = System.currentTimeMillis();
         log.info("数据记录保存完成，车辆{}{}处理完毕,总耗时:{}毫秒！", vehiclePassage.getLicensePlate(), direction, System.currentTimeMillis() - start);
+    }
+
+    /**
+     * 是否有人值班
+     *
+     * @param vehiclePassage
+     * @return
+     */
+    private boolean isOnPosition(VehiclePassage vehiclePassage) {
+        //todo 实现判断是否有人本通道是否有挂岗亭，是否有人值班
+        return true;
+    }
+
+    /**
+     * 通知岗亭处理
+     *
+     * @param vehiclePassage
+     */
+    private void notifyToPosition(VehiclePassage vehiclePassage) {
+        //todo 实现通知岗亭的逻辑
     }
 
     /**
@@ -181,7 +205,9 @@ abstract public class BaseVehicleArrivedHandler implements Runnable {
                                                     && Objects.equals(item.getParkId(), vehiclePassage.getPark().getParkId()))
                     .max(Comparator.comparing(PmsVehicleService::getEndDate))
                     .ifPresent(vehiclePassage::setVehicleService);
-        } else {//临停车，取车场的默认的临停车收费标准
+        }
+        //临停车，取车场的默认的临停车收费标准
+        if (null == vehiclePassage.getVehicleService()) {
             List<PmsParkService> parkServiceList = getRedisService().getCacheObject(RedisKeyConstants.PARK_SERVICE + vehiclePassage.getPark().getParkId());
             if (!parkServiceList.isEmpty()) {
                 PmsParkService parkService = parkServiceList.stream().filter(item -> YesNoEnum.Yes.getCode().equals(item.getDefaultUnregisted())).findFirst().orElse(null);

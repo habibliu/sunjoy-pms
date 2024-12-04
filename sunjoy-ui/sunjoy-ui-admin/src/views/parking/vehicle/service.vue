@@ -20,7 +20,7 @@
             icon="el-icon-plus"
             size="mini"
             @click="handlerAddService"
-            >选择收费标准</el-button
+            >增加收费标准</el-button
           >
         </el-col>
       </el-row>
@@ -44,7 +44,7 @@
           key="serviceName"
           prop="serviceName"
           :show-overflow-tooltip="true"
-          width="200"
+          width="300"
         />
         <el-table-column
           label="车场ID"
@@ -62,9 +62,9 @@
           :show-overflow-tooltip="true"
         />
 
-        <el-table-column label="车位编号" align="center" width="100"
-          ><template #default="scope">
-            <div v-if="scope.row.status === 0">
+        <el-table-column label="车位编号" align="center" width="200">
+          <template #default="scope">
+            <div v-if="scope.row.status === '0'">
               <el-input
                 v-model="scope.row.lotNos"
                 placeholder="请输入车位编号"
@@ -79,7 +79,7 @@
 
         <el-table-column label="开始日期" width="120" align="center">
           <template #default="scope">
-            <div v-if="scope.row.status === 0">
+            <div v-if="scope.row.status === '0'">
               <el-date-picker
                 v-model="scope.row.startDate"
                 type="date"
@@ -93,7 +93,7 @@
         </el-table-column>
         <el-table-column label="结束日期" width="120" align="center">
           <template #default="scope">
-            <div v-if="scope.row.status === 0">
+            <div v-if="scope.row.status === '0'">
               <el-date-picker
                 v-model="scope.row.endDate"
                 type="date"
@@ -116,10 +116,18 @@
         <el-table-column
           label="操作"
           align="center"
-          width="160"
+          width="300"
           class-name="small-padding fixed-width"
         >
           <template slot-scope="scope">
+            <el-button
+              size="mini"
+              type="text"
+              icon="el-icon-edit"
+              @click="toUpdateVehicleService(scope.row)"
+              :disabled="scope.row.status != 0"
+              >修改</el-button
+            >
             <el-button
               size="mini"
               type="text"
@@ -140,15 +148,44 @@
             <el-button
               size="mini"
               type="text"
+
+              @click="toRecharge(scope.row)"
+              :disabled="scope.row.status != 1"
+              v-if="vehicleId"
+              >
+              <IconRecharge :color="scope.row.status != 1 ? '#2c2c2c' : '#1296db'"/>
+              充值</el-button
+            >
+            <el-button
+              size="mini"
+              type="text"
               icon="el-icon-video-pause"
               @click="handleDisable(scope.row)"
               v-if="vehicleId"
               :disabled="scope.row.status != 1"
               >停用</el-button
             >
+            <el-button
+              size="mini"
+              type="text"
+              icon="el-icon-chat-dot-square"
+              @click="toView(scope.row)"
+              v-if="vehicleId"
+              >详情</el-button
+            >
           </template>
         </el-table-column>
       </el-table>
+    </el-row>
+    <el-row>
+      <div class="footer-center" v-show="buttonVisible">
+        <el-button
+          type="primary"
+          :disabled="!activeSubmit"
+          @click="onSubmitVehicleService"
+          >提交</el-button
+        >
+      </div>
     </el-row>
 
     <el-dialog
@@ -253,14 +290,16 @@
 import {
   addService,
   updateService,
-  delService,
+  deleteVehicleService,
   getVehicleService,
   changeVehicleServiceStatus,
 } from "@/api/parking/vehicle";
 import { formatDate } from "@/utils/formatters";
 import { getParkServices } from "@/api/parking/service";
 import { getParkTree } from "@/api/parking/park";
-import {  addOneMonth } from "@/utils/ruoyi";
+import { addOneMonth } from "@/utils/ruoyi";
+
+import IconRecharge from '@/components/icons/IconRecharge.vue';
 
 export default {
   name: "VehicleService",
@@ -270,6 +309,7 @@ export default {
     "sys_yes_no",
     "sys_entity_status",
   ],
+  components: {IconRecharge},
   props: {
     opuId: {
       type: Number,
@@ -284,6 +324,7 @@ export default {
   },
   data() {
     return {
+      rechargePath: require('@/assets/icons/svg/recharge.svg'), // 确保路径正确
       // 总条数
       total: 0,
       // 遮罩层
@@ -294,22 +335,24 @@ export default {
       multiple: false,
       // 车场表格数据
       serviceList: [],
-      //弹出框是否显示
+      // 弹出框是否显示
       open: false,
-      //通道表单显示
+      // 通道表单显示
       title: undefined,
+      // 按钮是否可见
+      buttonVisible: true,
 
-      //车场服务对象表单信息
+      // 车场服务对象表单信息
       form: {},
 
-      //车场下拉框选项
+      // 车场下拉框选项
       parkOptions: [],
 
       selectParkId: NaN,
 
-      //车场服务ID，多选
+      // 车场服务ID，多选
       serviceIds: [],
-      //车场收费标准列表
+      // 车场收费标准列表
       parkServiceList: [],
 
       selectedParkServiceList: [],
@@ -331,8 +374,55 @@ export default {
         checkStrictly: true,
       },
       priceOpen: false,
-     
+      // 是否激活提交按钮
+      activeSubmit: false,
     };
+  },
+  watch: {
+    opuId: {
+      handler(newVal, oldVal) {
+        this.parkOptions = [];
+        if (newVal) {
+          this.getParkTreeList(newVal);
+        }
+      },
+      deep: true,
+      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
+    },
+    parkIds: {
+      handler(newVal, oldVal) {
+        if (newVal && Array.isArray(newVal)) {
+          this.selectParkId = newVal[0];
+        } else {
+          this.selectParkId = undefined;
+        }
+      },
+      deep: true,
+      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
+    },
+    vehicleId: {
+      handler(newVal, oldVal) {
+        if (newVal) {
+          this.getList(newVal);
+        }
+      },
+      deep: true,
+      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
+    },
+  },
+
+  created() {
+    try {
+      const combine = this.$route.params && this.$route.params.vehicleId;
+      const splitArray = combine.split("-");
+
+      this.vehicleId = Number(splitArray[0]);
+      this.opuId = Number(splitArray[1]);
+    } catch (error) {
+      this.buttonVisible = false;
+    }
+
+    // this.getList(this.vehicleId);
   },
   methods: {
     getParkTreeList(opuId) {
@@ -380,7 +470,7 @@ export default {
     handleSelectionChange(selection) {
       this.serviceIds = selection.map((item) => item.serviceId);
 
-      this.single = selection.length != 1;
+      this.single = selection.length !== 1;
       this.multiple = !selection.length;
     },
     /**
@@ -402,10 +492,23 @@ export default {
       this.title = "添加收费标准";
     },
     /**
+     * 更新车辆服务
+     * @param row
+     */
+    toUpdateVehicleService(row) {
+      updateService(row)
+        .then((resp) => {
+          this.$modal.msgSuccess("更新成功");
+        })
+        .catch(() => {
+          this.$modal.msgSuccess("更新失败");
+        });
+    },
+    /**
      * 选择车场服务
      */
     onSelectParkService() {
-      //将selectedPriceList与已经保存的serviceList比较，不存在的才提效到后台
+      // 将selectedPriceList与已经保存的serviceList比较，不存在的才提效到后台
       // 使用 filter 和 some 来过滤 selectedParkServiceList
 
       const filteredPriceList = this.selectedParkServiceList.filter(
@@ -417,6 +520,8 @@ export default {
 
       // 转换函数
       const transformedArray = filteredPriceList.map((item) => ({
+        opuId: this.opuId,
+        vehicleId: this.vehicleId,
         serviceId: item.serviceId,
         serviceName: this.transformPriceName(item.priceName), // 转换 priceName 为 serviceName
         parkId: this.selectParkId,
@@ -429,7 +534,30 @@ export default {
       this.serviceList = this.serviceList.concat(transformedArray);
       this.$emit("submit", this.serviceList);
       this.priceOpen = false;
+      if (this.hasNewRecord()) {
+        this.activeSubmit = true;
+      }
     },
+    onSubmitVehicleService() {
+      const emptyOrMissingIdRecords = this.serviceList.filter(
+        (service) =>
+          service.id === null ||
+          service.id === "" ||
+          service.id === undefined ||
+          !("id" in service) // 检查 id 属性是否存在
+      );
+      if (emptyOrMissingIdRecords.length > 0) {
+        addService(emptyOrMissingIdRecords).then((resp) => {
+          // 重新加载
+          this.getList(this.vehicleId);
+          this.activeSubmit = false;
+        });
+      }
+    },
+    /**
+     * 充值
+     */
+    toRecharge(row) {},
 
     findParkName(parkOptions, targetId) {
       for (const park of parkOptions) {
@@ -438,7 +566,7 @@ export default {
         }
         // 如果有子节点，递归查找
         if (park.children) {
-          const result = findParkName(park.children, targetId);
+          const result = this.findParkName(park.children, targetId);
           if (result) {
             return result; // 如果在子节点中找到，返回结果
           }
@@ -451,29 +579,47 @@ export default {
       this.priceOpen = false;
     },
 
+    hasNewRecord() {
+      const emptyOrMissingIdRecords = this.serviceList.filter(
+        (service) =>
+          service.id === null ||
+          service.id === "" ||
+          service.id === undefined ||
+          !("id" in service) // 检查 id 属性是否存在
+      );
+
+      return emptyOrMissingIdRecords.length !== 0;
+    },
+
     handleDelVehiclePrice(row) {
-      //闭包传对象
+      // 闭包传对象
       const that = this;
       const selectserviceIds = row.serviceId || this.serviceIds;
       this.$modal
         .confirm("是否确认删除当前行[" + row.serviceName + "]的收费标准？")
         .then(function () {
-          //如果已经有车辆ID，直接调用后台接口删除
+          // 如果已经有车辆ID，直接调用后台接口删除
 
-          if (that.vehicleId) {
-            delService(that.vehicleId, selectserviceIds).then((resp) => {});
+          if (row.id) {
+            deleteVehicleService(that.vehicleId, selectserviceIds).then(
+              (resp) => {}
+            );
           }
           that.serviceList = that.serviceList.filter(
             (service) => service.serviceName !== row.serviceName
           );
+          if (this.hasNewRecord()) {
+            this.activeSubmit = true;
+          } else {
+            this.activeSubmit = false;
+          }
         });
     },
-    //启用收费服务
+    // 启用收费服务
     handleEnable(row) {
       this.$modal
         .confirm('是否确认启用编号为"' + row.id + '"的车场收费服务？')
         .then(function () {
-          
           return changeVehicleServiceStatus({ id: row.id, status: "1" });
         })
         .then(() => {
@@ -484,7 +630,7 @@ export default {
         })
         .catch(() => {});
     },
-    //停用收费服务
+    // 停用收费服务
     handleDisable(row) {
       alert(row.status);
     },
@@ -495,14 +641,13 @@ export default {
 
       this.serviceList = [];
 
-      //服务ID列表，多选
-      (this.serviceIds = []),
-        //通道设备关系ID列表，多选
-
-        this.resetForm("form");
+      // 服务ID列表，多选
+      this.serviceIds = [];
+      // 通道设备关系ID列表，多选
+      this.resetForm("form");
     },
 
-    //---格式化代码开始
+    // ---格式化代码开始
     formatDate(date) {
       return formatDate(date);
     },
@@ -544,48 +689,6 @@ export default {
       return this.selectDictLabel(this.dict.type.sys_yes_no, row.uniformPrice);
     },
   },
-  watch: {
-    opuId: {
-      handler(newVal, oldVal) {
-        this.parkOptions = [];
-        if (newVal) {
-          this.getParkTreeList(newVal);
-        }
-      },
-      deep: true,
-      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
-    },
-    parkIds: {
-      handler(newVal, oldVal) {
-        if (newVal && Array.isArray(newVal)) {
-          this.selectParkId = newVal[0];
-        } else {
-          this.selectParkId = undefined;
-        }
-      },
-      deep: true,
-      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
-    },
-    vehicleId: {
-      handler(newVal, oldVal) {
-       
-        if (newVal) {
-          this.getList(newVal);
-        }
-      },
-      deep: true,
-      immediate: true, // 立即执行,这个配置必需要，否则要第二次才能触发监控
-    },
-  },
-
-  created(){
-    const combine = this.$route.params && this.$route.params.vehicleId;
-    const splitArray = combine.split('-');
-    debugger
-    this.vehicleId=Number(splitArray[0]);
-    this.opuId=Number(splitArray[1]);
-    //this.getList(this.vehicleId);
-  }
 };
 </script>
 
@@ -598,5 +701,17 @@ export default {
   font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB,
     Microsoft YaHei, SimSun, sans-serif;
   font-weight: 400;
+}
+.footer-center {
+  display: flex;
+  justify-content: center; /* 水平居中 */
+  align-items: center; /* 垂直居中 */
+  height: 200px; /* 设置高度以便垂直居中 */
+}
+
+.el-icon-recharge{
+  background: url('~@/assets/icons/svg/search.svg') no-repeat;
+  font-size: 16px;
+  background-size: cover;
 }
 </style>

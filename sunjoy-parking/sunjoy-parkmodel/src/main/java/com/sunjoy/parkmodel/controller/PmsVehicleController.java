@@ -1,6 +1,5 @@
 package com.sunjoy.parkmodel.controller;
 
-import com.sunjoy.common.core.utils.bean.BeanUtils;
 import com.sunjoy.common.core.web.controller.BaseController;
 import com.sunjoy.common.core.web.domain.AjaxResult;
 import com.sunjoy.common.core.web.page.TableDataInfo;
@@ -10,8 +9,6 @@ import com.sunjoy.common.redis.service.RedisService;
 import com.sunjoy.common.security.annotation.RequiresPermissions;
 import com.sunjoy.parking.entity.PmsVehicle;
 import com.sunjoy.parking.entity.PmsVehicleService;
-import com.sunjoy.parking.utils.RedisKeyConstants;
-import com.sunjoy.parkmodel.pojo.ParkServicePojo;
 import com.sunjoy.parkmodel.pojo.VehiclePojo;
 import com.sunjoy.parkmodel.service.IPmsVehicleService;
 import com.sunjoy.parkmodel.service.IPmsVehicleServiceService;
@@ -19,11 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * 车辆档案信息控制类
@@ -48,40 +41,7 @@ public class PmsVehicleController extends BaseController {
     public TableDataInfo list(PmsVehicle config) {
         startPage();
         List<PmsVehicle> list = pmsVehicleService.getVehiclesByCondition(config);
-        List<VehiclePojo> pojoList = new ArrayList<VehiclePojo>();
-        if (!list.isEmpty()) {
-            //取出所有车辆ID
-            List<Long> vehicleIds = list.stream().map(PmsVehicle::getVehicleId).collect(Collectors.toList());
-            //从数据库取出与当前所有车辆有关的车辆收费服务
-            List<PmsVehicleService> vehicleServices = pmsVehicleServiceService.getVehicleServiceByVehicleIds(vehicleIds);
-            //按车辆分组，形成map结构，方便定位
-            Map<Long, Long> vehicleIdToServiceId = vehicleServices.stream()
-                    .collect(Collectors.toMap(PmsVehicleService::getVehicleId, PmsVehicleService::getServiceId));
-
-            list.forEach(vehicle -> {
-                VehiclePojo pojo = new VehiclePojo();
-                BeanUtils.copyBeanProp(pojo, vehicle);
-                //设置服务套餐
-                Long serviceId = vehicleIdToServiceId.get(vehicle.getVehicleId());
-                if (redisService.hasKey(RedisKeyConstants.PARK_SERVICE + serviceId)) {
-                    ParkServicePojo parkService = (ParkServicePojo) redisService.getCacheObject(RedisKeyConstants.PARK_SERVICE + serviceId);
-                    pojo.setServices(parkService.getPriceName());
-                }
-                PmsVehicleService vehicleService = vehicleServices.stream().filter(item -> Objects.equals(item.getVehicleId(), vehicle.getVehicleId()) && Objects.equals(item.getServiceId(), serviceId)).findFirst().orElse(null);
-                if (vehicleService != null) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(vehicleService.getParkName());
-                    if (null != vehicleService.getLotNos()) {
-                        sb.append("/").append(vehicleService.getLotNos());
-                    }
-                    pojo.setLots(sb.toString());
-                }
-                //设置车位信息
-
-                pojoList.add(pojo);
-            });
-        }
-        return getDataTable(pojoList);
+        return getDataTable(list);
     }
 
     @RequiresPermissions("parking:vehicle:add")
@@ -137,4 +97,31 @@ public class PmsVehicleController extends BaseController {
         pmsVehicleServiceService.updateVehicleService(vehicleService);
         return toAjax(1);
     }
+
+    @RequiresPermissions("parking:vehicle:update")
+    @Log(title = "车辆登记-收费标准-批量新增", businessType = BusinessType.UPDATE)
+    @PostMapping("/service")
+    public AjaxResult batchSaveVehicleServices(@Validated @RequestBody List<PmsVehicleService> vehicleServices) {
+        vehicleServices.forEach(vehicleService -> {
+            //根据vehicleId找到车辆档案，补充服务的完整信息
+            PmsVehicle vehicle = pmsVehicleService.getVehicleById(vehicleService.getVehicleId());
+            vehicleService.setTenantId(vehicle.getTenantId());
+            vehicleService.setLicensePlate(vehicle.getLicensePlate());
+            vehicleService.setOwnerName(vehicle.getOwnerName());
+            pmsVehicleServiceService.insertVehicleService(vehicleService);
+        });
+
+        return toAjax(1);
+    }
+
+    @RequiresPermissions("parking:vehicle:delete")
+    @Log(title = "车辆登记-收费标准-删除", businessType = BusinessType.DELETE)
+    @DeleteMapping("/service/{vehicleId}/{serviceId}")
+    public AjaxResult deleteVehicleService(@PathVariable Long vehicleId, @PathVariable Long serviceId) {
+
+        //todo 要校验
+        pmsVehicleServiceService.deleteVehicleService(vehicleId, serviceId);
+        return toAjax(1);
+    }
+
 }

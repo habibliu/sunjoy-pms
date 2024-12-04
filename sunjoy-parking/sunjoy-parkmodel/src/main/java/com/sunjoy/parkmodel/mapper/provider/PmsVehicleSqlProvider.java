@@ -76,27 +76,28 @@ public class PmsVehicleSqlProvider {
 
     public String selectPmsVehicle(PmsVehicle vehicle) {
         return new SQL() {{
-            SELECT("*");
-            FROM("pms_vehicle");
-
+            SELECT("v.*,vs.service_id,vs.service_name,vs.lot_nos,vs.park_id,p.park_name");
+            FROM("pms_vehicle v");
+            LEFT_OUTER_JOIN("pms_vehicle_service vs on v.vehicle_id = vs.vehicle_id");
+            LEFT_OUTER_JOIN("pms_park p on p.park_id=vs.park_id");
             if (vehicle.getVehicleId() != null) {
-                WHERE("vehicle_id = #{vehicleId}");
+                WHERE("v.vehicle_id = #{vehicleId}");
             }
             if (vehicle.getTenantId() != null) {
-                WHERE("tenant_id = #{tenantId}");
+                WHERE("v.tenant_id = #{tenantId}");
             }
             if (vehicle.getOpuId() != null) {
                 List<Long> opuIds = SecurityUtils.getAuthDeptIds(SecurityUtils.getUserId(), vehicle.getOpuId());
                 String inClause = opuIds.stream()
                         .map(String::valueOf) // 将 Long 转换为 String
                         .collect(Collectors.joining(", ")); // 连接成字符串
-                WHERE("opu_id IN (" + inClause + ")");
+                WHERE("v.opu_id IN (" + inClause + ")");
             }
             if (vehicle.getLicensePlate() != null) {
-                WHERE("license_plate = #{licensePlate}");
+                WHERE("v.license_plate = #{licensePlate}");
             }
             if (vehicle.getStatus() != null) {
-                WHERE("status = #{status}");
+                WHERE("v.status = #{status}");
             }
             // 添加其他条件可以继续扩展
         }}.toString();

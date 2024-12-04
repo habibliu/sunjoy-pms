@@ -3,20 +3,18 @@ package com.sunjoy.parkctrl.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sunjoy.common.core.utils.bean.BeanUtils;
 import com.sunjoy.common.redis.service.RedisService;
+import com.sunjoy.parkctrl.config.SignatureConfig;
 import com.sunjoy.parkctrl.pojo.WeChatPayNotify;
 import com.sunjoy.parkctrl.service.IPmsParkOrderService;
 import com.sunjoy.parkctrl.service.IPmsParkPaymentService;
-import com.sunjoy.parkctrl.service.IPmsParkTransactionService;
 import com.sunjoy.parkctrl.service.impl.PmsParkDeviceCommunicator;
+import com.sunjoy.parkctrl.utils.SignUtils;
 import com.sunjoy.parking.entity.PmsParkOrder;
 import com.sunjoy.parking.entity.PmsParkPayment;
-import com.sunjoy.parking.entity.PmsParkTransaction;
 import com.sunjoy.parking.enums.ParkOrderStatusEnum;
 import com.sunjoy.parking.enums.ParkPaymentChannelEnum;
 import com.sunjoy.parking.enums.ParkPaymentMethods;
 import com.sunjoy.parking.enums.ParkPaymentStatusEnum;
-import com.sunjoy.parking.utils.RedisKeyConstants;
-import com.sunjoy.parking.vo.VehiclePassage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
@@ -29,64 +27,72 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.TreeMap;
 
 /**
- * 车辆支付控制类
+ * 微信支付结果通知处理类
  *
  * @author Habib
  * @date 2024/11/25
  */
 @Slf4j
 @RestController
-@RequestMapping("/payment")
-public class PmsParkPaymentController {
+@RequestMapping("/wechat")
+public class WechatNotifyController {
     @Autowired
     private IPmsParkPaymentService pmsParkPaymentService;
 
     @Autowired
     private IPmsParkOrderService pmsParkOrderService;
 
-    @Autowired
-    private IPmsParkTransactionService pmsParkTransactionService;
 
     @Autowired
     private RedisService redisService;
     @Autowired
     private PmsParkDeviceCommunicator parkDeviceCommunicator;
 
-    @PostMapping(value = "/notify/wechat")
-    public ResponseEntity<String> handleWeChatPayNotify(HttpServletRequest request) {
+    @Autowired
+    private SignatureConfig signatureConfig;
+
+    @PostMapping(value = "/notify", consumes = "application/xml")
+    @Transactional
+    public ResponseEntity<String> handlePaymentNotify(HttpServletRequest request) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
 
             // 1. 解析 XML 数据
-            WeChatPayNotify notify = parseNotify(request);
-            log.info("接收到微信支付结果通知{}", objectMapper.writeValueAsString(notify));
-            // 2. 验证签名
-            String sign = notify.getSign();
-            if (!verifySignature(request)) {
+            TreeMap<String, String> params = parseNotifyToMap(request);
+            // 3. 在处理业务逻辑之彰，需要验证签名
+            String merchantKey = getMerchantKey(params.get("merchant_id"));
+            if (signatureConfig.isWechatValid() && !verifySignature(params, merchantKey)) {
                 log.error("验证签名失败！");
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid signature");
             }
+            log.info("接收到微信支付结果通知{}", objectMapper.writeValueAsString(params));
+            // 2. 处理业务逻辑
+            if ("SUCCESS".equals(params.get("result_code"))) {
 
-            // 3. 处理业务逻辑
-            if ("SUCCESS".equals(notify.getResultCode())) {
+                String orderId = params.get("out_trade_no");
 
-                String orderId = notify.getOutTradeNo();
-                String transactionId = notify.getTransactionId();
-                //TODO 从数据库中取出订单信息
+                //从数据库中取出订单信息
                 log.info("根据订单ID{}取出订单！", orderId);
                 PmsParkOrder parkOrder = pmsParkOrderService.pickParkOrder(Long.parseLong(orderId));
+
                 //生成支付凭证，更新
-                handleWechatNotify(parkOrder, transactionId);
+                createPaymentAndUpdateOrder(parkOrder, params);
                 log.info("订单支付成功！");
                 //TODO  如果全部金额支付完毕，通知通道开闸放行
-                notifyToReleaseVehicle(parkOrder.getTransId());
+                parkDeviceCommunicator.notifyToReleaseVehicle(parkOrder.getTransId());
                 log.info("通知开闸放行成功!");
             }
 
@@ -100,73 +106,96 @@ public class PmsParkPaymentController {
         }
     }
 
-    private void notifyToReleaseVehicle(Long transId) {
-        PmsParkTransaction parkTransaction = pmsParkTransactionService.pickupParkTransactionRecord(transId);
-        if (null != parkTransaction) {
-            VehiclePassage vehiclePassage = null;
-            if (null != parkTransaction.getExitLaneId()) {
-                //出场支付
-                vehiclePassage = redisService.getCacheObject(RedisKeyConstants.PARK_VEHICLE_IN_LANE + parkTransaction.getExitLaneId());
-            } else {
-                //入场支付
-                vehiclePassage = redisService.getCacheObject(RedisKeyConstants.PARK_VEHICLE_IN_LANE + parkTransaction.getEntryLaneId());
-            }
-        }
-    }
 
     /**
      * 根据订单ID构造支付凭证相关信息，并更新订单状态
      *
      * @param parkOrder
-     * @parma transactionId
+     * @parma params
      */
-    @Transactional
-    protected void handleWechatNotify(PmsParkOrder parkOrder, String transactionId) {
+    protected void createPaymentAndUpdateOrder(PmsParkOrder parkOrder, TreeMap<String, String> params) {
 
-        //TODO  构造支付凭证信息
+        //构造支付凭证信息
         PmsParkPayment parkPayment = new PmsParkPayment();
         BeanUtils.copyBeanProp(parkPayment, parkOrder);
+        parkPayment.setOrderAmount(parkOrder.getRealAmount());
         parkPayment.setPaymentAmount(parkOrder.getRealAmount());
         parkPayment.setPaymentMethods(ParkPaymentMethods.ONLINE.getCode());
         parkPayment.setPaymentChannel(ParkPaymentChannelEnum.WECHAT.getCode());
         parkPayment.setDelFlag("0");
         parkPayment.setStatus(ParkPaymentStatusEnum.COMPLETED.getCode());
-        parkPayment.setTransactionId(transactionId);
+        parkPayment.setTransactionId(params.get("transaction_id"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+        parkPayment.setPaymentTime(LocalDateTime.parse(params.get("time_end"), formatter));
         parkPayment.setRemark(null);
         //保存支付凭证
         this.pmsParkPaymentService.createPayment(parkPayment);
+
         //更新订单状态,已支付
         parkOrder.setStatus(ParkOrderStatusEnum.Paid.getCode());
         this.pmsParkOrderService.updateParkOrder(parkOrder);
+    }
+
+    /**
+     * 根据商户Id找出其签名字符串
+     *
+     * @param merchantId
+     * @return
+     */
+    private String getMerchantKey(String merchantId) {
+        //todo 从支付渠道表或者缓存中取出来
+        return "";
+    }
+
+    private boolean verifySignature(TreeMap<String, String> params, String merchantKey) {
+
+        // 获取微信返回的签名
+        String wechatSign = params.remove("sign");
+
+        return verifySignature(params, merchantKey, wechatSign);
 
 
     }
 
-    private boolean verifySignature(HttpServletRequest request) {
-        /*
-        String wechatPaySerial = request.getHeader(WECHAT_PAY_SERIAL);
-        String apiV3Key = wxPayConfig.getApiV3Key();
-        String nonce = request.getHeader(WECHAT_PAY_NONCE); // 请求头Wechatpay-Nonce
-        String timestamp = request.getHeader(WECHAT_PAY_TIMESTAMP); // 请求头Wechatpay-Timestamp
-        String signature = request.getHeader(WECHAT_PAY_SIGNATURE); // 请求头Wechatpay-Signature
-        WechatPay2ValidatorForRequest wechatPay2ValidatorForRequest = new WechatPay2ValidatorForRequest(wechatPaySerial, apiV3Key, nonce, timestamp, signature, body, verifier);
-        Notification notification = wechatPay2ValidatorForRequest.notificationHandler();
-        String eventType = notification.getEventType();
-        if (eventType.length() == 0) {
-            log.error("支付回调通知验签失败");
-            response.setStatus(500);
-            map.put("code", "ERROR");
-            map.put("message", "失败");
-            return gson.toJson(map);
+    private boolean verifySignature(TreeMap<String, String> params, String merchantKey, String wechatSign) {
+        String calculatedSign = SignUtils.createSign(params, merchantKey);
+        return calculatedSign.equals(wechatSign);
+    }
+
+    private TreeMap<String, String> parseNotifyToMap(HttpServletRequest request) throws Exception {
+        TreeMap<String, String> params = new TreeMap<>();
+
+        // 1. 从 HttpServletRequest 中读取请求体
+        StringBuilder xmlBuilder = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(request.getInputStream(), StandardCharsets.UTF_8));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            xmlBuilder.append(line);
         }
-        */
-        log.info("支付回调通知验签成功");
+        String xml = xmlBuilder.toString();
 
-        // TODO: 实现签名验证逻辑
-        return true; // 假设签名验证通过
+        // 2. 使用 DocumentBuilder 解析 XML
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        org.w3c.dom.Document document = builder.parse(new InputSource(new StringReader(xml)));
+
+        // 3. 提取所有内容并放入 TreeMap
+        org.w3c.dom.Element root = document.getDocumentElement();
+        org.w3c.dom.NodeList nodeList = root.getChildNodes();
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            if (nodeList.item(i).getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                String key = nodeList.item(i).getNodeName();
+                String value = nodeList.item(i).getTextContent();
+                params.put(key, value);
+            }
+        }
+
+        return params;
+
+
     }
 
-
+    @Deprecated
     private WeChatPayNotify parseNotify(HttpServletRequest request) throws Exception {
         StringBuilder notification = new StringBuilder();
 

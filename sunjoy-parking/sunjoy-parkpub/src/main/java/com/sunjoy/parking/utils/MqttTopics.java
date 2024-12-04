@@ -20,7 +20,8 @@ public class MqttTopics {
      */
     public static final String TOPIC_CAR_DEPARTED = "parking/car/departed";
     /**
-     * 车辆放行-出场
+     * 通道执行指令
      */
-    public static final String TOPIC_VEHICLE_RELEASE = "parking/vehicle/release/exit";
+    public static final String TOPIC_LANE_DIRECTIVE = "parking/lane/directive/";
+
 }
