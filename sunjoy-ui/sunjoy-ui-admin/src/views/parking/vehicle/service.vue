@@ -39,6 +39,14 @@
           width="60"
         />
         <el-table-column
+          label="车牌号码"
+          align="left"
+          key="licensePlate"
+          prop="licensePlate"
+          :show-overflow-tooltip="true"
+          width="200"
+        />
+        <el-table-column
           label="收费标准"
           align="left"
           key="serviceName"
@@ -148,12 +156,13 @@
             <el-button
               size="mini"
               type="text"
-
               @click="toRecharge(scope.row)"
               :disabled="scope.row.status != 1"
               v-if="vehicleId"
-              >
-              <IconRecharge :color="scope.row.status != 1 ? '#2c2c2c' : '#1296db'"/>
+            >
+              <IconRecharge
+                :color="scope.row.status != 1 ? '#2c2c2c' : '#1296db'"
+              />
               充值</el-button
             >
             <el-button
@@ -284,6 +293,196 @@
         </el-col>
       </el-row>
     </el-dialog>
+
+    <!-- 充值或显示详情对话框 -->
+    <el-dialog
+      :title="rechargeFormTitle"
+      :visible.sync="rechargeFormOpen"
+      width="800px"
+      append-to-body
+    >
+      <el-form ref="form" :model="rechargeForm" label-width="80px">
+        <el-row>
+          <el-col :span="16">
+            <el-row>
+              <el-col :span="24">
+                <el-form-item label="支付方式" prop="paymentMethod">
+                  <el-radio-group v-model="rechargeForm.paymentMethod">
+                    <el-radio
+                      v-for="dict in dict.type.sys_payment_method"
+                      :key="dict.value"
+                      :label="dict.value"
+                      >{{ dict.label }}</el-radio
+                    >
+                  </el-radio-group>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-col :span="24">
+                <el-form-item label="收费标准" prop="price">
+                  {{ rechargeForm.priceName }}
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-col :span="24">
+                <el-form-item label="单价" prop="price">
+                  <el-input
+                    v-model="rechargeForm.price"
+                    maxlength="11"
+                    style="width: 80px"
+                    :disabled="true"
+                  />
+                  元 /
+                  <el-input
+                    v-model="rechargeForm.priceQuantity"
+                    maxlength="11"
+                    style="width: 60px"
+                    :disabled="true"
+                  /><el-select
+                    v-model="rechargeForm.priceUnit"
+                    style="width: 80px"
+                    :disabled="true"
+                  >
+                    <el-option
+                      v-for="dict in dict.type.pms_price_unit"
+                      :key="dict.value"
+                      :label="dict.label"
+                      :value="dict.value"
+                    ></el-option>
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-form-item label="数量" prop="quantity">
+                <el-input-number
+                  v-model="rechargeForm.quantity"
+                  style="width: 170px"
+                  :min="1"
+                  :max="10"
+                  @change="onQuantityChange"
+                />
+                <el-select
+                  v-model="rechargeForm.priceUnit"
+                  placeholder="请选择量化单位"
+                  style="width: 80px"
+                  :disabled="true"
+                  ><el-option
+                    v-for="dict in dict.type.pms_price_unit"
+                    :key="dict.value"
+                    :label="dict.label"
+                    :value="dict.value"
+                  ></el-option>
+                </el-select>
+              </el-form-item>
+            </el-row>
+            <el-row>
+              <el-col :span="24">
+                <el-row>
+                  <el-col :span="12">
+                    <el-form-item label="计费金额" prop="billingAmount">
+                      <el-input
+                        v-model="rechargeForm.billingAmount"
+                        maxlength="11"
+                        style="width: 90px; text-align: right"
+                        :value="amountComputed"
+                        :disabled="true"
+                      />
+                      元
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="缴费金额" prop="realAmount">
+                      <el-input
+                        v-model="rechargeForm.realAmount"
+                        maxlength="11"
+                        style="width: 90px; text-align: right"
+                        :value="amountComputed"
+                      />
+                      元
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+              </el-col>
+            </el-row>
+          </el-col>
+          <!-- 二维码显示区域 -->
+          <el-col :span="8">
+            <el-row>
+              <el-col :span="24">
+                <el-form-item label="支付方式" prop="paymentChannel">
+                  <el-radio-group v-model="rechargeForm.paymentChannel">
+                    <el-radio
+                      v-for="dict in dict.type.sys_payment_channel"
+                      :key="dict.value"
+                      :label="dict.value"
+                      >{{ dict.label }}</el-radio
+                    >
+                  </el-radio-group>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-col :span="24">
+                <div class="image-container">
+                  <img
+                    :src="paymentQrCodeUrl"
+                    alt="支付二维码"
+                    class="responsive-img"
+                  />
+                </div>
+              </el-col>
+            </el-row>
+          </el-col>
+        </el-row>
+
+        <el-row>
+          <el-col :span="24">
+            <el-col :span="12">
+              <el-form-item label="开始日期" prop="timeStart">
+                <el-date-picker v-model="rechargeForm.startTime" readonly>
+                </el-date-picker>
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="结束日期" prop="timeEnd">
+                <el-date-picker
+                  arrow-control
+                  v-model="rechargeForm.endTime"
+                  :value="endDateComputed"
+                  readonly
+                >
+                </el-date-picker>
+              </el-form-item>
+            </el-col>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="备注">
+              <el-input
+                v-model="form.remark"
+                type="textarea"
+                placeholder="请输入内容"
+              ></el-input>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button
+          type="primary"
+          @click="submitRechargeForm"
+          :disabled="submitButoonDisabled"
+          >{{
+            rechargeForm.paymentMethod == "ONLINE" ? "待支付" : "确认支付"
+          }}</el-button
+        >
+        <el-button @click="closeRechargeForm">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -293,13 +492,16 @@ import {
   deleteVehicleService,
   getVehicleService,
   changeVehicleServiceStatus,
+  getPriceInfo,
+  createPaymentOrder,
 } from "@/api/parking/vehicle";
 import { formatDate } from "@/utils/formatters";
 import { getParkServices } from "@/api/parking/service";
 import { getParkTree } from "@/api/parking/park";
-import { addOneMonth } from "@/utils/ruoyi";
-
-import IconRecharge from '@/components/icons/IconRecharge.vue';
+import { addOneMonth, addDays, addMonths } from "@/utils/ruoyi";
+import SocketService from "@/service/SocketService";
+import IconRecharge from "@/components/icons/IconRecharge.vue";
+import { getToken } from "@/utils/auth";
 
 export default {
   name: "VehicleService",
@@ -308,8 +510,10 @@ export default {
     "pms_price_unit",
     "sys_yes_no",
     "sys_entity_status",
+    "sys_payment_method",
+    "sys_payment_channel",
   ],
-  components: {IconRecharge},
+  components: { IconRecharge },
   props: {
     opuId: {
       type: Number,
@@ -324,7 +528,8 @@ export default {
   },
   data() {
     return {
-      rechargePath: require('@/assets/icons/svg/recharge.svg'), // 确保路径正确
+      websocket: null,
+      rechargePath: require("@/assets/icons/svg/recharge.svg"), // 确保路径正确
       // 总条数
       total: 0,
       // 遮罩层
@@ -376,7 +581,28 @@ export default {
       priceOpen: false,
       // 是否激活提交按钮
       activeSubmit: false,
+      // 充值表单
+      rechargeForm: {},
+      rechargeFormTitle: "",
+      rechargeFormOpen: false,
+      paymentQrCodeUrl: [],
+
+      submitButoonDisabled: false,
     };
+  },
+  computed: {
+    amountComputed() {
+      return (
+        parseFloat(this.rechargeForm.price) *
+        parseFloat(this.rechargeForm.quantity)
+      ).toFixed(2);
+    },
+    endDateComputed() {
+      return addMonths(
+        this.rechargeForm.startTime,
+        parseFloat(this.rechargeForm.quantity)
+      );
+    },
   },
   watch: {
     opuId: {
@@ -424,6 +650,24 @@ export default {
 
     // this.getList(this.vehicleId);
   },
+  mounted() {
+    this.websocket = SocketService;
+    SocketService.connect();
+    const topic = "topic/payment/month/" + getToken();
+    console.log("用户订阅了主题:" + topic);
+    // 订阅当前用户会话的月租订单支付事件,按token隔离，保证消息不被乱消费
+    SocketService.on(topic, (msg) => {
+      // this.messages.push(msg);
+      console.log(msg);
+      this.$modal.msgSuccess("用户支付成功");
+    });
+  },
+
+  beforeDestroy() {
+    this.websocket.disconnect();
+    this.websocket = null;
+  },
+
   methods: {
     getParkTreeList(opuId) {
       getParkTree(opuId).then((resp) => {
@@ -527,8 +771,8 @@ export default {
         parkId: this.selectParkId,
         parkName: this.findParkName(this.parkOptions, this.selectParkId),
         status: "0",
-        startDate: new Date(),
-        endDate: addOneMonth(new Date()),
+        startTime: new Date(),
+        endTime: addOneMonth(new Date()),
       }));
 
       this.serviceList = this.serviceList.concat(transformedArray);
@@ -554,10 +798,6 @@ export default {
         });
       }
     },
-    /**
-     * 充值
-     */
-    toRecharge(row) {},
 
     findParkName(parkOptions, targetId) {
       for (const park of parkOptions) {
@@ -647,6 +887,91 @@ export default {
       this.resetForm("form");
     },
 
+    /**
+     * 充值
+     */
+    toRecharge(row) {
+      const that = this;
+      // 从后台取出收费标准详情
+      getPriceInfo(row.parkId, row.serviceId).then((resp) => {
+        that.rechargeForm.price = resp.data.price;
+        that.rechargeForm.priceUnit = resp.data.priceUnit;
+        that.rechargeForm.priceQuantity = resp.data.priceQuantity;
+        // this.rechargeForm.priceName = row.serviceName;
+        this.rechargeForm.vehicleId = row.vehicleId;
+        this.rechargeForm.parkId = row.parkId;
+        this.rechargeForm.parkName = row.parkName;
+        this.rechargeForm.licensePlate = row.licensePlate;
+        this.rechargeForm.serviceId = row.serviceId;
+        this.rechargeForm.serviceName = row.serviceName;
+        that.rechargeForm.quantity = 1;
+        that.rechargeForm.paymentMethod = "ONLINE";
+        that.rechargeForm.paymentChannel = "WECHAT";
+        that.rechargeForm.startTime = addDays(row.endDate, 1);
+        that.onQuantityChange(1);
+      });
+
+      this.rechargeFormTitle = "登记车充值";
+      this.rechargeFormOpen = true;
+
+      this.createQrCode("https://api.mch.weixin.qq.com/pay/unifiedorder");
+    },
+
+    onQuantityChange(value) {
+      this.rechargeForm.endTime = addMonths(this.rechargeForm.startTime, value);
+      // 金额
+      this.rechargeForm.billingAmount = (
+        parseFloat(this.rechargeForm.price) * value
+      ).toFixed(2);
+      this.rechargeForm.realAmount = this.rechargeForm.billingAmount;
+      console.log("this.rechargeForm.quantity: " + this.rechargeForm.quantity);
+      console.log("this.rechargeForm.endTime: " + this.rechargeForm.endTime);
+      console.log(
+        "this.rechargeForm.billingAmount: " + this.rechargeForm.billingAmount
+      );
+    },
+    // 生成订单，待用户支付
+    waitForPayment() {},
+    /**
+     * 充值提交
+     */
+    submitRechargeForm() {
+      this.rechargeForm.freeAmount = (
+        this.rechargeForm.billingAmount - this.rechargeForm.realAmount
+      ).toFixed(2);
+
+      createPaymentOrder(this.rechargeForm)
+        .then((resp) => {
+          if (this.rechargeForm.paymentMethod == "ONLINE") {
+            // 禁用按钮，等待支付结果通知!
+            this.submitButoonDisabled = true;
+            this.$modal.msgSuccess("订单创建成功，等待支付！");
+          }
+        })
+        .catch((e) => {
+          //this.$modal.msgError("订单创建失败: " + (e.message || "请稍后再试。"));
+          // 处理错误
+          console.error(e);
+        });
+    },
+
+    closeRechargeForm() {
+      this.rechargeFormOpen = false;
+      this.submitButoonDisabled = false;
+      this.rechargeForm = {};
+    },
+    /**
+     * 生成支付二维码
+     */
+    createQrCode(codeUrl) {
+      // 从响应中获取二维码链接
+      const QRCode = require("qrcode");
+      const that = this;
+      QRCode.toDataURL(codeUrl, function (err, url) {
+        // console.log(url);
+        that.paymentQrCodeUrl = url;
+      });
+    },
     // ---格式化代码开始
     formatDate(date) {
       return formatDate(date);
@@ -709,9 +1034,19 @@ export default {
   height: 200px; /* 设置高度以便垂直居中 */
 }
 
-.el-icon-recharge{
-  background: url('~@/assets/icons/svg/search.svg') no-repeat;
+.el-icon-recharge {
+  background: url("~@/assets/icons/svg/search.svg") no-repeat;
   font-size: 16px;
   background-size: cover;
+}
+
+.image-container {
+  width: 100%; /* 父容器宽度 */
+  height: auto; /* 自适应高度 */
+}
+
+.responsive-img {
+  width: 100%; /* 图片宽度自适应父容器 */
+  height: auto; /* 保持比例 */
 }
 </style>

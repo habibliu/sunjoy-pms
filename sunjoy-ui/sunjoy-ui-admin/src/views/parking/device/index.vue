@@ -205,6 +205,8 @@
             prop="deviceName"
             v-if="columns[1].visible"
             :show-overflow-tooltip="true"
+            sortable
+            :sort-method="sortByDeviceName"
           />
           <el-table-column
             label="设备编号"
@@ -237,7 +239,7 @@
             key="functions"
             prop="functions"
             v-if="columns[5].visible"
-            width="120"
+            width="200"
             :formatter="formatFunctions"
           />
           <el-table-column
@@ -522,7 +524,7 @@ export default {
     },
     /**
      * 复制一套新设备
-     * @param row 
+     * @param row
      */
     handleCopy(row){
       this.deviceObject=row;
@@ -537,7 +539,7 @@ export default {
         this.getList();
         this.reset();
       }
-      
+
     },
 
     /** 提交按钮 */
@@ -621,7 +623,7 @@ export default {
     submitFileForm() {
       this.$refs.upload.submit();
     },
-    //---格式化代码开始
+    // ---格式化代码开始
     formatFunctions(row, column) {
       return this.selectDictLabels(
         this.dict.type.pms_device_functions,
@@ -634,7 +636,10 @@ export default {
         return this.findTreeLabelById(this.opuOptions, row.opuId);
       }
     },
-   
-  },
+    // 排序
+    sortByDeviceName(a, b) {
+      return a.deviceName.toLowerCase().localeCompare(b.deviceName.toLowerCase());// 升序排序
+    }
+  }
 };
 </script>

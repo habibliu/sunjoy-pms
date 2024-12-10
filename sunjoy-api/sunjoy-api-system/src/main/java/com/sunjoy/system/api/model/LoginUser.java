@@ -1,5 +1,6 @@
 package com.sunjoy.system.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sunjoy.system.api.domain.SysUser;
 
 import java.io.Serializable;
@@ -10,6 +11,7 @@ import java.util.Set;
  *
  * @author sunjoy
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LoginUser implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -137,7 +139,10 @@ public class LoginUser implements Serializable {
     }
 
     public Long getTenantId() {
-        return this.sysUser.getTenantId();
+        if (this.sysUser != null) {
+            return this.sysUser.getTenantId();
+        }
+        return null;
     }
 
     public void setTenantId(Long tenantId) {

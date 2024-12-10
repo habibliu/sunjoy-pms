@@ -1,4 +1,4 @@
-package com.sunjoy.parking.entity;
+package com.sunjoy.system.api.domain;
 
 import com.sunjoy.common.core.web.domain.BaseEntity;
 import lombok.Data;

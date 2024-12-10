@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sunjoy.mqtt.domain.Payload;
 import com.sunjoy.mqtt.service.MqttSubscriber;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.paho.client.mqttv3.*;
 
@@ -11,10 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Class description
+ * Mqtt客户端
  *
  * @author Habib
  * @date 2024/11/19
@@ -147,20 +147,7 @@ public class SunjoyMqttClient {
     }
 
 
-    public void startHeartbeat() {
-        executorService.scheduleAtFixedRate(() -> {
-
-            if (!mqttClient.isConnected()) {
-                try {
-                    log.info("Trying to connect to broker: " + brokerUrl);
-                    mqttClient.connect(options); // 尝试重连
-                } catch (MqttException e) {
-                    log.info("Reconnect failed: " + e.getMessage());
-                }
-            }
-        }, 0, 5, TimeUnit.SECONDS); // 每 30 秒检查一次
-    }
-
+    @PreDestroy
     public void shutdown() {
         executorService.shutdown();
         try {

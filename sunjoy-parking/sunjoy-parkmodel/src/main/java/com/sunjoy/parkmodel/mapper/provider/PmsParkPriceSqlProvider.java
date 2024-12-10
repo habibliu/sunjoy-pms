@@ -41,7 +41,7 @@ public class PmsParkPriceSqlProvider {
             if (condition.getFree() != null) {
                 WHERE("l.free = #{free}");
             }
-
+            ORDER_BY("l.price_id DESC");
 
         }}.toString();
     }

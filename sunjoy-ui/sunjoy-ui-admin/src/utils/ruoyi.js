@@ -280,8 +280,28 @@ export function isNumber(value) {
  * @returns
  */
 export function addOneMonth(date) {
+  return addMonths(date,1);
+}
+/**
+ * 增加N个月
+ * @param {*} date
+ * @param {*} n
+ * @returns
+ */
+export function addMonths(date, n) {
   const newDate = new Date(date); // 创建日期的副本
-  newDate.setMonth(newDate.getMonth() + 1); // 增加一个月
+  newDate.setMonth(newDate.getMonth() + n); // 增加N个月
   return newDate;
 }
 
+/**
+ * 日期增加天数
+ * @param {*} dateStr
+ * @param {*} days
+ * @returns
+ */
+export function addDays(dateStr, days) {
+  const date = new Date(dateStr);
+  date.setDate(date.getDate() + days);
+  return date;
+}

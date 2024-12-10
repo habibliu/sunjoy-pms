@@ -99,6 +99,7 @@ public class PmsVehicleSqlProvider {
             if (vehicle.getStatus() != null) {
                 WHERE("v.status = #{status}");
             }
+            ORDER_BY("v.vehicle_id DESC");
             // 添加其他条件可以继续扩展
         }}.toString();
     }

@@ -1,6 +1,6 @@
 package com.sunjoy.parkctrl.mapper.provider;
 
-import com.sunjoy.parking.entity.PmsParkOrder;
+import com.sunjoy.system.api.domain.PmsParkOrder;
 import org.apache.ibatis.jdbc.SQL;
 
 /**
@@ -29,6 +29,9 @@ public class ParkOrderProvider {
             if (parkOrder.getServiceName() != null) SET("service_name = #{serviceName}");
             if (parkOrder.getStartTime() != null) SET("start_time = #{startTime}");
             if (parkOrder.getEndTime() != null) SET("end_time = #{endTime}");
+            if (parkOrder.getPrice() != null) SET("price = #{price}");
+            if (parkOrder.getPriceUnit() != null) SET("priceUnit = #{priceUnit}");
+            if (parkOrder.getPriceQuantity() != null) SET("priceQuantity = #{priceQuantity}");
             if (parkOrder.getBillingAmount() != null) SET("billing_amount = #{billingAmount}");
             if (parkOrder.getRealAmount() != null) SET("real_amount = #{realAmount}");
             if (parkOrder.getFreeAmount() != null) SET("free_amount = #{freeAmount}");
@@ -47,7 +50,10 @@ public class ParkOrderProvider {
      */
     public String selectParkOrder(PmsParkOrder parkOrder) {
         return new SQL() {{
-            SELECT("*");
+            SELECT("order_id,order_type, trans_id, tenant_id, opu_id, park_id, park_name," +
+                   "vehicle_id, license_plate, service_id, service_name, start_time, end_time, price,price_unit,price_quantity, billing_amount, " +
+                   " real_amount, free_amount,  status, del_flag, create_by, create_time," +
+                   "update_by, update_time");
             FROM("pms_park_order");
             if (parkOrder.getOrderId() != null) WHERE("order_id = #{orderId}");
             if (parkOrder.getOrderType() != null) WHERE("order_type = #{orderType}");

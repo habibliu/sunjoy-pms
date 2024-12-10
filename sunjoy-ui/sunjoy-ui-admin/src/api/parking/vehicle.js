@@ -73,6 +73,18 @@ export function getVehicleService(vehicleId) {
 }
 
 /**
+ * 变更车辆状态
+ * @param {} id
+ * @returns
+ */
+export function changeVehicleStatus(vehicleId, status) {
+  return request({
+    url: '/parkmodel/vehicle/' + parseStrEmpty(vehicleId) + '/' + parseStrEmpty(status),
+    method: 'put'
+  })
+}
+
+/**
  * 变更车辆服务状态
  * @param {} id
  * @returns
@@ -82,5 +94,30 @@ export function changeVehicleServiceStatus(data) {
     url: '/parkmodel/vehicle/service',
     method: 'put',
     data: data
+  })
+}
+/**
+ * 获取收费标准信息
+ * @param {*} parkId
+ * @param {*} serviceId
+ * @returns
+ */
+export function getPriceInfo(parkId, serviceId) {
+  return request({
+    url: '/parkmodel/vehicle/price/' + parseStrEmpty(parkId) + '/' + parseStrEmpty(serviceId),
+    method: 'get'
+  })
+}
+
+/**
+ * 生成登记车辆预付费服务订单
+ * @param {*} order
+ * @returns
+ */
+export function createPaymentOrder(order){
+  return request({
+    url: '/parkmodel/vehicle/service/order',
+    method: 'post',
+    data: order
   })
 }

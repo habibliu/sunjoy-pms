@@ -35,9 +35,13 @@ public class PmsParkServiceSqlProvider {
             if (conditions.getParkId() != null) {
                 WHERE("s.park_id = #{parkId}");
             }
+            if (conditions.getServiceId() != null) {
+                WHERE("s.service_id = #{serviceId}");
+            }
             if (conditions.getStatus() != null) {
                 WHERE("s.status = #{status}");
             }
+            ORDER_BY("s.service_id DESC");
 
             // 可以根据需要添加更多条件
         }}.toString();

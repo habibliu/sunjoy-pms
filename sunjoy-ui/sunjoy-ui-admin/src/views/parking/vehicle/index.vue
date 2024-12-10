@@ -248,7 +248,17 @@
             key="brand"
             prop="brand"
             v-if="columns[6].visible"
-            width="200"
+            width="100"
+          />
+
+
+          <el-table-column
+            label="车辆型号"
+            align="center"
+            key="model"
+            prop="model"
+            v-if="columns[7].visible"
+            width="100"
           />
           <el-table-column
             label="车辆类型"
@@ -299,7 +309,7 @@
           <el-table-column
             label="操作"
             align="center"
-            width="300"
+            width="360"
             fixed="right"
             class-name="small-padding fixed-width"
           >
@@ -343,6 +353,14 @@
                   scope.row.status == 9
                 "
                 >注消</el-button
+              >
+              <el-button
+                size="mini"
+                type="text"
+                icon="el-icon-chat-dot-square"
+                @click="toView(scope.row)"
+                v-hasPermi="['parking:park:list']"
+                >查看</el-button
               >
               <el-divider direction="vertical"></el-divider>
               <router-link
@@ -544,7 +562,7 @@ import {
   addVehicle,
   updateVehicle,
   delVehicle,
-  changeVehicleStatus,
+  changeVehicleStatus
 } from "@/api/parking/vehicle";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";

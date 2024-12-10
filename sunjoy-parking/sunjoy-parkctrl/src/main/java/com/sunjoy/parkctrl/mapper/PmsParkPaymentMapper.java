@@ -1,7 +1,7 @@
 package com.sunjoy.parkctrl.mapper;
 
 import com.sunjoy.parkctrl.mapper.provider.ParkPaymentProvider;
-import com.sunjoy.parking.entity.PmsParkPayment;
+import com.sunjoy.system.api.domain.PmsParkPayment;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.SelectProvider;

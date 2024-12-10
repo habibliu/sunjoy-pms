@@ -152,8 +152,6 @@
               >删除</el-button
             >
           </el-col>
-
-          
         </el-row>
 
         <el-table
@@ -177,7 +175,7 @@
             prop="priceName"
             v-if="columns[1].visible"
             :show-overflow-tooltip="true"
-            
+            width="300"
           />
           <el-table-column
             label="经营单位"
@@ -196,10 +194,10 @@
             prop="free"
             v-if="columns[3].visible"
             :show-overflow-tooltip="true"
-            :formatter=freeFormatter
+            :formatter="freeFormatter"
             width="120"
           />
-          
+
           <el-table-column
             label="统一价格"
             align="center"
@@ -207,7 +205,7 @@
             prop="uniformPrice"
             v-if="columns[4].visible"
             width="120"
-            :formatter=uniformPriceFormatter
+            :formatter="uniformPriceFormatter"
           />
           <el-table-column
             label="免费时长(分钟)"
@@ -216,7 +214,6 @@
             prop="freeDuration"
             v-if="columns[4].visible"
             width="160"
-          
           />
           <el-table-column
             label="单价"
@@ -260,7 +257,7 @@
           <el-table-column
             label="操作"
             align="center"
-            width="220"
+            width="270"
             class-name="small-padding fixed-width"
             fixed="right"
           >
@@ -271,7 +268,7 @@
                 icon="el-icon-edit"
                 @click="handleUpdate(scope.row)"
                 v-hasPermi="['parking:park:edit']"
-                :disabled="scope.row.status!=0"
+                :disabled="scope.row.status != 0"
                 >修改</el-button
               >
               <el-button
@@ -280,7 +277,7 @@
                 icon="el-icon-delete"
                 @click="handleDelete(scope.row)"
                 v-hasPermi="['parking:park:remove']"
-                :disabled="scope.row.status!=0"
+                :disabled="scope.row.status != 0"
                 >删除</el-button
               >
               <el-button
@@ -289,7 +286,7 @@
                 icon="el-icon-video-play"
                 @click="handleEnable(scope.row)"
                 v-hasPermi="['parking:park:enable']"
-                :disabled="scope.row.status!=0"
+                :disabled="scope.row.status != 0"
                 >启用</el-button
               >
               <el-button
@@ -298,8 +295,16 @@
                 icon="el-icon-video-pause"
                 @click="handleDisable(scope.row)"
                 v-hasPermi="['parking:park:enable']"
-                :disabled="scope.row.status==0||scope.row.status==9"
+                :disabled="scope.row.status == 0 || scope.row.status == 9"
                 >停用</el-button
+              >
+              <el-button
+                size="mini"
+                type="text"
+                icon="el-icon-chat-dot-square"
+                @click="toView(scope.row)"
+                v-hasPermi="['parking:price:list']"
+                >详情</el-button
               >
             </template>
           </el-table-column>
@@ -324,18 +329,11 @@
     >
       <el-row :gutter="20">
         <el-col :span="dialogFormSpan">
-     
-          <el-form
-            ref="form"
-            :model="form"
-            :rules="rules"
-            label-width="80px"
-            class="parkForm"
-          >
+          <el-form ref="form" :model="form" :rules="rules" label-width="80px">
             <el-row class="parkRow">
               <el-col :span="24">
                 <el-form-item label="经营单位" prop="opuId">
-                  <treeselect
+                  <Treeselect
                     v-model="form.opuId"
                     :options="opuOptions"
                     :show-count="true"
@@ -465,24 +463,21 @@
                   </el-form-item>
                 </el-col>
               </el-row>
-
-              
             </div>
-              <el-row class="parkRow">
-                <el-col :span="24">
-                  <el-form-item label="备注">
-                    <el-input
-                      v-model="form.remark"
-                      type="textarea"
-                      placeholder="请输入内容"
-                    ></el-input>
-                  </el-form-item>
-                </el-col>
-              </el-row>
-            
+            <el-row class="parkRow">
+              <el-col :span="24">
+                <el-form-item label="备注">
+                  <el-input
+                    v-model="form.remark"
+                    type="textarea"
+                    placeholder="请输入内容"
+                  ></el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
           </el-form>
         </el-col>
-        <el-col :span="dialogDetailSpan" >
+        <el-col :span="dialogDetailSpan">
           <PriceDetail
             @change="onDetailListChange"
             :opuId="form.opuId"
@@ -495,6 +490,180 @@
           <div class="dialog-footer">
             <el-button type="primary" @click="submitForm">确 定</el-button>
             <el-button @click="cancel">取 消</el-button>
+          </div>
+        </el-col>
+      </el-row>
+    </el-dialog>
+
+    <!-- 收费标准查看页面，不可编辑 -->
+    <el-dialog
+      :title="viewTitle"
+      :visible.sync="viewOpen"
+      :width="dialogWidth"
+      append-to-body
+    >
+      <el-row :gutter="20">
+        <el-col :span="dialogFormSpan">
+          <el-form ref="form" :model="form" :rules="rules" label-width="80px">
+            <el-row class="parkRow">
+              <el-col :span="24">
+                <el-form-item label="经营单位" prop="opuId">
+                  <Treeselect
+                    v-model="form.opuId"
+                    :options="opuOptions"
+                    :show-count="true"
+                    :disabled="true"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row class="parkRow">
+              <el-col :span="24">
+                <el-form-item label="名称" prop="priceName">
+                  <el-input
+                    v-model="form.priceName"
+                    :disabled="true"
+                    maxlength="30"
+                  />
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-row class="parkRow">
+              <el-col :span="24">
+                <el-form-item label="是否免费" prop="free">
+                  <el-radio-group v-model="form.free" :disabled="true">
+                    <el-radio
+                      v-for="dict in dict.type.sys_yes_no"
+                      :key="dict.value"
+                      :label="dict.value"
+                      >{{ dict.label }}</el-radio
+                    >
+                  </el-radio-group>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <div v-show="form.free == 'N'">
+              <el-row class="parkRow">
+                <el-col :span="24">
+                  <el-form-item label="统一价格" prop="uniformPrice">
+                    <el-radio-group
+                      v-model="form.uniformPrice"
+                      :disabled="true"
+                    >
+                      <el-radio
+                        v-for="dict in dict.type.sys_yes_no"
+                        :key="dict.value"
+                        :label="dict.value"
+                        >{{ dict.label }}</el-radio
+                      >
+                    </el-radio-group>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row class="parkRow">
+                <el-col :span="24">
+                  <el-form-item label="免费时长" prop="region">
+                    <el-input-number
+                      v-model="form.freeDuration"
+                      :disabled="true"
+                      maxlength="11"
+                      :min="0"
+                      style="width: 200px"
+                    />分钟
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row class="parkRow">
+                <el-col :span="24">
+                  <el-form-item label="单价" prop="price">
+                    <el-input
+                      v-model="form.price"
+                      :disabled="true"
+                      maxlength="11"
+                      style="width: 80px"
+                    />
+                    元/
+                    <el-input
+                      v-model="form.priceQuantity"
+                      :disabled="true"
+                      maxlength="11"
+                      style="width: 60px"
+                    /><el-select
+                      v-model="form.priceUnit"
+                      :disabled="true"
+                      style="width: 80px"
+                    >
+                      <el-option
+                        v-for="dict in dict.type.pms_price_unit"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                      ></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <el-row class="parkRow">
+                <el-col :span="24">
+                  <el-form-item label="最高收费">
+                    <el-input
+                      v-model="form.maxFee"
+                      :disabled="true"
+                      maxlength="11"
+                      style="width: 80px"
+                    />
+                    元/
+                    <el-input
+                      v-model="form.maxQuantity"
+                      :disabled="true"
+                      maxlength="11"
+                      style="width: 60px"
+                    />
+                    <el-select
+                      v-model="form.maxUnit"
+                      :disabled="true"
+                      style="width: 80px"
+                    >
+                      <el-option
+                        v-for="dict in dict.type.pms_price_unit"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                      ></el-option>
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </div>
+            <el-row class="parkRow">
+              <el-col :span="24">
+                <el-form-item label="备注">
+                  <el-input
+                    v-model="form.remark"
+                    type="textarea"
+                    :disabled="true"
+                  ></el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </el-form>
+        </el-col>
+        <el-col :span="dialogDetailSpan">
+          <PriceDetail
+            @change="onDetailListChange"
+            :opuId="form.opuId"
+            :priceId="form.priceId"
+            :disabled=true
+          />
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="24">
+          <div class="dialog-footer">
+            <el-button @click="closeViewForm">关 闭</el-button>
           </div>
         </el-col>
       </el-row>
@@ -524,7 +693,7 @@ export default {
     "sys_normal_disable",
     "sys_yes_no",
     "pms_price_unit",
-    "sys_entity_status"
+    "sys_entity_status",
   ],
   components: { Treeselect, RegionSelect, PriceDetail },
   data() {
@@ -564,14 +733,11 @@ export default {
       },
       // 经营单位树选项
       opuOptions: undefined,
-      //经营单位名称，用于过滤
+      // 经营单位名称，用于过滤
       opuName: undefined,
 
-      // 日期范围
-      dateRange: [],
-      //通道列表
+      // 通道列表
       detailList: [],
-
 
       dialogWidth: "1024px",
       dialogFormSpan: 24,
@@ -624,6 +790,8 @@ export default {
           },
         ],
       },
+      viewTitle: "",
+      viewOpen: false,
     };
   },
   watch: {
@@ -631,9 +799,9 @@ export default {
     deptName(val) {
       this.$refs.tree.filter(val);
     },
-    'form.uniformPrice'(newVal,oldVal){
-        this.onUniformPriceChange(newVal);
-    }
+    "form.uniformPrice"(newVal, oldVal) {
+      this.onUniformPriceChange(newVal);
+    },
   },
   created() {
     this.reset();
@@ -648,11 +816,9 @@ export default {
 
     //组opuName赋值
     onChangeOpu(selectedOpu) {
-      
       this.form.opuName = selectedOpu.label;
     },
 
-   
     /** 查询收费标准列表 */
     getList() {
       this.loading = true;
@@ -677,8 +843,8 @@ export default {
     handleNodeClick(data) {
       //请求
       this.queryParams.opuId = data.id;
-      this.queryParams.params={'ancestors':data.ancestors}
-      
+      this.queryParams.params = { ancestors: data.ancestors };
+
       this.form.opuId = data.id;
       this.handleQuery();
     },
@@ -700,7 +866,7 @@ export default {
       if ("Y" == value) {
         this.rules.price = this.rules.price.filter((rule) => !rule.required);
         //收起明细
-        this.onUniformPriceChange('Y');
+        this.onUniformPriceChange("Y");
       } else {
         // 检查是否已经有 required 规则，避免重复添加
         const hasRequiredRule = this.rules.price.some((rule) => rule.required);
@@ -711,7 +877,7 @@ export default {
             trigger: "blur",
           });
         }
-       
+
         this.onUniformPriceChange(this.form.uniformPrice);
       }
     },
@@ -721,12 +887,10 @@ export default {
         this.dialogWidth = "1440px";
         this.dialogFormSpan = 10;
         this.dialogDetailSpan = 14;
-       
       } else {
         this.dialogWidth = "800px";
         this.dialogFormSpan = 24;
         this.dialogDetailSpan = 0;
-       
       }
     },
 
@@ -735,7 +899,7 @@ export default {
       this.ids = selection.map((item) => item.priceId);
       this.single = selection.length != 1;
       this.multiple = !selection.length;
-      this.canMultiDel=selection.some(item => item.status !== '0');
+      this.canMultiDel = selection.some((item) => item.status !== "0");
     },
 
     // 表单重置
@@ -753,8 +917,7 @@ export default {
       this.resetForm("form");
       this.detailList = [];
 
-      this.onUniformPriceChange('Y');
-      
+      this.onUniformPriceChange("Y");
     },
     /** 响应新增按钮操作 */
     handleAdd() {
@@ -782,13 +945,12 @@ export default {
         });
       }
     },
-    //启用收费标准，启用后，不能物理删除，只能逻辑删除
+    // 启用收费标准，启用后，不能物理删除，只能逻辑删除
     handleEnable(row) {
-
       this.$modal
         .confirm('是否确认启用编号为"' + row.priceId + '"的收费标准？')
         .then(function () {
-          return changePriceStatus(row.priceId,'1');
+          return changePriceStatus(row.priceId, "1");
         })
         .then(() => {
           this.getList();
@@ -799,6 +961,29 @@ export default {
 
     handleDisable(row) {},
 
+    toView(row) {
+      const priceIds = row.priceId || this.ids;
+      if (priceIds) {
+        let priceId = NaN;
+        if (Array.isArray(priceIds)) {
+          priceId = priceIds[0];
+        } else {
+          priceId = priceIds;
+        }
+
+        getPrice(priceId).then((response) => {
+          this.form = response.data;
+          this.viewOpen = true;
+          this.viewTitle = "收费标准详情";
+        });
+      }
+    },
+    /**
+     * 关闭收费标准详情窗口
+     */
+    closeViewForm() {
+      this.viewOpen = false;
+    },
     // 取消按钮
     cancel() {
       this.open = false;
@@ -809,7 +994,6 @@ export default {
     submitForm: function () {
       this.$refs["form"].validate((valid) => {
         if (valid) {
-         
           //回填form中的region，提交到后台
           this.form.region = this.regionId;
           if (this.form.priceId != undefined && !isNaN(this.form.priceId)) {
@@ -820,11 +1004,10 @@ export default {
               this.getList();
             });
           } else {
-            
             if (this.detailList.length > 0) {
               this.form.detailList = this.detailList;
             }
-           
+
             addPrice(this.form).then((response) => {
               this.$modal.msgSuccess("新增成功");
               this.open = false;
@@ -893,37 +1076,47 @@ export default {
     submitFileForm() {
       this.$refs.upload.submit();
     },
-    //---------- formatters
+    // ---------- formatters
 
     priceFormatter(row) {
-        if(row.price){
-            return row.price+" 元 / "+row.priceQuantity+" "+this.selectDictLabel(this.dict.type.pms_price_unit, row.priceUnit);
-        }else{
-            return "";
-        }
-        
+      if (row.price) {
+        return (
+          row.price +
+          " 元 / " +
+          row.priceQuantity +
+          " " +
+          this.selectDictLabel(this.dict.type.pms_price_unit, row.priceUnit)
+        );
+      } else {
+        return "";
+      }
     },
 
     maxFeeFormatter(row) {
-        if(row.maxFee){
-            return row.maxFee+" 元 / "+row.maxQuantity+" "+this.selectDictLabel(this.dict.type.pms_price_unit, row.maxUnit);
-        }else{
-            return "";
-        }
+      if (row.maxFee) {
+        return (
+          row.maxFee +
+          " 元 / " +
+          row.maxQuantity +
+          " " +
+          this.selectDictLabel(this.dict.type.pms_price_unit, row.maxUnit)
+        );
+      } else {
+        return "";
+      }
     },
     statusFormatter(row) {
-        
       return this.selectDictLabel(this.dict.type.sys_entity_status, row.status);
     },
-    freeFormatter(row){
-        return this.selectDictLabel(this.dict.type.sys_yes_no, row.free);
+    freeFormatter(row) {
+      return this.selectDictLabel(this.dict.type.sys_yes_no, row.free);
     },
-    uniformPriceFormatter(row){
-        return this.selectDictLabel(this.dict.type.sys_yes_no, row.uniformPrice);
+    uniformPriceFormatter(row) {
+      return this.selectDictLabel(this.dict.type.sys_yes_no, row.uniformPrice);
     },
-    opuFormatter(row){
-        return findLabelById(this.opuOptions,row.opuId);
-    }
+    opuFormatter(row) {
+      return findLabelById(this.opuOptions, row.opuId);
+    },
   },
 };
 </script>

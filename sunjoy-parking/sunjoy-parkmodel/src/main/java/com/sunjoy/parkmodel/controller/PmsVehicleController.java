@@ -1,5 +1,8 @@
 package com.sunjoy.parkmodel.controller;
 
+import com.alibaba.druid.util.StringUtils;
+import com.sunjoy.common.core.constant.SecurityConstants;
+import com.sunjoy.common.core.domain.R;
 import com.sunjoy.common.core.web.controller.BaseController;
 import com.sunjoy.common.core.web.domain.AjaxResult;
 import com.sunjoy.common.core.web.page.TableDataInfo;
@@ -7,16 +10,28 @@ import com.sunjoy.common.log.annotation.Log;
 import com.sunjoy.common.log.enums.BusinessType;
 import com.sunjoy.common.redis.service.RedisService;
 import com.sunjoy.common.security.annotation.RequiresPermissions;
+import com.sunjoy.common.security.utils.SecurityUtils;
+import com.sunjoy.parking.entity.PmsParkPrice;
+import com.sunjoy.parking.entity.PmsParkService;
 import com.sunjoy.parking.entity.PmsVehicle;
 import com.sunjoy.parking.entity.PmsVehicleService;
+import com.sunjoy.parking.enums.ParkOrderTypeEnum;
+import com.sunjoy.parking.enums.ParkPaymentMethods;
+import com.sunjoy.parking.utils.RedisKeyConstants;
 import com.sunjoy.parkmodel.pojo.VehiclePojo;
+import com.sunjoy.parkmodel.service.IPmsParkPriceService;
+import com.sunjoy.parkmodel.service.IPmsParkServiceService;
 import com.sunjoy.parkmodel.service.IPmsVehicleService;
 import com.sunjoy.parkmodel.service.IPmsVehicleServiceService;
+import com.sunjoy.system.api.RemoteParkOperationService;
+import com.sunjoy.system.api.domain.PmsParkOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 车辆档案信息控制类
@@ -34,7 +49,17 @@ public class PmsVehicleController extends BaseController {
     private IPmsVehicleServiceService pmsVehicleServiceService;
 
     @Autowired
+    private IPmsParkPriceService pmsParkPriceService;
+
+    @Autowired
+    private IPmsParkServiceService pmsParkServiceService;
+
+    @Autowired
+    private RemoteParkOperationService remoteParkOperationService;
+
+    @Autowired
     private RedisService redisService;
+
 
     @RequiresPermissions("parking:vehicle:list")
     @GetMapping("/list")
@@ -68,7 +93,7 @@ public class PmsVehicleController extends BaseController {
      */
     @RequiresPermissions("parking:vehicle:list")
     @GetMapping("/{vehicleId}")
-    public AjaxResult getParkMaster(@PathVariable(value = "vehicleId", required = true) Long vehicleId) {
+    public AjaxResult getVehicle(@PathVariable(value = "vehicleId", required = true) Long vehicleId) {
 
         AjaxResult ajax = AjaxResult.success();
 
@@ -76,6 +101,19 @@ public class PmsVehicleController extends BaseController {
 
         return ajax;
     }
+
+    @RequiresPermissions("parking:vehicle:update")
+    @Log(title = "车辆登记", businessType = BusinessType.UPDATE)
+    @PutMapping("/{vehicleId}/{status}")
+    public AjaxResult changeVehicleStatus(@Validated @PathVariable Long vehicleId, @Validated @PathVariable String status) {
+
+        //todo 要校验
+        PmsVehicle vehicle = this.pmsVehicleService.getVehicleById(vehicleId);
+        vehicle.setStatus(status);
+        this.pmsVehicleService.updateVehicle(vehicle, null);
+        return toAjax(1);
+    }
+
 
     /**
      * 查询车辆服务
@@ -87,6 +125,7 @@ public class PmsVehicleController extends BaseController {
         List<PmsVehicleService> results = pmsVehicleServiceService.getVehicleServiceByVehicleId(vechicleId);
         return success(results);
     }
+
 
     @RequiresPermissions("parking:vehicle:update")
     @Log(title = "车辆登记-收费标准-变更状态", businessType = BusinessType.UPDATE)
@@ -124,4 +163,49 @@ public class PmsVehicleController extends BaseController {
         return toAjax(1);
     }
 
+    @RequiresPermissions("parking:vehicle:list")
+    @GetMapping("/price/{parkId}/{serviceId}")
+    public AjaxResult getPriceInfo(@PathVariable(value = "parkId", required = true) Long parkId, @PathVariable(value = "serviceId", required = true) Long serviceId) {
+        // 先从车场的服务表中取出priceId
+        PmsParkService condition = new PmsParkService();
+
+        condition.setParkId(parkId);
+        condition.setServiceId(serviceId);
+        AjaxResult ajax = AjaxResult.success();
+        PmsParkService parkService = this.pmsParkServiceService.listParkServices(condition).stream().findFirst().orElse(null);
+        if (parkService != null) {
+            PmsParkPrice parkPrice = this.pmsParkPriceService.getParkPrice(parkService.getPriceId());
+            ajax.put(AjaxResult.DATA_TAG, parkPrice);
+        }
+
+
+        return ajax;
+    }
+
+    @RequiresPermissions("parking:vehicle:add")
+    @Log(title = "车辆登记-服务充值", businessType = BusinessType.INSERT)
+    @PostMapping("/service/order")
+    public AjaxResult createVehicleServiceOrder(@Validated @RequestBody PmsParkOrder parkOrder) {
+
+        //调用订单接口，完成停车订单创建，等待用户线上支付
+        parkOrder.setOrderType(ParkOrderTypeEnum.Registed.getCode());
+        parkOrder.setTenantId(SecurityUtils.getTenantId());
+        parkOrder.setOpuId(SecurityUtils.getLoginUser().getSysUser().getDeptId());
+        parkOrder.setCreateBy(SecurityUtils.getUsername());
+        parkOrder.setCreateTime(new Date());
+        parkOrder.setDelFlag("0");
+        R<Long> result = remoteParkOperationService.createRegistedVehicleServiceOrder(parkOrder, SecurityConstants.FROM_SOURCE);
+        if (null == result.getData()) {
+            return AjaxResult.error(result.getMsg());
+        }
+        Long orderId = result.getData();
+        //todo 如果是现金支付，再调用支付订单，完成现金支付订单的创建，并关闭停车停单
+        if (StringUtils.equals(ParkPaymentMethods.CASH.getCode(), parkOrder.getPaymentMethod())) {
+
+        } else { //如果是在线支付或者银联支付，即将订单的id为key放进对应的token到缓存中,等待支付订单完成后，通道前端支付成功，继续后续的操作，如是否打印
+            //保留10分钟，等待支付
+            this.redisService.setCacheObject(RedisKeyConstants.PARK_REGISTED_VEHICLE_SERVER_ORDER_WAITING_FOR_PAYING + orderId, SecurityUtils.getToken(), 10L, TimeUnit.MINUTES);
+        }
+        return toAjax(1);
+    }
 }

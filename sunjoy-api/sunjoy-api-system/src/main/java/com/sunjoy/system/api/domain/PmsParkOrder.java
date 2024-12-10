@@ -1,4 +1,4 @@
-package com.sunjoy.parking.entity;
+package com.sunjoy.system.api.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sunjoy.common.core.web.domain.BaseEntity;
@@ -84,6 +84,21 @@ public class PmsParkOrder extends BaseEntity {
     private LocalDateTime endTime;
 
     /**
+     * 单价
+     */
+    private BigDecimal price;
+
+    /**
+     * 计费单位:TIMES-次数,MIN--分钟,HOUR--小时,DAY--天,WEEK--周,MONTH--月
+     */
+    private String priceUnit;
+
+    /**
+     * 计费量
+     */
+    private Long priceQuantity;
+
+    /**
      * 计费金额
      */
     private BigDecimal billingAmount;
@@ -112,4 +127,14 @@ public class PmsParkOrder extends BaseEntity {
      * 删除标志（0代表存在 2代表删除）
      */
     private String delFlag;
+
+    /**
+     * 支付方式： ONLINE,BANK,CASH
+     */
+    private String paymentMethod;
+
+    /**
+     * 支付渠道,WECHAT,ALIPAY
+     */
+    private String paymentChannel;
 }

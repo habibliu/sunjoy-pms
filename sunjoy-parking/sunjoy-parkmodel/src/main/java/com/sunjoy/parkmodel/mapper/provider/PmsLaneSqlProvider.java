@@ -43,6 +43,7 @@ public class PmsLaneSqlProvider {
             if (condition.getParkId() != null) {
                 WHERE("p.park_id = #{parkId}");
             }
+            ORDER_BY("l.lane_id DESC");
 
         }}.toString();
     }

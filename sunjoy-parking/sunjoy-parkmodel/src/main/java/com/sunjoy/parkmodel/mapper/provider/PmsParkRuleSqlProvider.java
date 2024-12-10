@@ -79,6 +79,7 @@ public class PmsParkRuleSqlProvider {
             if (parkRule.getTargetExpire() != null) WHERE("r.target_expire = #{targetExpire}");
             if (parkRule.getStatus() != null) WHERE("r.status = #{status}");
             if (parkRule.getDelFlag() != null) WHERE("r.del_flag = #{delFlag}");
+            ORDER_BY("r.rule_id DESC");
         }}.toString();
     }
 }

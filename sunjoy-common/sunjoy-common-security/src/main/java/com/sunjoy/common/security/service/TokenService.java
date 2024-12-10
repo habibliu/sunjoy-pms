@@ -42,13 +42,15 @@ public class TokenService {
      */
     public Map<String, Object> createToken(LoginUser loginUser) {
         String token = IdUtils.fastUUID();
-        Long userId = loginUser.getSysUser().getUserId();
-        String userName = loginUser.getSysUser().getUserName();
+        Long userId = loginUser.getUserid() == null ? loginUser.getSysUser().getUserId() : loginUser.getUserid();
+        String userName = loginUser.getUsername() == null ? loginUser.getSysUser().getUserName() : loginUser.getUsername();
         loginUser.setToken(token);
         loginUser.setUserid(userId);
         loginUser.setUsername(userName);
         loginUser.setIpaddr(IpUtils.getIpAddr());
-        loginUser.setTenantId(loginUser.getSysUser().getTenantId());
+        if (null != loginUser.getSysUser()) {
+            loginUser.setTenantId(loginUser.getSysUser().getTenantId());
+        }
         refreshToken(loginUser);
 
         // Jwt存储信息

@@ -34,6 +34,7 @@ public class PmsDeviceSqlProvider {
             if (condition.getVendor() != null) {
                 WHERE("vendor = #{vendor}");
             }
+            ORDER_BY("device_id DESC");
 
         }}.toString();
     }

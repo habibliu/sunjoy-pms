@@ -52,4 +52,6 @@ public class RedisKeyConstants {
      * 当前车道上被识别到的车
      */
     public static final String PARK_VEHICLE_IN_LANE = "parking:vehicle-in-lane:";
+
+    public static final String PARK_REGISTED_VEHICLE_SERVER_ORDER_WAITING_FOR_PAYING = "parking:vehicle:registed:service:order:paying:";
 }

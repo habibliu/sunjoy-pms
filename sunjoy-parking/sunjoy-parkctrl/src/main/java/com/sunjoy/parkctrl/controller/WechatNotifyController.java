@@ -1,6 +1,7 @@
 package com.sunjoy.parkctrl.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sunjoy.common.core.utils.StringUtils;
 import com.sunjoy.common.core.utils.bean.BeanUtils;
 import com.sunjoy.common.redis.service.RedisService;
 import com.sunjoy.parkctrl.config.SignatureConfig;
@@ -9,12 +10,13 @@ import com.sunjoy.parkctrl.service.IPmsParkOrderService;
 import com.sunjoy.parkctrl.service.IPmsParkPaymentService;
 import com.sunjoy.parkctrl.service.impl.PmsParkDeviceCommunicator;
 import com.sunjoy.parkctrl.utils.SignUtils;
-import com.sunjoy.parking.entity.PmsParkOrder;
-import com.sunjoy.parking.entity.PmsParkPayment;
 import com.sunjoy.parking.enums.ParkOrderStatusEnum;
 import com.sunjoy.parking.enums.ParkPaymentChannelEnum;
 import com.sunjoy.parking.enums.ParkPaymentMethods;
 import com.sunjoy.parking.enums.ParkPaymentStatusEnum;
+import com.sunjoy.parking.utils.RedisKeyConstants;
+import com.sunjoy.system.api.domain.PmsParkOrder;
+import com.sunjoy.system.api.domain.PmsParkPayment;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
@@ -23,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -64,6 +67,9 @@ public class WechatNotifyController {
     @Autowired
     private SignatureConfig signatureConfig;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
     @PostMapping(value = "/notify", consumes = "application/xml")
     @Transactional
     public ResponseEntity<String> handlePaymentNotify(HttpServletRequest request) {
@@ -83,17 +89,27 @@ public class WechatNotifyController {
             if ("SUCCESS".equals(params.get("result_code"))) {
 
                 String orderId = params.get("out_trade_no");
-
                 //从数据库中取出订单信息
-                log.info("根据订单ID{}取出订单！", orderId);
                 PmsParkOrder parkOrder = pmsParkOrderService.pickParkOrder(Long.parseLong(orderId));
+                log.info("根据订单ID{}取出订单！", orderId);
+                //从缓存中取出对应的token，通过它来定位websocket的主题
+                String cacheKey = RedisKeyConstants.PARK_REGISTED_VEHICLE_SERVER_ORDER_WAITING_FOR_PAYING + orderId;
+                String token = this.redisService.getCacheObject(cacheKey);
 
-                //生成支付凭证，更新
-                createPaymentAndUpdateOrder(parkOrder, params);
-                log.info("订单支付成功！");
-                //TODO  如果全部金额支付完毕，通知通道开闸放行
-                parkDeviceCommunicator.notifyToReleaseVehicle(parkOrder.getTransId());
-                log.info("通知开闸放行成功!");
+                if (!StringUtils.isEmpty(token)) {
+                    //通知页面月租充值订单已支付完成
+                    messagingTemplate.convertAndSend("/topic/payment/month/" + token, "OK");
+                    //删除缓存
+                    this.redisService.deleteObject(cacheKey);
+
+                } else {
+                    //生成支付凭证，更新
+                    createPaymentAndUpdateOrder(parkOrder, params);
+                    log.info("订单支付成功！");
+                    //TODO  如果全部金额支付完毕，通知通道开闸放行
+                    parkDeviceCommunicator.notifyToReleaseVehicle(parkOrder.getTransId());
+                    log.info("通知开闸放行成功!");
+                }
             }
 
             // 4. 返回成功响应

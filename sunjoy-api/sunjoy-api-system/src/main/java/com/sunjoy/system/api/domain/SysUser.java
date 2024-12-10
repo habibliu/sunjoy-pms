@@ -1,5 +1,6 @@
 package com.sunjoy.system.api.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.sunjoy.common.core.annotation.Excel;
 import com.sunjoy.common.core.annotation.Excel.ColumnType;
 import com.sunjoy.common.core.annotation.Excel.Type;
@@ -20,6 +21,7 @@ import java.util.List;
  *
  * @author sunjoy
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SysUser extends BaseEntity {
     private static final long serialVersionUID = 1L;
 

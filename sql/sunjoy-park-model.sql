@@ -337,6 +337,8 @@ create table pms_vehicle_service
 ) engine = innodb
   auto_increment = 1 comment = '车辆服务表';
   
+ ALTER TABLE `pms_vehicle_service` 
+ADD INDEX `IDX_PARK_ID`(`park_id`) USING BTREE;
   
 -- ----------------------------
 -- 12、车辆出入场流水表
@@ -382,30 +384,32 @@ create table pms_park_transaction
 -- ----------------------------
 -- 13、车辆服务订单表
 -- ----------------------------
-create table pms_order
+create table pms_park_order
 (
 	order_id     	bigint(20) 	not null	auto_increment 	comment '订单id',
 	order_type		char(2)		not null 					comment '订单类型:0-临停车收费，1--月租车收费，2--其他',
-	trans_id     	bigint(20) 	not null	 				comment '流水表id',
+	trans_id     	bigint(20) 		 						comment '流水表id，月租费用订单没有流水',
 	tenant_id   	bigint(20)	not null 			   		comment '租户id',
 	opu_id    		bigint(20)	not null 			   		comment '经营单位id',
 	park_id     	bigint(20)	not null 			   		comment '车场id',
+	park_name     	varchar(60)	not null 			   		comment '车场名称',
 	vehicle_id     	bigint(20)	not null 			   		comment '车辆id',
 	license_plate   varchar(10) not null 					comment '车牌号码',
 	service_id      bigint(20)	 							comment '服务id',
+	service_name    varchar(60)	 							comment '收费标准名称',
 	start_time 		datetime  								comment '开始时间',
 	end_time 		datetime  								comment '结束时间',
-	charge_quantity	int(10)									comment '计费量', 
-	charge_unit		varchar(10)								comment '计费单位',
-	amount			decimal(10,2) 							comment '金额',
-	payment_status	char(1)		not null 	default '0'		comment '支付状态:0-待支付 ,1--已支付 ',
-	status      	char(1)     			default '0' 	comment '状态（０--未生效  1--已生效 ,2--失效）',
+	billing_amount	decimal(10,2) 							comment '计费金额',
+	real_amount		decimal(10,2) 							comment '实收金额',
+	free_amount		decimal(10,2) 							comment '扣减金额',
+	order_detail	text									comment '订单明细，就是计费结果',
+	status      	char(1)     			default '0' 	comment '状态（０--未支付  1--支付中  ,2--已支付 ，9--失效）',
     del_flag    	char(1)     			default '0' 	comment '删除标志（0代表存在 2代表删除）',
     create_by   	varchar(64)  							comment '创建者',
     create_time 	datetime 								comment '创建时间',
     update_by   	varchar(64)  							comment '更新者',
     update_time 	datetime 								comment '更新时间',
-	remark          varchar(500)                			comment '备注',
+	remark          text                					comment '备注,用于存储计费结果明细',
     primary key (order_id)
 ) engine = innodb
   auto_increment = 1 comment = '车辆服务订单表';
@@ -443,7 +447,7 @@ create table pms_order_detail
 -- ----------------------------
 -- 15 、车辆服务订单支付表
 -- ----------------------------
-create table pms_payment
+create table pms_park_payment
 (
 	payment_id		bigint(20) 	not null	auto_increment 	comment '支付订单id',
 	order_id     	bigint(20) 	not null	 				comment '订单id',
@@ -451,18 +455,16 @@ create table pms_payment
 	tenant_id   	bigint(20)	not null 			   		comment '租户id',
 	opu_id    		bigint(20)	not null 			   		comment '经营单位id',
 	park_id     	bigint(20)	not null 			   		comment '车场id',
-	vehicle_id     	bigint(20)	not null 			   		comment '车辆id',
 	license_plate   varchar(10) not null 					comment '车牌号码',
 	service_id      bigint(20)	 							comment '服务id',
 	order_amount	decimal(10,2) 							comment '订单金额',
 	payment_amount 	decimal(10,2) 							comment '支付金额',
 	discount_amount	decimal(10,2) 							comment '优惠金额',
 	payment_methods varchar(10) not null 					comment '支付方式:CASH-现金, WECHAT, ALIPAY',
-	payment_channel varchar(10) not null 					comment '支付渠道',
-	payment_status  varchar(10)								comment 'PENDING, COMPLETED, FAILED, REFUNDED',
+	payment_channel varchar(10) not null 					comment '支付渠道:WECHAT, ALIPAY',
 	payment_time	datetime								comment '支付时间',
 	transaction_id 	varchar(60)								comment '第三方支付平台交易id',
-	status      	char(1)     			default '0' 	comment '状态（０--未生效 1--已生效）',
+	status      	char(1)     			default '0' 	comment '状态（０--PENDING 1--COMPLETED,2--REFUNDED,9--FAILED,',
     del_flag    	char(1)     			default '0' 	comment '删除标志（0代表存在 1代表删除）',
     create_by   	varchar(64)  							comment '创建者',
     create_time 	datetime 								comment '创建时间',
@@ -481,7 +483,7 @@ create table pms_payment
 -- ----------------------------
 -- 17 、折扣表
 -- ----------------------------
-create table pms_discount
+create table pms_park_discount
 (  
 	discount_id 	bigint(20) 		not null	auto_increment 	comment '折扣id',
 	payment_id		bigint(20) 	 								comment '支付订单id',

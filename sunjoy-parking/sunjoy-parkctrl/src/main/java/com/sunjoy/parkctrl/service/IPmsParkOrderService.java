@@ -1,6 +1,6 @@
 package com.sunjoy.parkctrl.service;
 
-import com.sunjoy.parking.entity.PmsParkOrder;
+import com.sunjoy.system.api.domain.PmsParkOrder;
 
 /**
  * Class description

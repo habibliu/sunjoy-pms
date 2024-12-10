@@ -44,6 +44,7 @@ public class PmsParkSqlProvider {
             if (condition.getPhone() != null) {
                 WHERE("phone = #{phone}");
             }
+            ORDER_BY("park_id DESC");
 
         }}.toString();
     }

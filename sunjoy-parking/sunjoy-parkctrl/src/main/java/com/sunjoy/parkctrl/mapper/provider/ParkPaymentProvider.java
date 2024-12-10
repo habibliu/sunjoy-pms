@@ -1,6 +1,6 @@
 package com.sunjoy.parkctrl.mapper.provider;
 
-import com.sunjoy.parking.entity.PmsParkPayment;
+import com.sunjoy.system.api.domain.PmsParkPayment;
 import org.apache.ibatis.jdbc.SQL;
 
 /**

@@ -7,7 +7,7 @@
         <span>特殊时段</span>
         <el-divider direction="vertical"></el-divider>
       </div>
-      <el-row :gutter="10" class="mb8">
+      <el-row :gutter="10" class="mb8" v-show ="!disabled">
         <el-col :span="1.5">
           <el-button
             type="primary"
@@ -79,6 +79,7 @@
           align="center"
           width="100"
           class-name="small-padding fixed-width"
+          v-if = "!disabled"
         >
           <template slot-scope="scope" v-if="scope.row.LaneId !== 1">
             <el-button
@@ -136,7 +137,7 @@
                       placeholder="请输入单价"
                       maxlength="11"
                       style="width: 80px"
-                    /> 元 / 
+                    /> 元 /
                     <el-input
                       v-model="form.priceQuantity"
                       placeholder="请输入计费量"
@@ -157,7 +158,7 @@
                   </el-form-item>
           </el-col>
         </el-row>
-       
+
         <el-row>
           <el-col :span="24">
             <el-form-item label="备注">
@@ -175,7 +176,7 @@
         <el-button @click="cancelForm">取 消</el-button>
       </div>
     </el-dialog>
-    
+
   </div>
 </template>
 <script>
@@ -183,18 +184,17 @@ import {
   addDetail,
   updateDetail,
   deleteDetail,
-  getDetailList,
-  
+  getDetailList
 } from "@/api/parking/price";
-import {formatDateTime} from '@/utils/formatters'
+import { formatDateTime } from '@/utils/formatters'
 
 export default {
   name: "PriceDetail",
   dicts: [
     "sys_yes_no",
-    "pms_price_unit",
+    "pms_price_unit"
   ],
-  
+
   props: {
     opuId: {
       type: Number,
@@ -206,6 +206,11 @@ export default {
       required: false,
       default: Math.NaN,
     },
+    disabled: {
+      type: Boolean,
+      required: false,
+      default: false
+    }
   },
   data() {
     return {
@@ -274,7 +279,7 @@ export default {
       this.single = selection.length != 1;
       this.multiple = !selection.length;
     },
-    
+
     handleAddLane() {
       this.reset();
       this.open = true;
@@ -342,14 +347,14 @@ export default {
       (this.selectedLane = []),
         //通道ID列表，多选
         (this.detailIds = []),
-        
+
         this.resetForm("form");
     },
 
     // 取消按钮
     cancelForm() {
       this.open = false;
-      
+
       this.reset();
     },
 
@@ -382,7 +387,7 @@ export default {
             //如果已经有车场ID可以绑定，就直接提效到后台
             if (this.priceId) {
               //提交到后台再返回
-          
+
               priceDetail.priceId = this.priceId;
               priceDetail.timeStart = formatDateTime(this.form.timeStart,'HH:mm');
               priceDetail.timeEnd = formatDateTime(this.form.timeEnd,'HH:mm');
@@ -402,8 +407,8 @@ export default {
       });
     },
 
-   
-    
+
+
     //---格式化代码开始
     timeRangFormatter(row){
         if(row.timeStart.length==5){
@@ -414,17 +419,17 @@ export default {
     priceFormatter(row){
         return row.price+" 元 / "+row.priceQuantity+" "+this.selectDictLabel(this.dict.type.pms_price_unit, row.priceUnit);
     }
-    
+
   },
   created(){
-   
-  
+
+
   },
   watch: {
     priceId: {
       handler(newVal, oldVal) {
-        
-        
+
+
         if (Number.isNaN(newVal) || newVal == undefined) {
           this.laneIdList = [];
 
